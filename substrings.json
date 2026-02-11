@@ -1,0 +1,2377 @@
+{
+  "tho": [
+    "author",
+    "though"
+  ],
+  "hou": [
+    "should",
+    "though"
+  ],
+  "oug": [
+    "enough",
+    "though"
+  ],
+  "ugh": [
+    "enough",
+    "though"
+  ],
+  "pub": [
+    "public"
+  ],
+  "ubl": [
+    "public"
+  ],
+  "bli": [
+    "public"
+  ],
+  "lic": [
+    "policy",
+    "public"
+  ],
+  "ene": [
+    "energy",
+    "general"
+  ],
+  "ner": [
+    "corner",
+    "dinner",
+    "energy",
+    "general"
+  ],
+  "erg": [
+    "energy"
+  ],
+  "rgy": [
+    "energy"
+  ],
+  "wea": [
+    "weather"
+  ],
+  "eat": [
+    "create",
+    "treat",
+    "weather"
+  ],
+  "ath": [
+    "father",
+    "weather"
+  ],
+  "the": [
+    "father",
+    "theory",
+    "weather"
+  ],
+  "her": [
+    "father",
+    "teacher",
+    "weather"
+  ],
+  "fin": [
+    "finish"
+  ],
+  "ini": [
+    "finish"
+  ],
+  "nis": [
+    "finish"
+  ],
+  "ish": [
+    "finish"
+  ],
+  "cen": [
+    "center"
+  ],
+  "ent": [
+    "center",
+    "comment",
+    "moment",
+    "parent"
+  ],
+  "nte": [
+    "center",
+    "hunter",
+    "internet",
+    "lantern",
+    "winter"
+  ],
+  "ter": [
+    "after",
+    "better",
+    "butter",
+    "center",
+    "hunter",
+    "internet",
+    "lantern",
+    "mystery",
+    "winter"
+  ],
+  "jou": [
+    "journey"
+  ],
+  "our": [
+    "course",
+    "journey"
+  ],
+  "urn": [
+    "journey",
+    "return"
+  ],
+  "rne": [
+    "corner",
+    "internet",
+    "journey"
+  ],
+  "ney": [
+    "journey"
+  ],
+  "fam": [
+    "family"
+  ],
+  "ami": [
+    "family",
+    "gaming",
+    "tsunami"
+  ],
+  "mil": [
+    "family"
+  ],
+  "ily": [
+    "family"
+  ],
+  "dan": [
+    "danger"
+  ],
+  "ang": [
+    "change",
+    "danger",
+    "manga",
+    "orange"
+  ],
+  "nge": [
+    "change",
+    "danger",
+    "orange"
+  ],
+  "ger": [
+    "danger"
+  ],
+  "sin": [
+    "single"
+  ],
+  "ing": [
+    "during",
+    "evening",
+    "gaming",
+    "single",
+    "spring"
+  ],
+  "ngl": [
+    "jungle",
+    "single"
+  ],
+  "gle": [
+    "jungle",
+    "single"
+  ],
+  "baz": [
+    "bazaar"
+  ],
+  "aza": [
+    "bazaar"
+  ],
+  "zaa": [
+    "bazaar"
+  ],
+  "aar": [
+    "bazaar"
+  ],
+  "sus": [
+    "sushi"
+  ],
+  "ush": [
+    "sushi"
+  ],
+  "shi": [
+    "sushi"
+  ],
+  "vis": [
+    "vision"
+  ],
+  "isi": [
+    "vision"
+  ],
+  "sio": [
+    "vision"
+  ],
+  "ion": [
+    "action",
+    "nation",
+    "option",
+    "region",
+    "vision"
+  ],
+  "ins": [
+    "against",
+    "inside"
+  ],
+  "nsi": [
+    "inside"
+  ],
+  "sid": [
+    "inside"
+  ],
+  "ide": [
+    "decide",
+    "inside"
+  ],
+  "act": [
+    "action",
+    "active",
+    "impact"
+  ],
+  "cti": [
+    "action",
+    "active"
+  ],
+  "tio": [
+    "action",
+    "nation",
+    "option"
+  ],
+  "mac": [
+    "machine"
+  ],
+  "ach": [
+    "machine",
+    "teacher",
+    "yacht"
+  ],
+  "chi": [
+    "machine"
+  ],
+  "hin": [
+    "behind",
+    "machine"
+  ],
+  "ine": [
+    "engine",
+    "machine",
+    "offline",
+    "online"
+  ],
+  "sen": [
+    "senior"
+  ],
+  "eni": [
+    "evening",
+    "senior"
+  ],
+  "nio": [
+    "junior",
+    "senior"
+  ],
+  "ior": [
+    "junior",
+    "senior"
+  ],
+  "wal": [
+    "wallet"
+  ],
+  "all": [
+    "ballet",
+    "wallet"
+  ],
+  "lle": [
+    "ballet",
+    "wallet"
+  ],
+  "let": [
+    "ballet",
+    "wallet"
+  ],
+  "isl": [
+    "island"
+  ],
+  "sla": [
+    "island"
+  ],
+  "lan": [
+    "island",
+    "lantern",
+    "planet"
+  ],
+  "and": [
+    "demand",
+    "handle",
+    "island",
+    "sandwich"
+  ],
+  "not": [
+    "cannot",
+    "notebook",
+    "notice"
+  ],
+  "oti": [
+    "notice"
+  ],
+  "tic": [
+    "notice",
+    "ticket"
+  ],
+  "ice": [
+    "choice",
+    "notice",
+    "office"
+  ],
+  "exp": [
+    "expect"
+  ],
+  "xpe": [
+    "expect"
+  ],
+  "pec": [
+    "expect"
+  ],
+  "ect": [
+    "effect",
+    "expect",
+    "object"
+  ],
+  "gal": [
+    "galaxy"
+  ],
+  "ala": [
+    "galaxy"
+  ],
+  "lax": [
+    "galaxy"
+  ],
+  "axy": [
+    "galaxy"
+  ],
+  "dur": [
+    "during"
+  ],
+  "uri": [
+    "during"
+  ],
+  "rin": [
+    "during",
+    "spring"
+  ],
+  "jun": [
+    "jungle",
+    "junior"
+  ],
+  "uni": [
+    "junior"
+  ],
+  "bat": [
+    "battle"
+  ],
+  "att": [
+    "attack",
+    "battle"
+  ],
+  "ttl": [
+    "battle",
+    "bottle",
+    "little"
+  ],
+  "tle": [
+    "battle",
+    "bottle",
+    "castle",
+    "little"
+  ],
+  "aga": [
+    "again",
+    "against"
+  ],
+  "gai": [
+    "again",
+    "against"
+  ],
+  "ain": [
+    "again",
+    "against",
+    "rainbow",
+    "remain"
+  ],
+  "sum": [
+    "summer"
+  ],
+  "umm": [
+    "summer"
+  ],
+  "mme": [
+    "comment",
+    "summer"
+  ],
+  "mer": [
+    "camera",
+    "summer"
+  ],
+  "cha": [
+    "chance",
+    "change",
+    "channel",
+    "charge"
+  ],
+  "han": [
+    "chance",
+    "change",
+    "channel",
+    "handle"
+  ],
+  "ann": [
+    "cannot",
+    "channel"
+  ],
+  "nne": [
+    "channel",
+    "dinner"
+  ],
+  "nel": [
+    "channel"
+  ],
+  "nat": [
+    "nation",
+    "nature"
+  ],
+  "atu": [
+    "nature"
+  ],
+  "tur": [
+    "culture",
+    "future",
+    "nature",
+    "picture",
+    "return"
+  ],
+  "ure": [
+    "culture",
+    "figure",
+    "future",
+    "nature",
+    "picture"
+  ],
+  "tta": [
+    "attack"
+  ],
+  "tac": [
+    "attack"
+  ],
+  "ack": [
+    "attack",
+    "jacket",
+    "package"
+  ],
+  "gar": [
+    "garden"
+  ],
+  "ard": [
+    "garden",
+    "toward",
+    "wizard"
+  ],
+  "rde": [
+    "garden"
+  ],
+  "den": [
+    "garden"
+  ],
+  "his": [
+    "history"
+  ],
+  "ist": [
+    "history",
+    "listen"
+  ],
+  "sto": [
+    "history"
+  ],
+  "tor": [
+    "doctor",
+    "history",
+    "victory"
+  ],
+  "ory": [
+    "history",
+    "memory",
+    "theory",
+    "victory"
+  ],
+  "abo": [
+    "about",
+    "above"
+  ],
+  "bou": [
+    "about"
+  ],
+  "out": [
+    "about"
+  ],
+  "gen": [
+    "general",
+    "genre",
+    "legend"
+  ],
+  "enr": [
+    "genre"
+  ],
+  "nre": [
+    "genre"
+  ],
+  "kit": [
+    "kitchen"
+  ],
+  "itc": [
+    "kitchen"
+  ],
+  "tch": [
+    "kitchen"
+  ],
+  "che": [
+    "kitchen",
+    "teacher"
+  ],
+  "hen": [
+    "kitchen"
+  ],
+  "per": [
+    "period",
+    "person"
+  ],
+  "ers": [
+    "person"
+  ],
+  "rso": [
+    "person"
+  ],
+  "son": [
+    "person",
+    "reason",
+    "season"
+  ],
+  "soc": [
+    "social"
+  ],
+  "oci": [
+    "social"
+  ],
+  "cia": [
+    "social"
+  ],
+  "ial": [
+    "social"
+  ],
+  "eno": [
+    "enough"
+  ],
+  "nou": [
+    "enough"
+  ],
+  "acr": [
+    "across"
+  ],
+  "cro": [
+    "across"
+  ],
+  "ros": [
+    "across"
+  ],
+  "oss": [
+    "across"
+  ],
+  "man": [
+    "demand",
+    "manga"
+  ],
+  "nga": [
+    "manga"
+  ],
+  "sch": [
+    "school"
+  ],
+  "cho": [
+    "choice",
+    "choose",
+    "school"
+  ],
+  "hoo": [
+    "choose",
+    "school"
+  ],
+  "ool": [
+    "school"
+  ],
+  "cam": [
+    "camera"
+  ],
+  "ame": [
+    "camera",
+    "ramen"
+  ],
+  "era": [
+    "camera",
+    "general"
+  ],
+  "umb": [
+    "umbrella"
+  ],
+  "mbr": [
+    "umbrella"
+  ],
+  "bre": [
+    "umbrella"
+  ],
+  "rel": [
+    "umbrella"
+  ],
+  "ell": [
+    "fellow",
+    "umbrella",
+    "yellow"
+  ],
+  "lla": [
+    "dollar",
+    "umbrella"
+  ],
+  "dre": [
+    "dream"
+  ],
+  "rea": [
+    "already",
+    "create",
+    "dream",
+    "reason",
+    "stream",
+    "treat"
+  ],
+  "eam": [
+    "dream",
+    "stream"
+  ],
+  "mos": [
+    "almost",
+    "mosque"
+  ],
+  "osq": [
+    "mosque"
+  ],
+  "squ": [
+    "mosque"
+  ],
+  "que": [
+    "mosque",
+    "quest"
+  ],
+  "eas": [
+    "please",
+    "reason",
+    "season"
+  ],
+  "aso": [
+    "reason",
+    "season"
+  ],
+  "reg": [
+    "region"
+  ],
+  "egi": [
+    "region"
+  ],
+  "gio": [
+    "region"
+  ],
+  "fie": [
+    "fiesta"
+  ],
+  "ies": [
+    "fiesta",
+    "series"
+  ],
+  "est": [
+    "estate",
+    "fiesta",
+    "forest",
+    "honest",
+    "quest"
+  ],
+  "sta": [
+    "estate",
+    "fiesta",
+    "pasta"
+  ],
+  "ram": [
+    "ramen"
+  ],
+  "men": [
+    "comment",
+    "moment",
+    "ramen"
+  ],
+  "ung": [
+    "jungle"
+  ],
+  "bea": [
+    "beauty"
+  ],
+  "eau": [
+    "beauty"
+  ],
+  "aut": [
+    "author",
+    "beauty"
+  ],
+  "uty": [
+    "beauty"
+  ],
+  "san": [
+    "sandwich"
+  ],
+  "ndw": [
+    "sandwich"
+  ],
+  "dwi": [
+    "sandwich"
+  ],
+  "wic": [
+    "sandwich"
+  ],
+  "ich": [
+    "sandwich"
+  ],
+  "sec": [
+    "second",
+    "secret"
+  ],
+  "eco": [
+    "record",
+    "second"
+  ],
+  "con": [
+    "console",
+    "second"
+  ],
+  "ond": [
+    "beyond",
+    "diamond",
+    "second",
+    "wonder"
+  ],
+  "hel": [
+    "helmet"
+  ],
+  "elm": [
+    "helmet"
+  ],
+  "lme": [
+    "helmet"
+  ],
+  "met": [
+    "helmet"
+  ],
+  "pia": [
+    "piano"
+  ],
+  "ian": [
+    "piano"
+  ],
+  "ano": [
+    "piano"
+  ],
+  "zom": [
+    "zombie"
+  ],
+  "omb": [
+    "zombie"
+  ],
+  "mbi": [
+    "zombie"
+  ],
+  "bie": [
+    "zombie"
+  ],
+  "lit": [
+    "little"
+  ],
+  "itt": [
+    "little"
+  ],
+  "saf": [
+    "safari"
+  ],
+  "afa": [
+    "safari"
+  ],
+  "far": [
+    "safari"
+  ],
+  "ari": [
+    "safari"
+  ],
+  "uth": [
+    "author"
+  ],
+  "hor": [
+    "author"
+  ],
+  "sys": [
+    "system"
+  ],
+  "yst": [
+    "mystery",
+    "system"
+  ],
+  "ste": [
+    "listen",
+    "mystery",
+    "system"
+  ],
+  "tem": [
+    "system"
+  ],
+  "ple": [
+    "example",
+    "people",
+    "please",
+    "simple"
+  ],
+  "lea": [
+    "leader",
+    "please"
+  ],
+  "ase": [
+    "please"
+  ],
+  "can": [
+    "cancel",
+    "cannot"
+  ],
+  "anc": [
+    "branch",
+    "cancel",
+    "chance"
+  ],
+  "nce": [
+    "cancel",
+    "chance"
+  ],
+  "cel": [
+    "cancel"
+  ],
+  "vol": [
+    "volume"
+  ],
+  "olu": [
+    "volume"
+  ],
+  "lum": [
+    "volume"
+  ],
+  "ume": [
+    "volume"
+  ],
+  "dis": [
+    "discord"
+  ],
+  "isc": [
+    "discord"
+  ],
+  "sco": [
+    "discord"
+  ],
+  "cor": [
+    "corner",
+    "discord",
+    "record"
+  ],
+  "ord": [
+    "discord",
+    "record"
+  ],
+  "com": [
+    "comment",
+    "common",
+    "income"
+  ],
+  "omm": [
+    "comment",
+    "common"
+  ],
+  "mmo": [
+    "common"
+  ],
+  "mon": [
+    "common",
+    "diamond",
+    "kimono"
+  ],
+  "cre": [
+    "create",
+    "secret"
+  ],
+  "ate": [
+    "create",
+    "estate",
+    "karate",
+    "pirate",
+    "update"
+  ],
+  "har": [
+    "charge"
+  ],
+  "arg": [
+    "charge"
+  ],
+  "rge": [
+    "charge"
+  ],
+  "str": [
+    "stream",
+    "street",
+    "strong"
+  ],
+  "tre": [
+    "stream",
+    "street",
+    "treat"
+  ],
+  "ree": [
+    "career",
+    "degree",
+    "street"
+  ],
+  "eet": [
+    "street"
+  ],
+  "veh": [
+    "vehicle"
+  ],
+  "ehi": [
+    "behind",
+    "vehicle"
+  ],
+  "hic": [
+    "vehicle"
+  ],
+  "icl": [
+    "vehicle"
+  ],
+  "cle": [
+    "bicycle",
+    "circle",
+    "vehicle"
+  ],
+  "hon": [
+    "honest",
+    "telephone"
+  ],
+  "one": [
+    "honest",
+    "telephone"
+  ],
+  "nes": [
+    "honest"
+  ],
+  "nor": [
+    "normal"
+  ],
+  "orm": [
+    "normal"
+  ],
+  "rma": [
+    "normal"
+  ],
+  "mal": [
+    "animal",
+    "normal"
+  ],
+  "off": [
+    "coffee",
+    "office",
+    "offline"
+  ],
+  "ffi": [
+    "office"
+  ],
+  "fic": [
+    "office"
+  ],
+  "des": [
+    "design"
+  ],
+  "esi": [
+    "design"
+  ],
+  "sig": [
+    "design"
+  ],
+  "ign": [
+    "design"
+  ],
+  "deg": [
+    "degree"
+  ],
+  "egr": [
+    "degree"
+  ],
+  "gre": [
+    "degree"
+  ],
+  "kar": [
+    "karaoke",
+    "karate"
+  ],
+  "ara": [
+    "karaoke",
+    "karate"
+  ],
+  "rao": [
+    "karaoke"
+  ],
+  "aok": [
+    "karaoke"
+  ],
+  "oke": [
+    "karaoke"
+  ],
+  "rev": [
+    "reveal"
+  ],
+  "eve": [
+    "evening",
+    "reveal"
+  ],
+  "vea": [
+    "reveal"
+  ],
+  "eal": [
+    "health",
+    "reveal"
+  ],
+  "bey": [
+    "beyond"
+  ],
+  "eyo": [
+    "beyond"
+  ],
+  "yon": [
+    "beyond"
+  ],
+  "sim": [
+    "simple"
+  ],
+  "imp": [
+    "impact",
+    "improve",
+    "simple"
+  ],
+  "mpl": [
+    "example",
+    "simple"
+  ],
+  "tsu": [
+    "tsunami"
+  ],
+  "sun": [
+    "tsunami"
+  ],
+  "una": [
+    "tsunami",
+    "unable"
+  ],
+  "nam": [
+    "tsunami"
+  ],
+  "ani": [
+    "animal",
+    "anime"
+  ],
+  "nim": [
+    "animal",
+    "anime"
+  ],
+  "ime": [
+    "anime"
+  ],
+  "mid": [
+    "middle"
+  ],
+  "idd": [
+    "middle"
+  ],
+  "ddl": [
+    "middle"
+  ],
+  "dle": [
+    "handle",
+    "middle"
+  ],
+  "ick": [
+    "ticket"
+  ],
+  "cke": [
+    "jacket",
+    "rocket",
+    "ticket"
+  ],
+  "ket": [
+    "jacket",
+    "market",
+    "rocket",
+    "ticket"
+  ],
+  "caf": [
+    "cafe"
+  ],
+  "afe": [
+    "cafe"
+  ],
+  "int": [
+    "internet",
+    "winter"
+  ],
+  "ern": [
+    "internet",
+    "lantern"
+  ],
+  "net": [
+    "internet",
+    "network",
+    "planet"
+  ],
+  "spe": [
+    "speech"
+  ],
+  "pee": [
+    "speech"
+  ],
+  "eec": [
+    "speech"
+  ],
+  "ech": [
+    "speech"
+  ],
+  "alo": [
+    "along"
+  ],
+  "lon": [
+    "along"
+  ],
+  "ong": [
+    "along",
+    "strong"
+  ],
+  "vir": [
+    "virtual"
+  ],
+  "irt": [
+    "virtual"
+  ],
+  "rtu": [
+    "virtual"
+  ],
+  "tua": [
+    "virtual"
+  ],
+  "ual": [
+    "virtual"
+  ],
+  "but": [
+    "butter"
+  ],
+  "utt": [
+    "butter"
+  ],
+  "tte": [
+    "better",
+    "butter"
+  ],
+  "hea": [
+    "health"
+  ],
+  "alt": [
+    "health"
+  ],
+  "lth": [
+    "health"
+  ],
+  "pas": [
+    "pasta"
+  ],
+  "ast": [
+    "castle",
+    "pasta"
+  ],
+  "inc": [
+    "include",
+    "income"
+  ],
+  "ncl": [
+    "include"
+  ],
+  "clu": [
+    "include"
+  ],
+  "lud": [
+    "include"
+  ],
+  "ude": [
+    "include"
+  ],
+  "dec": [
+    "decide"
+  ],
+  "eci": [
+    "decide"
+  ],
+  "cid": [
+    "decide"
+  ],
+  "mpr": [
+    "improve"
+  ],
+  "pro": [
+    "improve",
+    "profile"
+  ],
+  "rov": [
+    "improve"
+  ],
+  "ove": [
+    "above",
+    "improve"
+  ],
+  "mar": [
+    "market"
+  ],
+  "ark": [
+    "market"
+  ],
+  "rke": [
+    "market"
+  ],
+  "alm": [
+    "almost"
+  ],
+  "lmo": [
+    "almost"
+  ],
+  "ost": [
+    "almost"
+  ],
+  "thu": [
+    "thunder"
+  ],
+  "hun": [
+    "hunter",
+    "thunder"
+  ],
+  "und": [
+    "around",
+    "ground",
+    "thunder"
+  ],
+  "nde": [
+    "thunder",
+    "wonder"
+  ],
+  "der": [
+    "leader",
+    "thunder",
+    "wonder"
+  ],
+  "cir": [
+    "circle"
+  ],
+  "irc": [
+    "circle"
+  ],
+  "rcl": [
+    "circle"
+  ],
+  "fat": [
+    "father"
+  ],
+  "vic": [
+    "victory"
+  ],
+  "ict": [
+    "picture",
+    "victory"
+  ],
+  "cto": [
+    "doctor",
+    "victory"
+  ],
+  "opt": [
+    "option"
+  ],
+  "pti": [
+    "option"
+  ],
+  "mob": [
+    "mobile"
+  ],
+  "obi": [
+    "mobile"
+  ],
+  "bil": [
+    "mobile"
+  ],
+  "ile": [
+    "mobile",
+    "profile"
+  ],
+  "spr": [
+    "spring"
+  ],
+  "pri": [
+    "spring"
+  ],
+  "acc": [
+    "accept"
+  ],
+  "cce": [
+    "accept"
+  ],
+  "cep": [
+    "accept"
+  ],
+  "ept": [
+    "accept"
+  ],
+  "obj": [
+    "object"
+  ],
+  "bje": [
+    "object"
+  ],
+  "jec": [
+    "object"
+  ],
+  "peo": [
+    "people"
+  ],
+  "eop": [
+    "people"
+  ],
+  "opl": [
+    "people"
+  ],
+  "pol": [
+    "policy"
+  ],
+  "oli": [
+    "holiday",
+    "policy"
+  ],
+  "icy": [
+    "bicycle",
+    "policy"
+  ],
+  "tiv": [
+    "active"
+  ],
+  "ive": [
+    "active"
+  ],
+  "cou": [
+    "course"
+  ],
+  "urs": [
+    "course"
+  ],
+  "rse": [
+    "course"
+  ],
+  "esc": [
+    "escape"
+  ],
+  "sca": [
+    "escape"
+  ],
+  "cap": [
+    "escape"
+  ],
+  "ape": [
+    "escape"
+  ],
+  "won": [
+    "wonder"
+  ],
+  "roc": [
+    "rocket"
+  ],
+  "ock": [
+    "rocket"
+  ],
+  "piz": [
+    "pizza"
+  ],
+  "izz": [
+    "pizza"
+  ],
+  "zza": [
+    "pizza"
+  ],
+  "rob": [
+    "robot"
+  ],
+  "obo": [
+    "robot"
+  ],
+  "bot": [
+    "bottle",
+    "robot"
+  ],
+  "ead": [
+    "already",
+    "leader"
+  ],
+  "ade": [
+    "leader"
+  ],
+  "sea": [
+    "season"
+  ],
+  "eff": [
+    "effect",
+    "effort"
+  ],
+  "ffe": [
+    "coffee",
+    "effect"
+  ],
+  "fec": [
+    "effect"
+  ],
+  "kim": [
+    "kimono"
+  ],
+  "imo": [
+    "kimono"
+  ],
+  "ono": [
+    "kimono"
+  ],
+  "cas": [
+    "castle"
+  ],
+  "stl": [
+    "castle"
+  ],
+  "bov": [
+    "above"
+  ],
+  "pre": [
+    "prefer",
+    "pretty"
+  ],
+  "ref": [
+    "prefer"
+  ],
+  "efe": [
+    "prefer"
+  ],
+  "fer": [
+    "prefer"
+  ],
+  "tea": [
+    "teacher"
+  ],
+  "eac": [
+    "teacher"
+  ],
+  "ant": [
+    "lantern"
+  ],
+  "gro": [
+    "ground",
+    "growth"
+  ],
+  "row": [
+    "browser",
+    "growth"
+  ],
+  "owt": [
+    "growth"
+  ],
+  "wth": [
+    "growth"
+  ],
+  "mom": [
+    "moment"
+  ],
+  "ome": [
+    "income",
+    "moment"
+  ],
+  "tel": [
+    "telephone"
+  ],
+  "ele": [
+    "telephone"
+  ],
+  "lep": [
+    "telephone"
+  ],
+  "eph": [
+    "telephone"
+  ],
+  "pho": [
+    "telephone"
+  ],
+  "ora": [
+    "orange"
+  ],
+  "ran": [
+    "branch",
+    "orange"
+  ],
+  "nno": [
+    "cannot"
+  ],
+  "aft": [
+    "after"
+  ],
+  "fte": [
+    "after"
+  ],
+  "bri": [
+    "bright",
+    "fabric"
+  ],
+  "rig": [
+    "bright"
+  ],
+  "igh": [
+    "bright"
+  ],
+  "ght": [
+    "bright"
+  ],
+  "alw": [
+    "always"
+  ],
+  "lwa": [
+    "always"
+  ],
+  "way": [
+    "always"
+  ],
+  "ays": [
+    "always"
+  ],
+  "ser": [
+    "browser",
+    "series",
+    "server"
+  ],
+  "eri": [
+    "period",
+    "series"
+  ],
+  "rie": [
+    "series"
+  ],
+  "nab": [
+    "unable"
+  ],
+  "abl": [
+    "able",
+    "unable"
+  ],
+  "ble": [
+    "able",
+    "unable"
+  ],
+  "lis": [
+    "listen"
+  ],
+  "ten": [
+    "listen"
+  ],
+  "ott": [
+    "bottle"
+  ],
+  "rec": [
+    "record"
+  ],
+  "fab": [
+    "fabric"
+  ],
+  "abr": [
+    "fabric"
+  ],
+  "ric": [
+    "fabric"
+  ],
+  "spi": [
+    "spirit"
+  ],
+  "pir": [
+    "pirate",
+    "spirit"
+  ],
+  "iri": [
+    "spirit"
+  ],
+  "rit": [
+    "spirit"
+  ],
+  "ima": [
+    "animal"
+  ],
+  "ndl": [
+    "handle"
+  ],
+  "aro": [
+    "around"
+  ],
+  "rou": [
+    "around",
+    "ground"
+  ],
+  "oun": [
+    "around",
+    "ground"
+  ],
+  "bef": [
+    "before"
+  ],
+  "efo": [
+    "before"
+  ],
+  "for": [
+    "before",
+    "effort",
+    "forest"
+  ],
+  "ore": [
+    "before",
+    "forest"
+  ],
+  "sho": [
+    "should"
+  ],
+  "oul": [
+    "should"
+  ],
+  "uld": [
+    "should"
+  ],
+  "ote": [
+    "notebook"
+  ],
+  "teb": [
+    "notebook"
+  ],
+  "ebo": [
+    "notebook"
+  ],
+  "boo": [
+    "notebook"
+  ],
+  "ook": [
+    "notebook"
+  ],
+  "ven": [
+    "evening"
+  ],
+  "nin": [
+    "evening"
+  ],
+  "gam": [
+    "gaming"
+  ],
+  "min": [
+    "gaming"
+  ],
+  "jac": [
+    "jacket"
+  ],
+  "app": [
+    "appear"
+  ],
+  "ppe": [
+    "appear"
+  ],
+  "pea": [
+    "appear"
+  ],
+  "ear": [
+    "appear",
+    "early"
+  ],
+  "heo": [
+    "theory"
+  ],
+  "eor": [
+    "theory"
+  ],
+  "hoi": [
+    "choice"
+  ],
+  "oic": [
+    "choice"
+  ],
+  "bra": [
+    "branch"
+  ],
+  "nch": [
+    "branch"
+  ],
+  "etw": [
+    "between",
+    "network"
+  ],
+  "two": [
+    "network"
+  ],
+  "wor": [
+    "network"
+  ],
+  "ork": [
+    "network"
+  ],
+  "din": [
+    "dinner"
+  ],
+  "inn": [
+    "dinner"
+  ],
+  "mem": [
+    "member",
+    "memory"
+  ],
+  "emb": [
+    "member"
+  ],
+  "mbe": [
+    "member"
+  ],
+  "ber": [
+    "member"
+  ],
+  "bro": [
+    "browser"
+  ],
+  "ows": [
+    "browser"
+  ],
+  "wse": [
+    "browser"
+  ],
+  "bic": [
+    "bicycle"
+  ],
+  "cyc": [
+    "bicycle"
+  ],
+  "ycl": [
+    "bicycle"
+  ],
+  "hol": [
+    "holiday"
+  ],
+  "lid": [
+    "holiday"
+  ],
+  "ida": [
+    "holiday"
+  ],
+  "day": [
+    "holiday"
+  ],
+  "exa": [
+    "example"
+  ],
+  "xam": [
+    "example"
+  ],
+  "amp": [
+    "example"
+  ],
+  "bal": [
+    "ballet"
+  ],
+  "bet": [
+    "better",
+    "between"
+  ],
+  "ett": [
+    "better",
+    "pretty"
+  ],
+  "ati": [
+    "nation"
+  ],
+  "orn": [
+    "corner"
+  ],
+  "use": [
+    "useful"
+  ],
+  "sef": [
+    "useful"
+  ],
+  "efu": [
+    "useful"
+  ],
+  "ful": [
+    "useful"
+  ],
+  "tra": [
+    "travel"
+  ],
+  "rav": [
+    "travel"
+  ],
+  "ave": [
+    "travel"
+  ],
+  "vel": [
+    "travel"
+  ],
+  "ans": [
+    "answer"
+  ],
+  "nsw": [
+    "answer"
+  ],
+  "swe": [
+    "answer"
+  ],
+  "wer": [
+    "answer",
+    "flower"
+  ],
+  "dia": [
+    "diamond"
+  ],
+  "iam": [
+    "diamond"
+  ],
+  "amo": [
+    "diamond"
+  ],
+  "leg": [
+    "legend"
+  ],
+  "ege": [
+    "legend"
+  ],
+  "end": [
+    "legend"
+  ],
+  "pic": [
+    "picture"
+  ],
+  "ctu": [
+    "picture"
+  ],
+  "fel": [
+    "fellow"
+  ],
+  "llo": [
+    "fellow",
+    "follow",
+    "yellow"
+  ],
+  "low": [
+    "fellow",
+    "flower",
+    "follow",
+    "yellow"
+  ],
+  "emo": [
+    "memory"
+  ],
+  "mor": [
+    "memory"
+  ],
+  "upd": [
+    "update"
+  ],
+  "pda": [
+    "update"
+  ],
+  "dat": [
+    "update"
+  ],
+  "cof": [
+    "coffee"
+  ],
+  "fee": [
+    "coffee"
+  ],
+  "twe": [
+    "between"
+  ],
+  "wee": [
+    "between"
+  ],
+  "een": [
+    "between"
+  ],
+  "pla": [
+    "place",
+    "planet",
+    "player"
+  ],
+  "ane": [
+    "planet"
+  ],
+  "beh": [
+    "behind"
+  ],
+  "ind": [
+    "behind"
+  ],
+  "ira": [
+    "pirate"
+  ],
+  "rat": [
+    "karate",
+    "pirate"
+  ],
+  "sha": [
+    "shadow"
+  ],
+  "had": [
+    "shadow"
+  ],
+  "ado": [
+    "shadow"
+  ],
+  "dow": [
+    "shadow"
+  ],
+  "ues": [
+    "quest"
+  ],
+  "mir": [
+    "mirror"
+  ],
+  "irr": [
+    "mirror"
+  ],
+  "rro": [
+    "mirror"
+  ],
+  "ror": [
+    "mirror"
+  ],
+  "ban": [
+    "banana"
+  ],
+  "ana": [
+    "banana"
+  ],
+  "nan": [
+    "banana"
+  ],
+  "cit": [
+    "citizen"
+  ],
+  "iti": [
+    "citizen"
+  ],
+  "tiz": [
+    "citizen"
+  ],
+  "ize": [
+    "citizen"
+  ],
+  "zen": [
+    "citizen"
+  ],
+  "res": [
+    "forest",
+    "result"
+  ],
+  "esu": [
+    "result"
+  ],
+  "sul": [
+    "result"
+  ],
+  "ult": [
+    "culture",
+    "result"
+  ],
+  "dem": [
+    "demand"
+  ],
+  "ema": [
+    "demand",
+    "remain"
+  ],
+  "win": [
+    "winter"
+  ],
+  "mys": [
+    "mystery"
+  ],
+  "ery": [
+    "mystery"
+  ],
+  "par": [
+    "parent"
+  ],
+  "are": [
+    "career",
+    "parent"
+  ],
+  "ren": [
+    "parent"
+  ],
+  "erv": [
+    "server"
+  ],
+  "rve": [
+    "server"
+  ],
+  "ver": [
+    "server"
+  ],
+  "det": [
+    "detail"
+  ],
+  "eta": [
+    "detail"
+  ],
+  "tai": [
+    "detail"
+  ],
+  "ail": [
+    "detail"
+  ],
+  "ffo": [
+    "effort"
+  ],
+  "ort": [
+    "airport",
+    "effort"
+  ],
+  "tow": [
+    "toward"
+  ],
+  "owa": [
+    "toward"
+  ],
+  "war": [
+    "toward"
+  ],
+  "nst": [
+    "against"
+  ],
+  "ffl": [
+    "offline"
+  ],
+  "fli": [
+    "offline"
+  ],
+  "lin": [
+    "offline",
+    "online"
+  ],
+  "onl": [
+    "online"
+  ],
+  "nli": [
+    "online"
+  ],
+  "fut": [
+    "future"
+  ],
+  "utu": [
+    "future"
+  ],
+  "fig": [
+    "figure"
+  ],
+  "igu": [
+    "figure"
+  ],
+  "gur": [
+    "figure"
+  ],
+  "flo": [
+    "flower"
+  ],
+  "owe": [
+    "flower"
+  ],
+  "arl": [
+    "early"
+  ],
+  "rly": [
+    "early"
+  ],
+  "ret": [
+    "pretty",
+    "return",
+    "secret"
+  ],
+  "tty": [
+    "pretty"
+  ],
+  "ons": [
+    "console"
+  ],
+  "nso": [
+    "console"
+  ],
+  "sol": [
+    "console"
+  ],
+  "ole": [
+    "console"
+  ],
+  "lay": [
+    "player"
+  ],
+  "aye": [
+    "player"
+  ],
+  "yer": [
+    "player"
+  ],
+  "bel": [
+    "belief"
+  ],
+  "eli": [
+    "belief"
+  ],
+  "lie": [
+    "belief"
+  ],
+  "ief": [
+    "belief"
+  ],
+  "yac": [
+    "yacht"
+  ],
+  "cht": [
+    "yacht"
+  ],
+  "fol": [
+    "follow"
+  ],
+  "oll": [
+    "dollar",
+    "follow"
+  ],
+  "pac": [
+    "impact",
+    "package"
+  ],
+  "cka": [
+    "package"
+  ],
+  "kag": [
+    "package"
+  ],
+  "age": [
+    "message",
+    "package"
+  ],
+  "oce": [
+    "ocean"
+  ],
+  "cea": [
+    "ocean"
+  ],
+  "ean": [
+    "ocean"
+  ],
+  "eng": [
+    "engine"
+  ],
+  "ngi": [
+    "engine"
+  ],
+  "gin": [
+    "engine"
+  ],
+  "gui": [
+    "guitar"
+  ],
+  "uit": [
+    "guitar"
+  ],
+  "ita": [
+    "guitar"
+  ],
+  "tar": [
+    "guitar"
+  ],
+  "tat": [
+    "estate"
+  ],
+  "mes": [
+    "message"
+  ],
+  "ess": [
+    "message",
+    "unless"
+  ],
+  "ssa": [
+    "message"
+  ],
+  "sag": [
+    "message"
+  ],
+  "mpa": [
+    "impact"
+  ],
+  "rem": [
+    "remain"
+  ],
+  "mai": [
+    "remain"
+  ],
+  "ral": [
+    "general"
+  ],
+  "unt": [
+    "hunter"
+  ],
+  "lac": [
+    "place"
+  ],
+  "ace": [
+    "place"
+  ],
+  "car": [
+    "career"
+  ],
+  "eer": [
+    "career"
+  ],
+  "unl": [
+    "unless"
+  ],
+  "nle": [
+    "unless"
+  ],
+  "les": [
+    "unless"
+  ],
+  "tro": [
+    "strong"
+  ],
+  "ron": [
+    "strong"
+  ],
+  "nco": [
+    "income"
+  ],
+  "rof": [
+    "profile"
+  ],
+  "ofi": [
+    "profile"
+  ],
+  "fil": [
+    "profile"
+  ],
+  "doc": [
+    "doctor"
+  ],
+  "oct": [
+    "doctor"
+  ],
+  "cul": [
+    "culture"
+  ],
+  "ltu": [
+    "culture"
+  ],
+  "air": [
+    "airport"
+  ],
+  "irp": [
+    "airport"
+  ],
+  "rpo": [
+    "airport"
+  ],
+  "por": [
+    "airport"
+  ],
+  "ecr": [
+    "secret"
+  ],
+  "alr": [
+    "already"
+  ],
+  "lre": [
+    "already"
+  ],
+  "ady": [
+    "already"
+  ],
+  "oos": [
+    "choose"
+  ],
+  "ose": [
+    "choose"
+  ],
+  "its": [
+    "itself"
+  ],
+  "tse": [
+    "itself"
+  ],
+  "sel": [
+    "itself"
+  ],
+  "elf": [
+    "itself"
+  ],
+  "dol": [
+    "dollar"
+  ],
+  "lar": [
+    "dollar"
+  ],
+  "etu": [
+    "return"
+  ],
+  "rio": [
+    "period"
+  ],
+  "iod": [
+    "period"
+  ],
+  "rai": [
+    "rainbow"
+  ],
+  "inb": [
+    "rainbow"
+  ],
+  "nbo": [
+    "rainbow"
+  ],
+  "bow": [
+    "rainbow"
+  ],
+  "yel": [
+    "yellow"
+  ],
+  "wiz": [
+    "wizard"
+  ],
+  "iza": [
+    "wizard"
+  ],
+  "zar": [
+    "wizard"
+  ]
+}

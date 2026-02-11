@@ -1,0 +1,24 @@
+{
+    "1069850380114067487": {
+        "disabled": [],
+        "restrictions": {
+            "ban": {
+                "roles": [],
+                "channels": [],
+                "users": []
+            }
+        }
+    },
+    "1439215873658458154": {
+        "disabled": [],
+        "restrictions": {}
+    },
+    "1388197903826161856": {
+        "disabled": [],
+        "restrictions": {}
+    },
+    "1466851794910187596": {
+        "disabled": [],
+        "restrictions": {}
+    }
+}
