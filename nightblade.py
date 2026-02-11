@@ -4141,8 +4141,6 @@ async def userinfo_error(ctx, error):
 # -----------------------------
 @bot.command()
 async def ping(ctx):
-    import random
-    import time
 
     ping_targets = [
         "Orion, the Iron Warrior",
@@ -4201,15 +4199,12 @@ async def ping(ctx):
     
     target = random.choices(choices, weights=weights, k=1)[0]
 
-    # Measure API latency
-    start = time.perf_counter()
     placeholder = await ctx.send("ping...")
-    end = time.perf_counter()
-    api_latency = round((end - start) * 1000)  # ms
+    ws_latency = round(bot.latency * 1000)  # ms
 
     # Build embed with only description
     embed = discord.Embed(
-        description=f"<a:sword_spin:1211611749426667560>  It took `{api_latency}ms` to ping **{target}**",
+        description=f"<a:sword_spin:1211611749426667560>  It took `{ws_latency}ms` to ping **{target}**",
         color=discord.Color.from_str("#2f3136")
     )
 
