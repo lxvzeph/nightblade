@@ -79,7 +79,7 @@ class Flag(commands.Cog):
         return (LIFE_FULL * remaining + LIFE_EMPTY * (LIVES - remaining))
 
     @commands.command(aliases=["country"])
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(2, 6, commands.BucketType.user)
     async def flag(self, ctx, difficulty: str | None = None):
         if difficulty:
             difficulty = difficulty.lower()
