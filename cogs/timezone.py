@@ -31,11 +31,11 @@ class TimezoneListView(discord.ui.View):
     def format_city(self, tz: str):
         parts = tz.split("/")
 
-        city = parts[-1].replace("_", " ").replace("-", " ")
+        city = parts[-1].replace("_", " ")
         city = " ".join(word.capitalize() for word in city.split())
 
         if len(parts) > 2:
-            region = parts[-2].replace("_", " ").replace("-", " ")
+            region = parts[-2].replace("_", " ")
             region = " ".join(word.capitalize() for word in region.split())
             return f"{city} ({region})"
         
@@ -161,11 +161,7 @@ class Timezone(commands.Cog):
         )
 
         if include_author:
-            if isinstance(ctx_or_msg, discord.Message):
-                guild = ctx_or_msg.guild
-
-            else:
-                guild = ctx_or_msg.guild
+            guild = ctx_or_msg.guild
 
             if guild:
                 bot_display_name = guild.me.display_name
@@ -311,7 +307,9 @@ class Timezone(commands.Cog):
             )
         
         cities = sorted(
-            tz for tzs in self.city_list.values() for tz in tzs)
+        (tz for tzs in self.city_list.values() for tz in tzs),
+        key=lambda tz: TimezoneListView.format_city(self, tz)
+        )
         view = TimezoneListView(ctx, cities)
         message = await ctx.send(embed=view.get_embed(), view=view)
         view.message = message
