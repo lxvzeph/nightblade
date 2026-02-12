@@ -261,11 +261,13 @@
   { "name": "Christmas Island", "flag": "https://flagcdn.com/w320/cx.png" },
   { "name": "Cocos (Keeling) Islands", "aliases": ["Cocos Islands", "Keeling Islands"], "flag": "https://flagcdn.com/w320/cc.png" },
   { "name": "Norfolk Island", "flag": "https://flagcdn.com/w320/nf.png" },
-  { "name": "Northern Island", "flag": "https://flagcdn.com/w320/gb-nir.png" },
+  { "name": "Northern Ireland", "flag": "https://flagcdn.com/w320/gb-nir.png" },
   { "name": "French Southern and Antarctic Lands",
     "aliases": [
       "TAAF",
-      "French Southern Lands"],
+      "French Southern Lands",
+      "French Southern Territories"
+    ],
     "flag": "https://flagcdn.com/w320/tf.png" },
   { "name": "Wales", "flag": "https://flagcdn.com/w320/gb-wls.png" },
   { "name": "Pitcairn Islands", "flag": "https://flagcdn.com/w320/pn.png" },
