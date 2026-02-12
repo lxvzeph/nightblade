@@ -4189,7 +4189,6 @@ async def ping(ctx):
         "Kadaku",
         "Jason Voorhees",
         "nightblade (formerly known as lunaris)",
-        "secret command: batcave"
     ]
     
     ultra_rare = f"secret command {get_prefix(bot, ctx.message)}batcave"

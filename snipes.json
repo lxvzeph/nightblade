@@ -1,366 +1,69 @@
 {
     "messages": {
         "1069850380114067490": [],
-        "1388217572503060490": [
-            {
-                "author_id": 1073378916582043650,
-                "author_name": "__joanna",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1073378916582043650/cc3e3b4ffe61bd5c66fae3b5b08bf316.png?size=1024",
-                "content": "",
-                "attachments": [
-                    "https://cdn.discordapp.com/attachments/1388217572503060490/1470906251461525607/IMG_4043.jpg?ex=698cffb2&is=698bae32&hm=072240537cc100846fd40106077c9c22a7df48ee06a151d2faff6b07052afe38&"
-                ],
-                "time": "2026-02-10T22:16:56.657124"
-            },
-            {
-                "author_id": 1098305655577788466,
-                "author_name": "17131713",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1098305655577788466/aa1d83d3f7230b3630f6dbfe08b0d9f0.png?size=1024",
-                "content": "Look u made him sad <@587017079161487377> <@755221214917820437>",
-                "attachments": [
-                    "https://cdn.discordapp.com/attachments/1388217572503060490/1470921021400940594/IMG_20221017_132232.jpg?ex=698d0d73&is=698bbbf3&hm=3fda5a06454839c9f892db0e47b2d62bf7f4ef9cb3b6a468cec64eb0ef1651af&"
-                ],
-                "time": "2026-02-10T23:15:24.194457"
-            },
-            {
-                "author_id": 1098305655577788466,
-                "author_name": "17131713",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1098305655577788466/aa1d83d3f7230b3630f6dbfe08b0d9f0.png?size=1024",
-                "content": "Look <@587017079161487377>",
-                "attachments": [
-                    "https://cdn.discordapp.com/attachments/1388217572503060490/1470920608476037231/IMG_20221020_151931.jpg?ex=698d0d11&is=698bbb91&hm=232aa5be40b0dcebf387b5d86ec67ad7aabdf86e32181b0c6ec0d55dc3b844c3&",
-                    "https://cdn.discordapp.com/attachments/1388217572503060490/1470920608794677353/Screenshot_20220924_120330.jpg?ex=698d0d11&is=698bbb91&hm=ba1e5d09e9463838460a51403d0a9d4032cf8f698662e8a737c2c05be92b3cea&"
-                ],
-                "time": "2026-02-10T23:15:34.133903"
-            },
-            {
-                "author_id": 1098305655577788466,
-                "author_name": "17131713",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1098305655577788466/aa1d83d3f7230b3630f6dbfe08b0d9f0.png?size=1024",
-                "content": "I found this old photo <@587017079161487377> he\u2019s in chip bag",
-                "attachments": [
-                    "https://cdn.discordapp.com/attachments/1388217572503060490/1470920341546209435/IMG_20221202_223513.jpg?ex=698d0cd1&is=698bbb51&hm=8f4c9ff1ac769eb00cc05a4301498a967d4dd61752f5a8235f75bca23db4d146&"
-                ],
-                "time": "2026-02-10T23:15:40.462882"
-            }
-        ],
+        "1388217572503060490": [],
         "1440934400803078186": [],
         "1447549067097018460": [],
         "1467279086853296159": [],
         "1388217735539982436": [],
         "1470560747640848556": [],
         "1466851796239515924": [],
-        "1467215852146266265": [
-            {
-                "author_id": 934124462146715738,
-                "author_name": "yanistar",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/934124462146715738/f8a75c08ae83de2a7693a676ce65f53b.png?size=1024",
-                "content": "okk",
-                "attachments": [],
-                "time": "2026-02-10T22:36:55.136670"
-            },
-            {
-                "author_id": 934124462146715738,
-                "author_name": "yanistar",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/934124462146715738/f8a75c08ae83de2a7693a676ce65f53b.png?size=1024",
-                "content": "",
-                "attachments": [
-                    "https://cdn.discordapp.com/attachments/1467215852146266265/1470912747901554791/my-image.png?ex=698d05bf&is=698bb43f&hm=072981a73c9c2dff00d46bc1eb8cd7cbe3e47b8f1be570bc6e54e35f5ffa3f61&"
-                ],
-                "time": "2026-02-10T22:43:20.476928"
-            },
-            {
-                "author_id": 925292785286938634,
-                "author_name": "eopath",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/925292785286938634/e9a7de9763c6c54dcd7cba9727dbd740.png?size=1024",
-                "content": "mfs be like i braided my hair but wont brail their walls, d",
-                "attachments": [],
-                "time": "2026-02-10T23:13:49.757943"
-            }
-        ]
+        "1467215852146266265": []
     },
     "reactions": {
         "1069850380114067490": [],
         "1388217572503060490": [
             {
-                "user_id": 1073378916582043650,
-                "user_name": "__joanna",
-                "user_avatar_url": "https://cdn.discordapp.com/avatars/1073378916582043650/cc3e3b4ffe61bd5c66fae3b5b08bf316.png?size=1024",
-                "emoji": "\ud83d\uded1",
-                "message_id": 1470907725197082634,
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470907725197082634",
-                "time": "2026-02-10T22:23:01.486943"
-            },
-            {
-                "user_id": 833874100559937556,
-                "user_name": "unlck.",
-                "user_avatar_url": "https://cdn.discordapp.com/avatars/833874100559937556/1c55d95e5c163e1caa1e32a87a3afc5e.png?size=1024",
-                "emoji": "\ud83d\ude2d",
-                "message_id": 1470908402896080981,
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470908402896080981",
-                "time": "2026-02-10T22:25:12.295415"
-            },
-            {
-                "user_id": 1442815155695124551,
-                "user_name": "buuchii__",
-                "user_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "emoji": "\ud83d\ude2d",
-                "message_id": 1470910325036683377,
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470910325036683377",
-                "time": "2026-02-10T22:33:02.029126"
-            },
-            {
-                "user_id": 793466263456055306,
-                "user_name": "_yuhhro",
-                "user_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "emoji": "\ud83d\ude2d",
-                "message_id": 1470914268907049051,
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470914268907049051",
-                "time": "2026-02-10T22:48:29.404553"
+                "user_id": 355079220331937794,
+                "user_name": "stalememes420",
+                "user_avatar_url": "https://cdn.discordapp.com/avatars/355079220331937794/0e120257ced6bd9708797871cce4ec13.png?size=1024",
+                "emoji": "\u2705",
+                "message_id": 1470955226172358784,
+                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470955226172358784",
+                "time": "2026-02-11T01:31:36.106795"
             }
         ],
         "1388197905013276867": [],
         "1388216927595397272": [],
         "1447549067097018460": [],
-        "1466851796239515924": [],
-        "1468727041703805164": [],
-        "1467204214605480069": [
+        "1466851796239515924": [
+            {
+                "user_id": 925292785286938634,
+                "user_name": "eopath",
+                "user_avatar_url": "https://cdn.discordapp.com/avatars/925292785286938634/e9a7de9763c6c54dcd7cba9727dbd740.png?size=1024",
+                "emoji": "\ud83d\ude2d",
+                "message_id": 1470952835842572298,
+                "message_url": "https://discord.com/channels/1466851794910187596/1466851796239515924/1470952835842572298",
+                "time": "2026-02-11T01:21:40.033047"
+            },
             {
                 "user_id": 284054865561255947,
                 "user_name": "tensei50",
                 "user_avatar_url": "https://cdn.discordapp.com/avatars/284054865561255947/820cb2c334504ca9558862b91ace7c34.png?size=1024",
                 "emoji": "\ud83d\ude2d",
-                "message_id": 1470922068047560891,
-                "message_url": "https://discord.com/channels/1466851794910187596/1467204214605480069/1470922068047560891",
-                "time": "2026-02-10T23:21:33.239773"
+                "message_id": 1470953296591323220,
+                "message_url": "https://discord.com/channels/1466851794910187596/1466851796239515924/1470953296591323220",
+                "time": "2026-02-11T01:23:24.446167"
             }
-        ]
+        ],
+        "1468727041703805164": [],
+        "1467204214605480069": []
     },
     "edits": {
         "1069850380114067490": [],
-        "1467204214605480069": [
-            {
-                "author_id": 688164401781669914,
-                "author_name": "kyliezf",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/688164401781669914/a_8bbe64f31cfea1e907bff11ee20691d5.gif?size=1024",
-                "before": "trade luffy and then tensei trade eopatj",
-                "after": "trade luffy and then tensei trade eopath",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467204214605480069/1470914600076574751",
-                "time": "2026-02-10T22:49:39.135078"
-            }
-        ],
-        "1466851796239515924": [
-            {
-                "author_id": 401844809385508903,
-                "author_name": "nubb_",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/401844809385508903/a_31e2514827e6021a07722660f15c223a.gif?size=1024",
-                "before": "You wanted me",
-                "after": "You warned me",
-                "message_url": "https://discord.com/channels/1466851794910187596/1466851796239515924/1470914142998364332",
-                "time": "2026-02-10T22:47:51.495852"
-            },
-            {
-                "author_id": 401844809385508903,
-                "author_name": "nubb_",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/401844809385508903/a_31e2514827e6021a07722660f15c223a.gif?size=1024",
-                "before": "What\u2019s next ex Nubb\u2019s \ud83e\udd27",
-                "after": "What\u2019s next ex Nubbs \ud83e\udd27",
-                "message_url": "https://discord.com/channels/1466851794910187596/1466851796239515924/1470919335999570086",
-                "time": "2026-02-10T23:08:29.707159"
-            }
-        ],
+        "1467204214605480069": [],
+        "1466851796239515924": [],
         "1388217572503060490": [
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "Bro they brewk up like 2 weeks after this",
-                "after": "Bro they break up like 2 weeks after this",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470907054628536542",
-                "time": "2026-02-10T22:19:40.884916"
-            },
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "like waht",
-                "after": "like what",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470908305894408438",
-                "time": "2026-02-10T22:24:39.718015"
-            },
             {
                 "author_id": 1098305655577788466,
                 "author_name": "17131713",
                 "author_avatar_url": "https://cdn.discordapp.com/avatars/1098305655577788466/aa1d83d3f7230b3630f6dbfe08b0d9f0.png?size=1024",
-                "before": "She looks more creepy post serguty icl",
-                "after": "She looks more creepy post surgery icl",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470909033593700485",
-                "time": "2026-02-10T22:27:37.379863"
-            },
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "But theres more to the eps",
-                "after": "But theres more to the ep",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470910104889987296",
-                "time": "2026-02-10T22:31:48.516968"
-            },
-            {
-                "author_id": 1319692676567797913,
-                "author_name": "apollo.kaiser",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1319692676567797913/c886b70747621dec0370a6f74ff9b24e.png?size=1024",
-                "before": "This guy such good hair",
-                "after": "This guy has such good hair",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470911099703525518",
-                "time": "2026-02-10T22:35:52.387262"
-            },
-            {
-                "author_id": 1319692676567797913,
-                "author_name": "apollo.kaiser",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1319692676567797913/c886b70747621dec0370a6f74ff9b24e.png?size=1024",
-                "before": "Gee he don\u2019t love you ma",
-                "after": "Gee he don\u2019t love you mayn",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470911205961891852",
-                "time": "2026-02-10T22:36:12.175257"
-            },
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "Oh okay they speaking enlgish",
-                "after": "Oh okay they speaking english",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470914383675785338",
-                "time": "2026-02-10T22:48:47.993320"
-            },
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "bombocladt",
-                "after": "bomboclarttt",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470916084323451104",
-                "time": "2026-02-10T22:55:36.073343"
-            },
-            {
-                "author_id": 1442815155695124551,
-                "author_name": "buuchii__",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1442815155695124551/c0141261a601c3200461c23b4b2d2bf2.png?size=1024",
-                "before": "HE CHOSE THE UGLIEST NGA?",
-                "after": "SHE CHOSE THE UGLIEST NGA?",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470917527809818769",
-                "time": "2026-02-10T23:01:21.666172"
-            },
-            {
-                "author_id": 1319692676567797913,
-                "author_name": "apollo.kaiser",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/1319692676567797913/c886b70747621dec0370a6f74ff9b24e.png?size=1024",
-                "before": "IGEON IS 35",
-                "after": "IGEON IS 34",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470919098371281165",
-                "time": "2026-02-10T23:07:30.364183"
-            },
-            {
-                "author_id": 793466263456055306,
-                "author_name": "_yuhhro",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "before": "i\u2019m gonna hold ur hand while i also tell u thing bro\u2026",
-                "after": "i\u2019m gonna hold ur hand while i also tell u this bro\u2026",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470919923659178099",
-                "time": "2026-02-10T23:10:55.467413"
-            },
-            {
-                "author_id": 793466263456055306,
-                "author_name": "_yuhhro",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "before": "welp wanted signs for a single other population apart from her",
-                "after": "help wanted signs for a single other population apart from her",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470920261493592064",
-                "time": "2026-02-10T23:13:58.479884"
-            },
-            {
-                "author_id": 793466263456055306,
-                "author_name": "_yuhhro",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "before": "getting some type of vibes from he here",
-                "after": "getting some type of vibes from u here",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470921982328701055",
-                "time": "2026-02-10T23:19:00.339904"
-            },
-            {
-                "author_id": 793466263456055306,
-                "author_name": "_yuhhro",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "before": "dude just wants to add salt to the would be",
-                "after": "dude just wants to add salt to the would bro",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470922921701671076",
-                "time": "2026-02-10T23:22:43.030745"
-            },
-            {
-                "author_id": 793466263456055306,
-                "author_name": "_yuhhro",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/793466263456055306/a_3811ae9e2efa8e14a0a008ad3d29ac88.gif?size=1024",
-                "before": "dude just wants to add salt to the would bro",
-                "after": "dude just wants to add salt to the wound bro",
-                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470922921701671076",
-                "time": "2026-02-10T23:22:56.132549"
+                "before": "Or frost",
+                "after": "Or first",
+                "message_url": "https://discord.com/channels/1388197903826161856/1388217572503060490/1470954930670927906",
+                "time": "2026-02-11T01:29:54.875608"
             }
         ],
-        "1467215852146266265": [
-            {
-                "author_id": 934124462146715738,
-                "author_name": "yanistar",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/934124462146715738/f8a75c08ae83de2a7693a676ce65f53b.png?size=1024",
-                "before": "4 hours aeay",
-                "after": "4 hours away",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470907339736481792",
-                "time": "2026-02-10T22:20:48.829738"
-            },
-            {
-                "author_id": 934124462146715738,
-                "author_name": "yanistar",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/934124462146715738/f8a75c08ae83de2a7693a676ce65f53b.png?size=1024",
-                "before": "KOOOOO",
-                "after": "OOOO",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470911731583815794",
-                "time": "2026-02-10T22:38:16.369022"
-            },
-            {
-                "author_id": 934124462146715738,
-                "author_name": "yanistar",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/934124462146715738/f8a75c08ae83de2a7693a676ce65f53b.png?size=1024",
-                "before": "ok bye tuys",
-                "after": "ok bye guys",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470921165592858735",
-                "time": "2026-02-10T23:15:46.501881"
-            },
-            {
-                "author_id": 925292785286938634,
-                "author_name": "eopath",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/925292785286938634/e9a7de9763c6c54dcd7cba9727dbd740.png?size=1024",
-                "before": "u gotta make a github repo of the project and make two branches one for new development and one for the final product",
-                "after": "u gotta make a github repo of the project and make two branches one for local development and one for the final product",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470923086722240593",
-                "time": "2026-02-10T23:23:29.016267"
-            },
-            {
-                "author_id": 925292785286938634,
-                "author_name": "eopath",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/925292785286938634/e9a7de9763c6c54dcd7cba9727dbd740.png?size=1024",
-                "before": "with chatgpt its easy af",
-                "after": "with chatgpt its easy asf",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470923246655373436",
-                "time": "2026-02-10T23:23:58.152029"
-            },
-            {
-                "author_id": 925292785286938634,
-                "author_name": "eopath",
-                "author_avatar_url": "https://cdn.discordapp.com/avatars/925292785286938634/e9a7de9763c6c54dcd7cba9727dbd740.png?size=1024",
-                "before": "and run git version",
-                "after": "and run ```git version```",
-                "message_url": "https://discord.com/channels/1466851794910187596/1467215852146266265/1470924313304498354",
-                "time": "2026-02-10T23:28:22.125991"
-            }
-        ]
+        "1467215852146266265": []
     }
 }

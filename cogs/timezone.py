@@ -307,8 +307,8 @@ class Timezone(commands.Cog):
             )
         
         cities = sorted(
-        (tz for tzs in self.city_list.values() for tz in tzs),
-        key=lambda tz: TimezoneListView.format_city(self, tz)
+            (tz for tzs in self.city_list.values() for tz in tzs),
+            key=lambda tz: TimezoneListView.format_city(self, tz)
         )
         view = TimezoneListView(ctx, cities)
         message = await ctx.send(embed=view.get_embed(), view=view)
