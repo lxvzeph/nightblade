@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-DEFAULT = os.path.join("data", "bot.db")
+DEFAULT = "/data/bot.db"
 DB_PATH = os.getenv("DB_PATH", DEFAULT)
 
 
