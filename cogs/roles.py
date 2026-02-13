@@ -1,29 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-import json, os
-
-BASE_DIR = os.getcwd()
-ROLE_BACKUP_FILE = os.path.join(BASE_DIR, "role_backup.json")
-
-
-def load_role_backup():
-    if not os.path.exists(ROLE_BACKUP_FILE):
-        return {}
-
-    try:
-        with open(ROLE_BACKUP_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {}
-
-
-def save_role_backup(data):
-    with open(ROLE_BACKUP_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-role_backup = load_role_backup()
-
+from data.roles import backup_member_roles, get_member_role_backup, clear_member_role_backup
 
 class Roles(commands.Cog):
     def __init__(self, bot):
@@ -78,35 +55,23 @@ class Roles(commands.Cog):
     # --- HELPERS --------------------------------------------------------------
 
     def backup_member_roles(self, member: discord.Member):
-        gid = str(member.guild.id)
-        uid = str(member.id)
-
-        if gid not in role_backup:
-            role_backup[gid] = {}
-
-        role_backup[gid][uid] = [r.id for r in member.roles if r != member.guild.default_role]
-        save_role_backup(role_backup)
+        role_ids = [role.id for role in member.roles if role != member.guild.default_role]
+        backup_member_roles(member.guild.id, member.id,  role_ids)
 
     async def restore_member_roles(self, member: discord.Member):
-        gid = str(member.guild.id)
-        uid = str(member.id)
 
-        if gid not in role_backup or uid not in role_backup[gid]:
+        role_ids = get_member_role_backup(member.guild.id, member.id)
+        if role_ids is None:
             return False
-
-        role_ids = role_backup[gid][uid]
-        roles = []
-
-        for rid in role_ids:
-            role = member.guild.get_role(rid)
-            if role:
-                roles.append(role)
+        
+        roles = [member.guild.get_role(rid) for rid in role_ids]
+        roles = [r for r in roles if r is not None]
 
         try:
-            await member.edit(roles=roles)
+            await member.add_roles(*roles)
         except discord.Forbidden:
             return False
-
+        
         return True
 
     @commands.Cog.listener()
@@ -118,12 +83,8 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user):
-        gid = str(guild.id)
-        uid = str(user.id)
-
-        if gid in role_backup and uid in role_backup[gid]:
+        if get_member_role_backup(guild.id, user.id) is not None:
             return
-
         
 
     # --- STRIP COMMAND --------------------------------------------------------
@@ -273,14 +234,10 @@ class Roles(commands.Cog):
 
         # --- CASE 4: restore clear <member>
         if action == "clear":
-            if gid not in role_backup or uid not in role_backup[gid]:
+            removed = clear_member_role_backup(ctx.guild.id, member.id)
+            if not removed:
                 return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup found for **{member.name}**.", ctx, include_author=False))
 
-            del role_backup[gid][uid]
-            if not role_backup[gid]:
-                del role_backup[gid]
-
-            save_role_backup(role_backup)
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cleared role backup for **{member.name}**.", ctx, include_author=False))
 
         # --- CASE 5: Normal restore <member>

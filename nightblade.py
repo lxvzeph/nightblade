@@ -9,31 +9,69 @@ import time
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import get
-from datetime import datetime, timezone,timedelta
-from discord.ext.commands import BucketType
-from discord.ext.commands import MemberConverter, BadArgument
+from data.db import init_db
+from data.prefixes import (
+    get_prefix_for_guild,
+    set_prefix_for_guild,
+    delete_prefix_for_guild
+)
+from data.imute import (
+    get_imute_role_id,
+    set_imute_role_id,
+    delete_imute_role,
+)
+from data.rmute import (
+    get_rmute_role_id,
+    set_rmute_role_id,
+    delete_rmute_role,
+)
+from data.cases import (
+    create_case,
+    get_case,
+    get_cases_for_member,
+    remove_case,
+    clear_member_cases
+)
+from data.warnings import (
+    add_warning,
+    get_warnings,
+    remove_warning,
+    clear_warnings
+)
+from data.autoroles import (
+    get_autorole,
+    set_autorole,
+    delete_autorole
+)
+from data.jail import (
+    get_jail_config,
+    set_jail_config,
+    delete_jail_config
+)
+from data.commands import (
+    get_disabled_commands,
+    disable_command,
+    enable_command,
+    is_command_disabled,
+    get_restrictions,
+    get_all_restrictions,
+    add_restriction,
+    remove_restriction,
+    clear_command_restrictions
+)
+from datetime import datetime, timezone, timedelta
+from discord.ext.commands import BucketType, MemberConverter, BadArgument
 from discord.ui import View, Button
+
+init_db()
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-
-PREFIX_DIR = os.getcwd()
-PREFIX_FILE = os.path.join(PREFIX_DIR, "prefixes.json")
-
-if os.path.exists(PREFIX_FILE):
-	with open(PREFIX_FILE, "r") as f:
-		prefixes = json.load(f)
-else:
-	prefixes = {}
-	
-def save_prefixes():
-	with open(PREFIX_FILE, "w") as f:
-		json.dump(prefixes, f, indent=4)
 		
 def get_prefix(bot, message):
     if message.guild:
-        return prefixes.get(str(message.guild.id), ";")  # default prefix ";"
+        return get_prefix_for_guild(message.guild.id)  # default prefix ";"
     return ";"  # default in DM
 
 def p(ctx):
@@ -41,16 +79,11 @@ def p(ctx):
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
         
-
 @bot.event
-async def on_guild_remove():
-	with open (PREFIX_FILE, "r") as f:
-		prefixes = json.load(f)
-		
-	prefixes.pop(str(guild.id))
-	
-	with open (PREFIX_FILE, "w") as f:
-		json.dump(prefixes, f, indent=4)
+async def on_guild_remove(guild):
+    delete_prefix_for_guild(guild.id)
+    clear_command_restrictions(guild.id)
+
 	
 
 # Updated create_embed that works for both ctx and message, optional author
@@ -98,14 +131,15 @@ async def load_extensions():
     await bot.load_extension("cogs.flag")
     await bot.load_extension("cogs.blacktea")
     
+loaded = False
 
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name=";commands"))
-    load_jail_config()
-    load_imute_config()
-    load_rmute_config()
-    await load_extensions()
+    global loaded
+    if not loaded:
+        await load_extensions()
+        loaded = True
     synced = await bot.tree.sync()
     print(f"Synced {len(synced)} slash commands as {bot.user}")
     print(f"{bot.user} is online.")
@@ -228,51 +262,16 @@ async def resolve_user(ctx, value: str):
 # COMMAND MANAGEMENT
 # ===================
 
-BASE_DIR = os.getcwd()
-COMMANDS_FILE = os.path.join(BASE_DIR, "commands.json")
-
-if os.path.exists(COMMANDS_FILE):
-    with open(COMMANDS_FILE, "r") as f:
-        command_settings = json.load(f)
-else:
-    command_settings = {}
-
-def save_commands():
-    with open(COMMANDS_FILE, "w") as f:
-        json.dump(command_settings, f, indent=4)
-
-def ensure_guild_entry(gid):
-    gid = str(gid)
-    if gid not in command_settings:
-        command_settings[gid] = {
-            "disabled": [],
-            "restrictions": {}
-        }
-        save_commands()
-
-def ensure_command_restriction(gid, command_name):
-    if command_name not in command_settings[gid]["restrictions"]:
-        command_settings[gid]["restrictions"][command_name] = {
-            "roles": [],
-            "channels": [],
-            "users": []
-        }
-
 
 @bot.check
 async def command_restriction_check(ctx):
     if not ctx.guild:
         return True  # ignore DMs
 
-    gid = str(ctx.guild.id)
-    ensure_guild_entry(gid)
-    
+    gid = ctx.guild.id
     cmd = ctx.command.name
 
-    settings = command_settings[gid]
-
-    # 1. BLOCKED COMMAND?
-    if cmd in settings["disabled"]:
+    if is_command_disabled(gid, cmd):
         embed = create_embed(
             "",
             f"{ctx.author.mention}: The command `{cmd}` is disabled in this server.\n",
@@ -284,29 +283,28 @@ async def command_restriction_check(ctx):
         return False
 
     # 2. RESTRICTIONS
-    if cmd in settings["restrictions"]:
-        restrict = settings["restrictions"][cmd]
+    restrict = get_restrictions(gid, cmd)
 
-        # Role restriction
-        if restrict["roles"]:
-            if any(r.id in restrict["roles"] for r in ctx.author.roles):
-                e = create_embed("", f"{ctx.author.mention}: **You** do not meet the role requirements for `{cmd}`.", ctx, include_author=False, color=0x2f3136)
-                await ctx.send(embed=e)
-                return False
+    # Role restriction
+    if restrict["roles"]:
+        if any(r.id in restrict["roles"] for r in ctx.author.roles):
+            e = create_embed("", f"{ctx.author.mention}: **You** do not meet the role requirements for `{cmd}`.", ctx, include_author=False, color=0x2f3136)
+            await ctx.send(embed=e)
+            return False
 
-        # Channel restriction
-        if restrict["channels"]:
-            if ctx.channel.id in restrict["channels"]:
-                e = create_embed("", f"{ctx.author.mention}: `{cmd}` is **not** allowed in this channel.", ctx, include_author=False, color=0x2f3136)
-                await ctx.send(embed=e)
-                return False
+    # Channel restriction
+    if restrict["channels"]:
+        if ctx.channel.id in restrict["channels"]:
+            e = create_embed("", f"{ctx.author.mention}: `{cmd}` is **not** allowed in this channel.", ctx, include_author=False, color=0x2f3136)
+            await ctx.send(embed=e)
+            return False
 
-        # User restriction
-        if restrict["users"]:
-            if ctx.author.id in restrict["users"]:
-                e = create_embed("", f"{ctx.author.mention}: **You** are not allowed to use `{cmd}`.", ctx, include_author=False, color=0x2f3136)
-                await ctx.send(embed=e)
-                return False
+    # User restriction
+    if restrict["users"]:
+        if ctx.author.id in restrict["users"]:
+            e = create_embed("", f"{ctx.author.mention}: **You** are not allowed to use `{cmd}`.", ctx, include_author=False, color=0x2f3136)
+            await ctx.send(embed=e)
+            return False
 
     return True
 
@@ -379,18 +377,14 @@ async def enablecommand(ctx, command_name: str = None):
         ctx,
         include_author=False))
 
-    gid = str(ctx.guild.id)
-    ensure_guild_entry(gid)
+    gid = ctx.guild.id
 
-    settings = command_settings[gid]
-
-    if command_name not in settings["disabled"]:
+    if not is_command_disabled(gid, command_name):
         return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{command_name}` is already enabled.",
         ctx,
         include_author=False))
 
-    settings["disabled"].remove(command_name)
-    save_commands()
+    enable_command(gid, command_name)
 
     await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{command_name}` has been enabled.",
     ctx,
@@ -432,18 +426,14 @@ async def disablecommand(ctx, *, command_name: str = None):
         ctx,
         include_author=False))
 
-    gid = str(ctx.guild.id)
-    ensure_guild_entry(gid)
+    gid = ctx.guild.id
 
-    settings = command_settings[gid]
-
-    if command_name in settings["disabled"]:
+    if is_command_disabled(gid, command_name):
         return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{command_name}` is already disabled.",
         ctx,
         include_author=False))
 
-    settings["disabled"].append(command_name)
-    save_commands()
+    disable_command(gid, command_name)
 
     await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{command_name}` has been disabled.",
     ctx,
@@ -517,11 +507,8 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
                 )
             )
 
-        gid = str(ctx.guild.id)
-        ensure_guild_entry(gid)
-        ensure_command_restriction(gid, command_name)
-        settings = command_settings[gid]["restrictions"]
-        data = settings.get(command_name, {"roles": [], "channels": [], "users": []})
+        gid = ctx.guild.id
+        data = get_restrictions(gid, command_name)
 
         embed = create_embed(
             f"Restrictions for `{command_name}`",
@@ -565,10 +552,8 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
             include_author=False
         ))
 
-    gid = str(ctx.guild.id)
-    ensure_guild_entry(gid)
-    ensure_command_restriction(gid, command_name)
-    settings = command_settings[gid]["restrictions"]
+    gid = ctx.guild.id
+    settings = get_restrictions(gid, command_name)
 
     # Restrict ROLE
     if restriction_type == "role":
@@ -584,11 +569,10 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
                 include_author=False
             ))
 
-        if role.id in settings[command_name]["roles"]:
+        if role.id in settings["roles"]:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is already restricted.", ctx, include_author=False))
 
-        settings[command_name]["roles"].append(role.id)
-        save_commands()
+        add_restriction(gid, command_name, "role", role.id)
 
         return await ctx.send(
             embed=create_embed(
@@ -607,11 +591,10 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
         if not channel:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
 
-        if channel.id in settings[command_name]["channels"]:
+        if channel.id in settings["channels"]:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {channel.mention} is already restricted.", ctx, include_author=False))
 
-        settings[command_name]["channels"].append(channel.id)
-        save_commands()
+        add_restriction(gid, command_name, "channel", channel.id)
 
         return await ctx.send(
             embed=create_embed(
@@ -649,11 +632,10 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
                     include_author=False
                 ))
 
-        if user.id in settings[command_name]["users"]:
+        if user.id in settings["users"]:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is already restricted.", ctx, include_author=False))
 
-        settings[command_name]["users"].append(user.id)
-        save_commands()
+        add_restriction(gid, command_name, "user", user.id)
 
         return await ctx.send(
             embed=create_embed(
@@ -722,13 +704,8 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
     if not command:
         return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.", ctx, include_author=False))
 
-    gid = str(ctx.guild.id)
-    ensure_guild_entry(gid)
-
-    # Ensure command entry exists
-    restrictions = command_settings[gid].setdefault("restrictions", {})
-    if command_name not in restrictions:
-        restrictions[command_name] = {"roles": [], "channels": [], "users": []}
+    gid = ctx.guild.id
+    restrictions = get_restrictions(gid, command_name)
 
     # ------------------------------------------------
     # ROLE UNRESTRICTION
@@ -748,14 +725,12 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
                 )
             )
 
-        if role.id not in restrictions[command_name]["roles"]:
+        if role.id not in restrictions["roles"]:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is not restricted from using `{command_name}`.", ctx, include_author=False))
 
-        restrictions[command_name]["roles"].remove(role.id)
-        if not any(restrictions[command_name].values()):
-            del restrictions[command_name]
-
-        save_commands()
+        removed = remove_restriction(gid, command_name, "role", role.id)
+        if not removed:
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is not restricted from using `{command_name}`.", ctx, include_author=False))
 
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{command_name}` restriction for {role.mention}.", ctx, include_author=False, color=0x71906e))
 
@@ -767,15 +742,13 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
         if not channel:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
 
-        if channel.id not in restrictions[command_name]["channels"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is **not** restricted for `{command_name}`.", ctx, include_author=False))
+        if channel.id not in restrictions["channels"]:
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is **not** restricted from `{command_name}`.", ctx, include_author=False))
 
-        restrictions[command_name]["channels"].remove(channel.id)
-        if not any(restrictions[command_name].values()):
-            del restrictions[command_name]
-
-        save_commands()
-
+        removed = remove_restriction(gid, command_name, "channel", channel.id)
+        if not removed:
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is **not** restricted from `{command_name}`.", ctx, include_author=False))
+        
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed restriction for `{command_name}` in {channel.mention}.", ctx, include_author=False, color=0x71906e))
 
     # ------------------------------------------------
@@ -800,23 +773,21 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
                 )
         
 
-        if user.id not in restrictions[command_name]["users"]:
+        if user.id not in restrictions["users"]:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not restricted from using `{command_name}`.", ctx, include_author=False))
 
-        restrictions[command_name]["users"].remove(user.id)
-        if not any(restrictions[command_name].values()):
-            del restrictions[command_name]
-
-        save_commands()
+        removed = remove_restriction(gid, command_name, "user", user.id)
+        if not removed:
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not restricted from using `{command_name}`.", ctx, include_author=False))
 
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{command_name}` restriction for **{user.name}**.", ctx, include_author=False, color=0x71906e))
 
-
+# PREFIX SYSTEM
 
 @bot.command(aliases=["pre"])
 async def prefix(ctx, new_prefix: str = None):
-    guild_id = str(ctx.guild.id)
-    current = prefixes.get(guild_id, ";")
+    guild_id = ctx.guild.id
+    current = get_prefix_for_guild(guild_id)
 
     # Show current prefix
     if not new_prefix:
@@ -840,12 +811,10 @@ async def prefix(ctx, new_prefix: str = None):
         await ctx.send(embed=embed)
         return
 
-    old_prefix = current
-    prefixes[guild_id] = new_prefix
-    save_prefixes()
+    set_prefix_for_guild(guild_id, new_prefix)
 
     embed = discord.Embed(
-        description=f"{ctx.author.mention}: Changed prefix from `{old_prefix}` to `{new_prefix}`",
+        description=f"{ctx.author.mention}: Changed prefix from `{current}` to `{new_prefix}`",
         color=0x71906e
     )
     await ctx.send(embed=embed)
@@ -854,95 +823,6 @@ async def prefix(ctx, new_prefix: str = None):
 # CASE SYSTEM
 # =============
 
-CASES_FILE = os.path.join(BASE_DIR, "cases.json")
-
-def load_cases():
-    if not os.path.exists(CASES_FILE):
-        return {}
-    try:
-        with open(CASES_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-def save_cases():
-    with open(CASES_FILE, "w") as f:
-        json.dump(cases_db, f, indent=4)
-
-cases_db = load_cases()
-
-def ensure_history_guild(guild_id: int):
-    gid = str(guild_id)
-    if gid not in cases_db:
-        cases_db[gid] = {"case_counter": 0, "cases": {}}
-    return cases_db[gid]
-
-def create_case(guild_id: int, user_id: int, case_type: str, reason: str | None, mod_id: int) -> int:
-    """
-    Create a case for guild_id and return the guild-global case number (int).
-    case_type: "warn"|"ban"|"kick"|"timeout"|"jail"|"imute"|"rmute"
-    reason: string or None (imute/rmute may be None)
-    """
-    entry = ensure_history_guild(guild_id)
-    entry["case_counter"] += 1
-    case_id = entry["case_counter"]
-    entry["cases"][str(case_id)] = {
-        "user_id": int(user_id),
-        "type": str(case_type),
-        "reason": reason if reason is not None else None,
-        "mod": int(mod_id),
-        "timestamp": int(time.time())
-    }
-    save_cases()
-    return case_id
-
-def get_case(guild_id: int, case_id: int):
-    gid = str(guild_id)
-    entry = cases_db.get(gid)
-    if not entry:
-        return None
-    return entry["cases"].get(str(case_id))
-
-def get_cases_for_member(guild_id: int, user_id: int):
-    """
-    Returns list of tuples (case_id:int, case_dict) sorted by case_id ascending.
-    """
-    gid = str(guild_id)
-    entry = cases_db.get(gid)
-    if not entry:
-        return []
-    result = []
-    for cid_str, c in entry["cases"].items():
-        if c.get("user_id") == int(user_id):
-            result.append((int(cid_str), c))
-    result.sort(key=lambda x: x[0])
-    return result
-
-def remove_case(guild_id: int, case_id: int) -> bool:
-    gid = str(guild_id)
-    entry = cases_db.get(gid)
-    if not entry:
-        return False
-    if str(case_id) in entry["cases"]:
-        del entry["cases"][str(case_id)]
-        save_cases()
-        return True
-    return False
-
-def clear_member_cases(guild_id: int, user_id: int) -> int:
-    gid = str(guild_id)
-    entry = cases_db.get(gid)
-    if not entry:
-        return 0
-    removed = []
-    for cid, c in list(entry["cases"].items()):
-        if c.get("user_id") == int(user_id):
-            removed.append(cid)
-            del entry["cases"][cid]
-    if removed:
-        save_cases()
-    return len(removed)
-
 # -------------------------
 # Formatting helpers
 # -------------------------
@@ -950,9 +830,8 @@ def _fmt_case_brief(case_id: int, case: dict):
     # Example line: "1. Warned for 'spam' (Case #4)"
     typ = case.get("type", "unknown")
     reason = case.get("reason")
-    if typ == "warn":
-        desc = f"Warned for `{reason or 'n/a'}`"
-    elif typ == "ban":
+
+    if typ == "ban":
         desc = f"Banned for `{reason or 'n/a'}`"
     elif typ == "kick":
         desc = f"Kicked for `{reason or 'n/a'}`"
@@ -1039,7 +918,7 @@ class HistoryView(discord.ui.View):
         start = (self.page - 1) * PAGE_SIZE
         subset = self.case_list[start:start+PAGE_SIZE]
         embed = create_embed(
-            title=f"History — {self.member.display_name}",
+            title=f"HISTORY — {self.member.display_name}",
             description="",
             ctx_or_msg=self.ctx,  # your create_embed expects ctx usually
             include_author=False
@@ -1185,7 +1064,8 @@ async def history_view(ctx, case_number: int = None):
         embed = _fmt_case_detailed(case_number, case, ctx.guild, bot)
         await ctx.send(embed=embed)
     except Exception as e:
-        await ctx.send(e)
+        print(f"[history view] Error: {e}")
+        await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Failed to display case.", ctx, include_author=False))
 
 # -------------------------
 # history remove subcommand
@@ -1242,6 +1122,7 @@ async def history_remove(ctx, member: discord.Member | None = None, case_number:
 @history.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def history_clear(ctx, member: discord.Member | None = None):
+    """Remove all cases for a member (requires Manage Messages)."""
 
     prefix = p(ctx)
 
@@ -1271,16 +1152,8 @@ async def history_clear(ctx, member: discord.Member | None = None):
         except Exception as e:
             print("Could not send embed:", e) 
     
-    """Remove all cases for a member (requires Manage Messages)."""
     count = clear_member_cases(ctx.guild.id, member.id)
-    guild_id = str(ctx.guild.id)
-    user_id = str(member.id)
-
-    if guild_id in warnings_data and user_id in warnings_data[guild_id]:
-        warnings_data[guild_id].pop(user_id, None)
-
-        if len(warnings_data[guild_id]) == 0:
-            warnings_data.pop(guild_id, None)
+    clear_warnings(ctx.guild.id, member.id)
             
     await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed {count} case(s) for **{member.name}**.", ctx, include_author=False))
 
@@ -1358,13 +1231,13 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
         )
         dm_embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1069850380114067490/1437817233907912817/lv_0_20240227091826-ezgif.com-gif-maker.gif")
         await member.send(embed=dm_embed)
-    except:
+    except (discord.Forbidden, discord.HTTPException):
         pass  # user has DMs closed or blocked the bot
 
     # Ban the member
     try:
         await member.ban(reason=reason, delete_message_days=0)
-        case_id = create_case(ctx.guild.id, member.id, "ban", reason, ctx.author.id)
+        create_case(ctx.guild.id, member.id, "ban", reason, ctx.author.id)
     except discord.Forbidden:
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Cannot ban **{member.name}**. They may have `Administrator` or a higher role than you.", ctx, include_author=False))
 
@@ -1630,23 +1503,6 @@ async def untimeout(ctx, member: discord.Member = None):
 
 # WARNING SYSTEM (PER-SERVER)
 
-WARN_FILE = os.path.join(BASE_DIR, "warnings.json")
-
-def load_warnings():
-    if not os.path.exists(WARN_FILE):
-        return {}
-    try:
-        with open(WARN_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {}
-
-def save_warnings(data):
-    with open(WARN_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-warnings_data = load_warnings()
-
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def warn(ctx, member: discord.Member = None, *, reason: str = None):
@@ -1697,23 +1553,8 @@ async def warn(ctx, member: discord.Member = None, *, reason: str = None):
     if reason is None:
         reason = "n/a"
 
-    guild_id = str(ctx.guild.id)
-    user_id = str(member.id)
-
-    if guild_id not in warnings_data:
-        warnings_data[guild_id] = {}
-    if user_id not in warnings_data[guild_id]:
-        warnings_data[guild_id][user_id] = []
-
-    warnings_data[guild_id][user_id].append({
-        "reason": reason,
-        "mod": ctx.author.id,
-        "timestamp": int(time.time())
-    })
-    save_warnings(warnings_data)
-
-    case_id = create_case(ctx.guild.id, member.id, "warn", reason, ctx.author.id)
-
+    add_warning(ctx.guild.id, member.id, ctx.author.id, reason)
+    
     pub_embed = create_embed(
         "",
         f"You have been warned in **{ctx.guild.name}** for `{reason}`.",
@@ -1745,15 +1586,22 @@ async def warn(ctx, member: discord.Member = None, *, reason: str = None):
     except:
         pass
 
-@bot.command()
+@bot.group(invoke_without_command=True)
 @commands.has_permissions(manage_messages=True)
 async def warnings(ctx, member:discord.Member = None):
 
     if member is None:
         member = ctx.author
-    
-    guild_id = str(ctx.guild.id)
-    user_id = str(member.id)
+
+    warn_list = get_warnings(ctx.guild.id, member.id)
+
+    if not warn_list:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"{ctx.author.mention}: **{member.name}** has no warnings.",
+            ctx,
+            include_author=False
+        ))
 
     embed = create_embed(
         f"Warnings in {ctx.guild.name}",
@@ -1764,17 +1612,8 @@ async def warnings(ctx, member:discord.Member = None):
     embed.set_author(name=str(member), icon_url=member.avatar.url if member.avatar else None)
     embed.set_thumbnail(url=ctx.guild.icon.url if ctx.guild.icon else None)
 
-    if (guild_id not in warnings_data or user_id not in warnings_data[guild_id] or len(warnings_data[guild_id][user_id]) == 0):
-        noembed = create_embed(
-            "",
-            f"{ctx.author.mention}: **{member.name}** has no warnings.",
-            ctx,
-            include_author=False
-        )
-        return await ctx.send(embed=noembed)
-
     lines = []
-    for i, w in enumerate(warnings_data[guild_id][user_id], start=1):
+    for i, w in enumerate(warn_list, start=1):
         mod = ctx.guild.get_member(w["mod"])
         mod_name = mod.mention if mod else "Unknown"
         timestamp = discord.utils.format_dt(discord.utils.datetime.datetime.utcfromtimestamp(w["timestamp"]), style="R")
@@ -1784,33 +1623,65 @@ async def warnings(ctx, member:discord.Member = None):
 
     await ctx.send(embed=embed)
 
+@warnings.command(name="remove", aliases=["delete", "del"])
+@commands.has_permissions(manage_messages=True)
+async def warnings_remove(ctx, member: discord.Member = None, warning_number: int = None):
+    """Remove a specific warning by its number."""
+    prefix = p(ctx)
+
+    if member is None or warning_number is None:
+        embed = create_embed("command: warnings remove", "Remove a specific warning from a member", ctx)
+        embed.add_field(name="Aliases",              value=alss_ctx(ctx),       inline=False)
+        embed.add_field(name="Permissions Required", value="`Manage Messages`", inline=False)
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}warnings remove <member> <warning_number>\n\u001b[35mexample:\u001b[0m {prefix}warnings remove zeph 2```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+
+    warn_list = get_warnings(ctx.guild.id, member.id)
+    if not warn_list:
+        return await ctx.send(embed=create_embed(
+            "", f"{ctx.author.mention}: **{member.name}** has no warnings.", ctx, include_author=False
+        ))
+
+    if warning_number < 1 or warning_number > len(warn_list):
+        return await ctx.send(embed=create_embed(
+            "", f"{ctx.author.mention}: Warning #{warning_number} does not exist. **{member.name}** has {len(warn_list)} warning(s).",
+            ctx, include_author=False
+        ))
+
+    remove_warning(ctx.guild.id, member.id, warning_number)
+    await ctx.send(embed=create_embed(
+        "", f"{ctx.author.mention}: Removed warning #{warning_number} from **{member.name}**.", ctx, include_author=False
+    ))
+
+
+@warnings.command(name="clear", aliases=["removeall", "delall"])
+@commands.has_permissions(administrator=True)
+async def warnings_clear(ctx, member: discord.Member = None):
+    """Clear all warnings for a member."""
+    prefix = p(ctx)
+
+    if member is None:
+        embed = create_embed("command: warnings clear", "Clear all warnings for a member", ctx)
+        embed.add_field(name="Aliases",              value=alss_ctx(ctx),    inline=False)
+        embed.add_field(name="Permissions Required", value="`Administrator`", inline=False)
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}warnings clear <member>\n\u001b[35mexample:\u001b[0m {prefix}warnings clear zeph```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+
+    count = clear_warnings(ctx.guild.id, member.id)
+    await ctx.send(embed=create_embed(
+        "", f"{ctx.author.mention}: Cleared {count} warning(s) from **{member.name}**.", ctx, include_author=False
+    ))
+
 
 # JAIL SYSTEM (PER-SERVER VERSION)
-
-CONFIG_FILE = os.path.join(BASE_DIR, "jail_config.json")
-
-# ---------------------------------------------------------
-# Load + Save
-# ---------------------------------------------------------
-
-def load_jail_config():
-    if not os.path.exists(CONFIG_FILE):
-        return {}
-
-    try:
-        with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {}
-
-def save_jail_config(data):
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-# Global data stored in memory
-jail_data = load_jail_config()
-
 
 # ---------------------------------------------------------
 # Helpers
@@ -1818,21 +1689,15 @@ jail_data = load_jail_config()
 
 def get_guild_jail(guild_id: int):
     """Returns {role_id, channel_id} for that guild or None"""
-    return jail_data.get(str(guild_id))
+    return get_jail_config(guild_id)
 
 
 def set_guild_jail(guild_id: int, role_id: int, channel_id: int):
-    jail_data[str(guild_id)] = {
-        "role_id": role_id,
-        "channel_id": channel_id
-    }
-    save_jail_config(jail_data)
+    set_jail_config(guild_id, role_id, channel_id)
 
 
 def remove_guild_jail(guild_id: int):
-    if str(guild_id) in jail_data:
-        del jail_data[str(guild_id)]
-        save_jail_config(jail_data)
+    delete_jail_config(guild_id)
 
 
 def jail_system_not_set(guild: discord.Guild):
@@ -2134,34 +1999,6 @@ async def on_guild_channel_delete(channel):
 #      PER-SERVER IMUTE
 # ===========================
 
-IMUTE_CONFIG_FILE = os.path.join(BASE_DIR, "imute_config.json")
-
-# { "guild_id": role_id }
-def load_imute_config():
-    if not os.path.exists(IMUTE_CONFIG_FILE):
-        return {}
-    try:
-        with open(IMUTE_CONFIG_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {}
-
-def save_imute_config(data):
-    with open(IMUTE_CONFIG_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-def get_imute_role_id(guild_id):
-    data = load_imute_config()
-    return data.get(str(guild_id))
-
-
-def set_imute_role_id(guild_id, role_id):
-    data = load_imute_config()
-    data[str(guild_id)] = role_id
-    save_imute_config(data)
-
-
 def imute_not_set(guild):
     role_id = get_imute_role_id(guild.id)
     if role_id is None:
@@ -2170,7 +2007,7 @@ def imute_not_set(guild):
     role = guild.get_role(role_id)
     if not role:
         # cleanup invalid role
-        set_imute_role_id(guild.id, None)
+        delete_imute_role(guild.id)
         return True
 
     return False
@@ -2199,6 +2036,15 @@ async def imute_instruction_embed(ctx):
 async def imuteset(ctx, *, role_arg=None):
     guild = ctx.guild
     prefix = get_prefix(bot, ctx.message)
+
+    if not imute_not_set(guild):
+        await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system is already set.",
+            ctx,
+            include_author=False
+        ))
+        return
 
     loading_embed = create_embed(
         "",
@@ -2322,48 +2168,13 @@ async def imute(ctx, member: discord.Member = None):
 
 @bot.event
 async def on_guild_role_delete(role):
-    data = load_imute_config()
-    gid = str(role.guild.id)
-
-    # If the guild is in the config AND the stored role matches the deleted role
-    if gid in data and data[gid] == role.id:
-        # Completely remove the guild entry
-        del data[gid]
-        save_imute_config(data)
+    stored = get_imute_role_id(role.guild.id)
+    if stored == role.id:
+        delete_imute_role(role.guild.id)
 
 # ===========================
 #      PER-SERVER RMUTE
 # ===========================
-
-RMUTE_CONFIG_FILE = os.path.join(BASE_DIR, "rmute_config.json")
-
-
-# { "guild_id": role_id }
-def load_rmute_config():
-    if not os.path.exists(RMUTE_CONFIG_FILE):
-        return {}
-    try:
-        with open(RMUTE_CONFIG_FILE, "r") as f:
-            return json.load(f)
-    except:
-        return {}
-
-
-def save_rmute_config(data):
-    with open(RMUTE_CONFIG_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-def get_rmute_role_id(guild_id):
-    data = load_rmute_config()
-    return data.get(str(guild_id))
-
-
-def set_rmute_role_id(guild_id, role_id):
-    data = load_rmute_config()
-    data[str(guild_id)] = role_id
-    save_rmute_config(data)
-
 
 def rmute_not_set(guild):
     role_id = get_rmute_role_id(guild.id)
@@ -2403,6 +2214,15 @@ async def rmute_instruction_embed(ctx):
 async def rmuteset(ctx, *, role_arg=None):
     guild = ctx.guild
     prefix = get_prefix(bot, ctx.message)
+
+    if not rmute_not_set(guild):
+        await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` system is already set.",
+            ctx,
+            include_author=False
+        ))
+        return
 
     loading_embed = create_embed(
         "",
@@ -2531,14 +2351,9 @@ async def rmute(ctx, member: discord.Member = None):
 
 @bot.event
 async def on_guild_role_delete(role):
-    data = load_rmute_config()
-    gid = str(role.guild.id)
-
-    # If the guild is in the config AND the stored role matches the deleted role
-    if gid in data and data[gid] == role.id:
-        # Completely remove the guild entry
-        del data[gid]
-        save_rmute_config(data)
+    stored = get_rmute_role_id(role.guild.id)
+    if stored == role.id:
+        delete_rmute_role(role.guild.id)
         
 @bot.command(aliases=["r"])
 @commands.has_permissions(manage_roles=True)
@@ -2725,21 +2540,6 @@ async def roleinfo(ctx, *, role_input: str = None):
 # Role management: autorole
 # -----------------------------
 
-AUTOROLE_FILE = os.path.join(BASE_DIR, "autoroles.json")
-
-# Load autoroles
-if os.path.exists(AUTOROLE_FILE):
-    with open(AUTOROLE_FILE, "r") as f:
-        # Ensure role IDs are ints
-        auto_roles = {guild_id: int(role_id) for guild_id, role_id in json.load(f).items()}
-else:
-    auto_roles = {}  # {guild_id: role_id}
-
-
-def save_autoroles():
-    with open(AUTOROLE_FILE, "w") as f:
-        json.dump(auto_roles, f)
-
 @bot.command(aliases=["ar"])
 @commands.has_permissions(manage_roles=True)
 async def autorole(ctx, action: str = None, *, role_input: str = None):
@@ -2829,7 +2629,7 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
     # =====================================================
     if action == "remove":
 
-        if str(ctx.guild.id) not in auto_roles or auto_roles[str(ctx.guild.id)] != role.id:
+        if get_autorole(ctx.guild.id) != role.id:
             return await ctx.send(embed=create_embed(
                 "",
                 f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: That role is not set as an auto-assign role.",
@@ -2837,8 +2637,7 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
                 include_author=False
             ))
 
-        auto_roles.pop(str(ctx.guild.id))
-        save_autoroles()
+        delete_autorole(ctx.guild.id)
 
         return await ctx.send(embed=create_embed(
             "",
@@ -2851,7 +2650,7 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
     #                ADD (with role)
     # =====================================================
 
-    if str(ctx.guild.id) in auto_roles and auto_roles[str(ctx.guild.id)] == role.id:
+    if get_autorole(ctx.guild.id) == role.id:
         return await ctx.send(embed=create_embed(
             "",
             f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: That role is already set as an auto-assign role.",
@@ -2859,8 +2658,7 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
             include_author=False
         ))
 
-    auto_roles[str(ctx.guild.id)] = role.id
-    save_autoroles()
+    set_autorole(ctx.guild.id, role.id)
 
     await ctx.send(embed=create_embed(
         "",
@@ -2869,14 +2667,11 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
         include_author=False
     ))
 
-       
-
-
 @bot.event
 async def on_member_join(member):
     if member.bot:
         return  # skip bots
-    role_id = auto_roles.get(str(member.guild.id))
+    role_id = get_autorole(member.guild.id)
     if not role_id:
         return
     role = member.guild.get_role(int(role_id))
@@ -3668,7 +3463,6 @@ async def on_message(message):
 
 # Keep a dictionary of forced nicknames: {guild_id: {member_id: {"original": original_name, "forced": forced_name}}}
 from discord.ext import commands
-
 forced_nicknames = {}
 
 @bot.command(aliases=["fn"])
@@ -5029,8 +4823,6 @@ async def bots(ctx):
     view.message = msg
 
 
-
-
 # -----------------------------
 # Global error handler
 # -----------------------------
@@ -5049,9 +4841,7 @@ async def on_command_error(ctx, error):
             ctx,
             include_author=False
         ))
-        return
-
-                        
+        return                    
 
 # -----------------------------
 # Run the bot

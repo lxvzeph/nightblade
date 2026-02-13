@@ -1,32 +1,21 @@
 # cogs/license.py
-import json
-import os
 import random
 import string
 import asyncio
 import discord
 from discord.ext import commands
-
-BASE_DIR = os.getcwd()
-LICENSE_FILE = os.path.join(BASE_DIR, "licenses.json")
+from data.licenses import (
+    get_license,
+    get_all_keys,
+    create_license,
+    set_activated,
+    delete_license
+)
 
 # >>> EDIT THESE BEFORE USE <<<
 OFFICIAL_SERVER_ID = 1069850380114067487
 AUTHORIZED_ROLE_IDS = [1125010550200471632, 1426420301578895493]
 # ------------------------------
-
-def load_licenses():
-    if not os.path.exists(LICENSE_FILE):
-        return {}
-    try:
-        with open(LICENSE_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-def save_licenses(data):
-    with open(LICENSE_FILE, "w") as f:
-        json.dump(data, f, indent=4)
 
 def generate_license_key(existing_keys=set()):
     chars = string.ascii_uppercase + string.digits
@@ -44,16 +33,14 @@ class License(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.licenses = load_licenses()  # dict: guild_id (str) -> {"key": str, "activated": bool}
-        # register global check
         bot.add_check(self._global_license_check)
 
     # ---------- helpers ----------
     def _all_keys(self):
-        return {v["key"] for v in self.licenses.values() if "key" in v}
+        return get_all_keys()
 
     def _guild_is_activated(self, guild_id: int):
-        entry = self.licenses.get(str(guild_id))
+        entry = get_license(guild_id)
         return bool(entry and entry.get("activated"))
 
     def _embed(self, title: str = "", description: str = "", ctx: commands.Context | None = None,
@@ -151,8 +138,7 @@ class License(commands.Cog):
             await msg.delete()
             return
 
-        gid = str(guild_id)
-        entry = self.licenses.get(gid)
+        entry = get_license(guild_id)
         guild_obj = self.bot.get_guild(int(guild_id))
 
         if guild_obj is None:
@@ -183,8 +169,7 @@ class License(commands.Cog):
 
         # create unique key and save
         key = generate_license_key(existing_keys=self._all_keys())
-        self.licenses[gid] = {"key": key, "activated": False}
-        save_licenses(self.licenses)
+        create_license(guild_id, key)
 
         embed = self._embed(description=f"<a:sword_spin:1211611749426667560>  License key generated:\n\n```{key}\n```", include_author=False)
         embed.set_footer(text="TIP: Use activate <key> in your server.")
@@ -206,8 +191,7 @@ class License(commands.Cog):
             await msg.delete()
             return
 
-        gid = str(ctx.guild.id)
-        entry = self.licenses.get(gid)
+        entry = get_license(ctx.guild.id)
         if not entry:
             embed = self._embed("", "<a:sword_spin:1211611749426667560>  This server does not have a license assigned.\n\nIf you believe this is a problem, contact support in the official server.", include_author=False)
             msg = await ctx.send(embed=embed)
@@ -224,8 +208,7 @@ class License(commands.Cog):
             embed = self._embed("", "<a:sword_spin:1211611749426667560>  That key is invalid for this server.", include_author=False)
             return await ctx.send(embed=embed)
 
-        self.licenses[gid]["activated"] = True
-        save_licenses(self.licenses)
+        set_activated(ctx.guild.id, True)
         embed = self._embed("LICENSE ACTIVATED", f"**{self.bot.user.name}** is now activated and fully-functional in this server.\n\nTo get started, see a list of commands by using `{prefix}commands`", include_author=True)
         embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.set_footer(text="Nox Aeternum")
@@ -242,7 +225,7 @@ class License(commands.Cog):
             return await ctx.send(embed=embed)
 
         guild_obj = self.bot.get_guild(int(target_gid))
-        entry = self.licenses.get(target_gid)
+        entry = get_license(int(target_gid))
         if not entry:
             embed = self._embed(title="", description=f"<a:sword_spin:1211611749426667560>  No license assigned for guild `{guild_obj.name}`.", ctx=ctx, include_author=False)
             return await ctx.send(embed=embed)
@@ -275,12 +258,11 @@ class License(commands.Cog):
 
         guild_obj = self.bot.get_guild(int(guild_id))
         gid = str(guild_id)
-        if gid not in self.licenses:
+        if not get_license(guild_id):
             embed = self._embed(description="<a:sword_spin:1211611749426667560>  That guild does not have a license entry.", include_author=False)
             return await ctx.send(embed=embed)
 
-        del self.licenses[gid]
-        save_licenses(self.licenses)
+        delete_license(guild_id)
         embed = self._embed(title="LICENSE REVOKED", description=f"License for server **{guild_obj.name}** has been revoked and removed.", include_author=True)
         embed.set_thumbnail(url=guild_obj.icon.url)
         embed.add_field(name="**Moderator**", value=f"{ctx.author.mention}")
@@ -326,8 +308,7 @@ class License(commands.Cog):
             return await ctx.send(embed=embed)
 
         guild_obj = self.bot.get_guild(int(target_gid))
-        gid = str(target_gid)
-        entry = self.licenses.get(gid)
+        entry = get_license(target_gid)
         if not entry:
             embed = self._embed(description=f"<a:sword_spin:1211611749426667560>  No license entry found for server ID `{target_gid}`.", include_author=False)
             return await ctx.send(embed=embed)
@@ -335,8 +316,7 @@ class License(commands.Cog):
             embed = self._embed(description="<a:sword_spin:1211611749426667560>  This guild is not currently activated.", include_author=False)
             return await ctx.send(embed=embed)
 
-        self.licenses[gid]["activated"] = False
-        save_licenses(self.licenses)
+        set_activated(target_gid, False)
 
         embed = self._embed("LICENSE DEACTIVATED", description=f"The license for server **{guild_obj.name}** has been deactivated.", include_author=True)
         embed.add_field(name="**Moderator**", value=f"{ctx.author.mention}")

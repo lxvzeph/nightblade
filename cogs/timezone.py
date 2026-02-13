@@ -1,23 +1,8 @@
 import discord
 from discord.ext import commands
-import json
-import os
 from datetime import datetime
-from zoneinfo import ZoneInfo   # Built-in Python timezone database
-from zoneinfo import available_timezones
-
-BASE_DIR = os.getcwd()
-TIMEZONE_FILE = os.path.join(BASE_DIR, "timezones.json")
-
-def load_timezones():
-    if not os.path.exists(TIMEZONE_FILE):
-        return {}
-    with open(TIMEZONE_FILE, "r") as f:
-        return json.load(f)
-
-def save_timezones(data):
-    with open(TIMEZONE_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+from zoneinfo import ZoneInfo, available_timezones
+from data.timezones import get_timezone, set_timezone # Built-in Python timezone database
 
 class TimezoneListView(discord.ui.View):
     def __init__(self, ctx, cities: list[str]):
@@ -110,6 +95,12 @@ class TimezoneListView(discord.ui.View):
 
 class Timezone(commands.Cog):
 
+    def __init__(self, bot):
+        self.bot = bot
+        self.tz_lookup = self.build_timezone_lookup()
+        self.city_list = self.build_city_lookup()
+        self.EMBED_COLOR = 0x2f3136
+
     def build_timezone_lookup(self):
         lookup = {}
         for tz in available_timezones():
@@ -122,13 +113,6 @@ class Timezone(commands.Cog):
             lookup.setdefault(key, []).append(tz)
 
         return lookup
-
-    def __init__(self, bot):
-        self.bot = bot
-        self.timezones = load_timezones()
-        self.tz_lookup = self.build_timezone_lookup()
-        self.city_list = self.build_city_lookup()
-        self.EMBED_COLOR = 0x2f3136
     
     def build_city_lookup(self):
         lookup = {}
@@ -147,7 +131,7 @@ class Timezone(commands.Cog):
 
         try:
             bot_avatar = self.bot.user.avatar.url
-        except:
+        except Exception:
             bot_avatar = None
 
         final_color = discord.Color(color) if isinstance(color, int) else color
@@ -184,54 +168,48 @@ class Timezone(commands.Cog):
 
         # If no argument → show author's time
         target = member or author
-        tid = str(target.id)
+        tzname = get_timezone(target.id)
 
-        if tid not in self.timezones:
-            # author calls for themself
+        if tzname is None:
             if target == author:
-                embed = self._embed(
-                    "",
-                    f"{author.mention}: You do not have a timezone set. To do so, use `timezone set <city>`",
-                    ctx,
-                    include_author=False
+                return await ctx.send(
+                    embed=self._embed(
+                        "",
+                        f"{author.mention}: You do not have a timezone set. Use `{ctx.prefix}timezone set <city>` to set your timezone.",
+                        ctx, include_author=False
+                    )
                 )
-                return await ctx.send(embed=embed)
 
             # author calls for someone else
-            embed = self._embed(
-                "",
-                f"{author.mention}: **{target.name}** does not have a timezone set.",
-                ctx,
-                include_author=False
+            return await ctx.send(
+                embed=self._embed(
+                    "",
+                    f"{author.mention}: **{target.name}** does not have a timezone set.",
+                    ctx, include_author=False
+                )
             )
-            return await ctx.send(embed=embed)
-
-        # timezone exists
-        tzname = self.timezones[tid]
 
         try:
             now = datetime.now(ZoneInfo(tzname))
-        except:
-            now = None
+        except Exception:
+            return await ctx.send(embed=self._embed(
+                "",
+                f"{author.mention}: Stored timezone `{tzname}` is invalid. Please set a new one.",
+                ctx, include_author=False
+            ))
 
         formatted = now.strftime("%B %d, %I:%M %p")
 
         if target == author:
-            embed = self._embed(
-                "",
-                f"{author.mention}: It is currently `{formatted}`",
-                ctx,
-                include_author=False
-            )
+            msg = f"{author.mention}: It is currently `{formatted}`."
         else:
-            embed = self._embed(
-                "",
-                f"{author.mention}: **{target.name}**'s current time is `{formatted}`.",
-                ctx,
-                include_author=False
-            )
+            msg = f"{author.mention}: **{target.name}**'s current time is `{formatted}`."
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=self._embed(
+            "",
+            msg,
+            ctx, include_author=False
+        ))
 
     # ----------------- timezone set -----------------
 
@@ -281,13 +259,12 @@ class Timezone(commands.Cog):
             )
         
         final_tz = matches[0]
-        self.timezones[str(author.id)] = final_tz
-        save_timezones(self.timezones)
+        set_timezone(author.id, final_tz)
 
         await ctx.send(
             embed=self._embed(
                 "",
-                f"{author.mention}: Your timezone is set to `{final_tz.replace('_', ' ').replace('-', ' ')}`",
+                f"{author.mention}: Your timezone is set to `{final_tz.replace('_', ' ')}`",
                 ctx,
                 include_author=False
             )

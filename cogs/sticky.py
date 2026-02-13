@@ -2,20 +2,19 @@ import discord
 from discord.ext import commands
 import asyncio
 from discord import app_commands
-import json
-import os
-
-BASE_DIR = os.getcwd()
-STICKY_FILE = os.path.join(BASE_DIR, "sticky_messages.json")
-STICKY_DELAY = 5  # seconds — change to 300 for 5 minutes, etc.
-
+from data.sticky import (
+     get_sticky,
+     set_sticky,
+     update_sticky_message_id,
+     delete_sticky,
+     get_all_stickies
+)
 
 class Sticky(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.sticky_messages = {}
+        self.sticky_messages = get_all_stickies()
         self.active_timers = {}
-        self.load_sticky_messages()
         self.EMBED_COLOR = 0x2f3136
 
     def _embed(self, title, description, ctx_or_msg, include_author=True, color=None):
@@ -62,21 +61,6 @@ class Sticky(commands.Cog):
     def alss_ctx(self, ctx):
         cmd = self.bot.get_command(ctx.command.name)
         return self.get_aliases_string(cmd)
-
-    # ---------- SAVE / LOAD ----------
-    def load_sticky_messages(self):
-        if os.path.exists(STICKY_FILE):
-            with open(STICKY_FILE, "r", encoding="utf-8") as f:
-                try:
-                    self.sticky_messages = json.load(f)
-                except json.JSONDecodeError:
-                    self.sticky_messages = {}
-        else:
-            self.sticky_messages = {}
-
-    def save_sticky_messages(self):
-        with open(STICKY_FILE, "w", encoding="utf-8") as f:
-            json.dump(self.sticky_messages, f, indent=4)
 
     # ---------- PREFIX / SLASH BASE ----------
     @commands.hybrid_group(name="sticky", description="Manages sticky messages")
@@ -176,13 +160,8 @@ class Sticky(commands.Cog):
                 files = None
 
             # ----- Save sticky info -----
-            self.sticky_messages[str(channel.id)] = {
-                "content": content,
-                "embeds": [e.to_dict() for e in embeds] if embeds else [],
-                "attachments": [f.filename for f in files] if files else [],
-                "message_id": sent.id
-            }
-            self.save_sticky_messages()
+            set_sticky(channel.id, content, [e.to_dict() for e in embeds] if embeds else [], [f.filename for f in files] if files else [], sent.id)
+            self.sticky_messages[str(channel.id)] = {"content": content, "embeds": [e.to_dict() for e in embeds] if embeds else [], "attachments": [f.filename for f in files] if files else [], "message_id": sent.id}
 
         except discord.NotFound:
             embed = discord.Embed(
@@ -212,7 +191,6 @@ class Sticky(commands.Cog):
             await asyncio.sleep(5)
             await msg.delete()
             await ctx.message.delete()
-        		
 
     # ---------- REMOVE ----------
     @sticky.command(name="remove", description="Removes the sticky message from a channel.")
@@ -220,42 +198,42 @@ class Sticky(commands.Cog):
     channel="Channel to remove a sticky message from (optional)")
     @commands.has_permissions(manage_messages=True)
     async def sticky_remove(self, ctx, channel: discord.TextChannel = None):
-    	channel = channel or ctx.channel
-    	if str(channel.id) not in self.sticky_messages:
-    		embed = discord.Embed(description="<:xcross:1438691789379735612>  No sticky message set for this channel.", color=discord.Color.from_str("#963939"))
-    		
-    		if ctx.interaction:
-    			await ctx.reply(embed=embed, ephemeral=True)
-    		else:
-    			msg = await ctx.reply(embed=embed, mention_author=False)
-    			await asyncio.sleep(5)
-    			await msg.delete()
-    			await ctx.message.delete()
-    		return
-    		
-    	data = self.sticky_messages[str(channel.id)]
-    	try:
-    		msg = await channel.fetch_message(data["message_id"])
-    		await msg.delete()
-    	except discord.NotFound:
-    		pass
-    		
-    	del self.sticky_messages[str(channel.id)]
-    	self.save_sticky_messages()
-    	
-    	if channel.id in self.active_timers:
-    		self.active_timers[channel.id].cancel()
-    		del self.active_timers[channel.id]
-    		
-    	embed = discord.Embed(description=f"Sticky message removed in {channel.mention}.", color=discord.Color.from_str("#71906e"))
-    	
-    	if ctx.interaction:
-    		await ctx.reply(embed=embed, ephemeral=True)
-    	else:
-    		msg = await ctx.reply(embed=embed, mention_author=False)
-    		await asyncio.sleep(5)
-    		await msg.delete()
-    		await ctx.message.delete()
+        channel = channel or ctx.channel
+        if str(channel.id) not in self.sticky_messages:
+            embed = discord.Embed(description="<:xcross:1438691789379735612>  No sticky message set for this channel.", color=discord.Color.from_str("#963939"))
+            
+            if ctx.interaction:
+                await ctx.reply(embed=embed, ephemeral=True)
+            else:
+                msg = await ctx.reply(embed=embed, mention_author=False)
+                await asyncio.sleep(5)
+                await msg.delete()
+                await ctx.message.delete()
+            return
+            
+        data = self.sticky_messages[str(channel.id)]
+        try:
+            msg = await channel.fetch_message(data["message_id"])
+            await msg.delete()
+        except discord.NotFound:
+            pass
+            
+        delete_sticky(channel.id)
+        del self.sticky_messages[str(channel.id)]
+        
+        if channel.id in self.active_timers:
+            self.active_timers[channel.id].cancel()
+            del self.active_timers[channel.id]
+            
+        embed = discord.Embed(description=f"Sticky message removed in {channel.mention}.", color=discord.Color.from_str("#71906e"))
+        
+        if ctx.interaction:
+            await ctx.reply(embed=embed, ephemeral=True)
+        else:
+            msg = await ctx.reply(embed=embed, mention_author=False)
+            await asyncio.sleep(5)
+            await msg.delete()
+            await ctx.message.delete()
 
 
 
@@ -265,7 +243,7 @@ class Sticky(commands.Cog):
         if message.author.bot:
             return
         if message.content.startswith(";sticky"):
-        	return
+            return
 
         channel = message.channel
 
@@ -298,8 +276,8 @@ class Sticky(commands.Cog):
         )
 
         # ----- Update sticky message ID -----
-        sticky["message_id"] = sent.id
-        self.save_sticky_messages()
+        update_sticky_message_id(channel.id, sent.id)
+        sticky["message_id"] = sent.id  # keep in-memory dict in sync
 
 
 async def setup(bot):

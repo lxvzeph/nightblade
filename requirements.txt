@@ -4,3 +4,4 @@ flask
 asyncio
 psutil
 pytz
+aiosqlite
