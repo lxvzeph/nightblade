@@ -2108,7 +2108,7 @@ async def imuteset(ctx, *, role_arg=None):
 
 @bot.command()
 @commands.has_permissions(moderate_members=True)
-async def imute(ctx, member: discord.Member = None):
+async def imute(ctx, member: discord.Member = None, *, reason=None):
     if imute_not_set(ctx.guild):
         return await imute_instruction_embed(ctx)
 
@@ -2128,7 +2128,7 @@ async def imute(ctx, member: discord.Member = None):
         )
         embed.add_field(
             name="**Utilization**",
-            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}imute <member>\n\u001b[35mexample:\u001b[0m {prefix}imute zeph```",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}imute <member> (reason)\n\u001b[35mexample:\u001b[0m {prefix}imute zeph trash memes```",
             inline=False
         )
         await ctx.send(embed=embed)
@@ -2150,6 +2150,7 @@ async def imute(ctx, member: discord.Member = None):
 
     if imute_role in member.roles:
         await member.remove_roles(imute_role)
+        case_id = create_case(ctx.guild.id, member.id, "imute", reason, ctx.author.id)
         await ctx.send(embed=create_embed(
         "",
         f"{ctx.author.mention}: **{member.name}** can now send images again.",
@@ -2160,7 +2161,7 @@ async def imute(ctx, member: discord.Member = None):
         await member.add_roles(imute_role)
         await ctx.send(embed=create_embed(
             "",
-            f"{ctx.author.mention}: **{member.name}** has been revoked of their image perms.",
+            f"{ctx.author.mention}: **{member.name}** has been revoked of their image perms. **Reason**: {reason or 'n/a'}",
             ctx, color=0x963939,
             include_author=False
         ))
@@ -2285,7 +2286,7 @@ async def rmuteset(ctx, *, role_arg=None):
 
 @bot.command()
 @commands.has_permissions(moderate_members=True)
-async def rmute(ctx, member: discord.Member = None):
+async def rmute(ctx, member: discord.Member = None, *, reason=None):
     if rmute_not_set(ctx.guild):
         return await rmute_instruction_embed(ctx)
 
@@ -2306,7 +2307,7 @@ async def rmute(ctx, member: discord.Member = None):
         )
         embed.add_field(
             name="**Utilization**",
-            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}rmute <member>\n\u001b[35mexample:\u001b[0m {prefix}rmute zeph```",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}rmute <member> (reason)\n\u001b[35mexample:\u001b[0m {prefix}rmute zeph stop sobbing yourself```",
             inline=False
         )
         await ctx.send(embed=embed)
@@ -2339,10 +2340,11 @@ async def rmute(ctx, member: discord.Member = None):
     ))
     else:
         await member.add_roles(rmute_role)
+        case_id = create_case(ctx.guild.id, member.id, "rmute", reason, ctx.author.id)
         await ctx.send(
             embed=create_embed(
                 "",
-                f"{ctx.author.mention}: **{member.name}** has been revoked of their reaction perms.",
+                f"{ctx.author.mention}: **{member.name}** has been revoked of their reaction perms. **Reason:** {reason or 'n/a'}",
                 ctx,
                 color=0x963939,
                 include_author=False
