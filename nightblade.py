@@ -840,9 +840,9 @@ def _fmt_case_brief(case_id: int, case: dict):
     elif typ == "jail":
         desc = f"Sent to jail for `{reason or 'n/a'}`"
     elif typ == "imute":
-        desc = "Image muted"
+        desc = f"Image muted for `{reason or 'n/a'}`"
     elif typ == "rmute":
-        desc = "Reaction muted"
+        desc = f"Reaction muted for `{reason or 'n/a'}`"
     else:
         desc = f"{typ} ({reason or 'n/a'})"
     return f"{desc} (Case #{case_id})"
@@ -2150,7 +2150,6 @@ async def imute(ctx, member: discord.Member = None, *, reason=None):
 
     if imute_role in member.roles:
         await member.remove_roles(imute_role)
-        case_id = create_case(ctx.guild.id, member.id, "imute", reason, ctx.author.id)
         await ctx.send(embed=create_embed(
         "",
         f"{ctx.author.mention}: **{member.name}** can now send images again.",
@@ -2159,6 +2158,7 @@ async def imute(ctx, member: discord.Member = None, *, reason=None):
     ))
     else:
         await member.add_roles(imute_role)
+        case_id = create_case(ctx.guild.id, member.id, "imute", reason, ctx.author.id)
         await ctx.send(embed=create_embed(
             "",
             f"{ctx.author.mention}: **{member.name}** has been revoked of their image perms. **Reason**: {reason or 'n/a'}",
