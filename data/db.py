@@ -1,11 +1,11 @@
 import sqlite3
 import os
 
-DEFAULT = "/data/bot.db"
-DB_PATH = os.getenv("DB_PATH", DEFAULT)
+DB_PATH = os.getenv("DB_PATH", "/data/bot.db")
 
 
 def get_connection():
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
 
