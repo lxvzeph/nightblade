@@ -36,7 +36,8 @@ class Flag(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.EMBED_COLOR = 0x2f3136
-        self.running_games = set()
+        self.running_games = {}
+        self.cancelled_games = set()
 
     def _embed(self, title, description, ctx_or_msg, include_author=True, color=None):
 
@@ -109,6 +110,7 @@ class Flag(commands.Cog):
             value=difficulty.capitalize(),
             inline=False
         )
+        embed.set_footer(text="Type 'skip', 'idk', or 'pass' to skip")
 
         embed_msg = await ctx.send(embed=embed)
 
@@ -141,9 +143,24 @@ class Flag(commands.Cog):
 
             guess_text = guess.content.lower().strip()
             valid_answers = {country["name"].lower()}
+            SKIP_WORDS = {"skip", "idk", "pass"}
 
             for alias in country.get("aliases", []):
                 valid_answers.add(alias.lower())
+
+            if guess_text in SKIP_WORDS:
+                countdown_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await countdown_task
+                with contextlib.suppress(Exception):
+                    await embed_msg.clear_reactions()
+
+                embed.color = discord.Color(0x963939)
+                embed.description = f"**Skipped!** The answer was **{country["name"]}**"
+                embed.set_footer(text=None)
+                await embed_msg.edit(embed=embed)
+                correct = True
+                break
 
             if guess_text in valid_answers:
                 if countdown_state["started"]:
@@ -156,6 +173,7 @@ class Flag(commands.Cog):
 
                 embed.color = discord.Color.from_rgb(113, 144, 110)
                 embed.description = f"**Correct!** The answer is **{country['name']}**"
+                embed.set_footer(text=None)
                 await embed_msg.edit(embed=embed)
 
                 correct = True
@@ -187,7 +205,7 @@ class Flag(commands.Cog):
                 )
             )
 
-    @commands.command(aliases=["countries"])
+    @commands.group(aliases=["countries"], invoke_without_command=True)
     async def flags(self, ctx):
 
         channel_id = ctx.channel.id
@@ -244,7 +262,7 @@ class Flag(commands.Cog):
             await ctx.send(embed=cancel_embed)
             return
         
-        self.running_games.add(channel_id)
+        self.running_games[channel_id] = ctx.author.id
         
         try:
             lives = {player.id: 3 for player in players}
@@ -271,6 +289,10 @@ class Flag(commands.Cog):
             round_index = 0
     
             while len(players) > 1:
+                if channel_id in self.cancelled_games:
+                    self.cancelled_games.discard(channel_id)
+                    return
+                
                 difficulty, time_limit = (
                     rounds.pop(0) if rounds else ("insane", 8)
                 )
@@ -296,6 +318,7 @@ class Flag(commands.Cog):
                         value=difficulty.capitalize(),
                         inline=False
                     )
+                    flag_embed.set_footer(text="Typing 'skip', 'idk', or 'pass' will skip your turn.")
                     embed_msg = await ctx.send(content=player.mention, embed=flag_embed)
                     countdown_state = {"started": False}
 
@@ -325,9 +348,38 @@ class Flag(commands.Cog):
 
                         guess_text = guess.content.lower().strip()
                         valid_answers = {country["name"].lower()}
+                        SKIP_WORDS = {"skip", "idk", "pass"}
 
                         for alias in country.get("aliases", []):
                             valid_answers.add(alias.lower())
+
+                        if guess_text in SKIP_WORDS:
+                            countdown_task.cancel()
+                            with contextlib.suppress(asyncio.CancelledError):
+                                await countdown_task
+                            with contextlib.suppress(Exception):
+                                await embed_msg.clear_reactions()
+
+                            lives[player.id] -= 1
+
+                            if lives[player.id] <= 0:
+                                elim_embed = self._embed(
+                                    "",
+                                    f"**Skipped!** The answer was **{country["name"]}**\n"
+                                    f"**{player.name}** has been eliminated!",
+                                    ctx, include_author=False
+                                )
+                                await ctx.send(embed=elim_embed)
+                                players.remove(player)
+                            else:
+                                skip_embed = self._embed(
+                                    "",
+                                    f"**Skipped!** The answer was **{country["name"]}**\n"
+                                    f"**{player.name}'s** lives: {self.render_lives(lives[player.id])}",
+                                    ctx, include_author=False
+                                )
+                                await ctx.send(embed=skip_embed)
+                            break
     
                         if guess_text in valid_answers:
                             if countdown_state["started"]:
@@ -387,7 +439,31 @@ class Flag(commands.Cog):
             await ctx.send(embed=win_embed)
 
         finally:
-            self.running_games.discard(channel_id)
+            self.running_games.pop(channel_id, None)
+
+    @flags.command(name="reset", aliases=["stop"])
+    async def flags_reset(self, ctx):
+        channel_id = ctx.channel.id
+
+        if channel_id not in self.running_games:
+            return await ctx.send(embed=self._embed(
+                "", "<a:sword_spin:1211611749426667560> No game is currently running in this channel.",
+                ctx, include_author=False
+            ))
+        
+        if self.running_games[channel_id] != ctx.author.id:
+            return await ctx.send(embed=self._embed(
+                "", f"<a:sword_spin:1211611749426667560> {ctx.author.mentiom}: Only the host can reset the game.",
+                ctx, include_author=False
+            ))
+        
+        self.cancelled_games.add(channel_id)
+        self.running_games.pop(channel_id, None)
+        await ctx.send(embed=self._embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: The game has been reset.",
+            ctx, include_author=False
+        ))
 
 
 
