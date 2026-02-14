@@ -1368,7 +1368,7 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
 
 from datetime import datetime, timedelta, timezone  # <- top of your file
 
-@bot.command()
+@bot.command(aliases=["time"])
 @commands.has_permissions(moderate_members=True)
 async def timeout(ctx, member: discord.Member = None, duration: str = None, *, reason=None):
     
@@ -1468,7 +1468,7 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
     await ctx.send("https://tenor.com/view/it%27s-time-to-stop-gif-9416155803997449261")
     await ctx.send(embed=create_embed("", f"{ctx.author.mention}: **{member.name}** has been timed out for **{duration}**. **Reason:** {reason or 'n/a'}", ctx, color=0x963939, include_author=False))
 
-@bot.command()
+@bot.command(aliases=["untime"])
 @commands.has_permissions(moderate_members=True)
 async def untimeout(ctx, member: discord.Member = None):
     
@@ -2051,7 +2051,7 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
 # unjail — release
 # ---------------------------------------------------------
 
-@bot.command()
+@bot.command(aliases=["release", "unj"])
 @commands.has_permissions(moderate_members=True)
 async def unjail(ctx, member: discord.Member = None):
     
