@@ -380,6 +380,7 @@ class Flag(commands.Cog):
                                     ctx, include_author=False
                                 )
                                 await ctx.send(embed=skip_embed)
+                            correct = True
                             break
     
                         if guess_text in valid_answers:
