@@ -5068,6 +5068,22 @@ async def bots(ctx):
     msg = await ctx.send(embed=view.get_embed(), view=view)
     view.message = msg
 
+@bot.command(aliases=["folk"])
+async def zephfolk(ctx):
+    gif = [
+        "https://giphy.com/gifs/son-folk-druski-di3fwtPhjXOpL9KcUJ",
+        "https://giphy.com/gifs/pose-folk-rgull1t-iUZVf1Q6PSnnZEJrkZ",
+        "https://giphy.com/gifs/ai-baby-mongolian-folk-Z1iDnkZoCJ1krUt1nY",
+        "https://giphy.com/gifs/folk-druski-mbappe-19IfsgThQuUQnZIjf9",
+        "https://giphy.com/gifs/folk-polish-coach-nvY2DqdQwDx6zUnBKn",
+        "https://cdn.discordapp.com/attachments/1069850380114067490/1472166276443930624/image.png",
+        "https://cdn.discordapp.com/attachments/1069850380114067490/1472166977777696883/fd9be3c8e401e94d9beb31f69ed80e63.jpg"
+
+    ]
+
+    folk = random.choice(gif)
+    await ctx.send(folk)
+    
 
 # -----------------------------
 # Global error handler
