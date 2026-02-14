@@ -1733,20 +1733,26 @@ async def jail_instruction_embed(ctx):
 # jailset — per server setup
 # ---------------------------------------------------------
 
-@bot.command()
+@bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True, manage_channels=True)
 async def jailset(ctx, role_arg=None, channel_arg=None):
     guild = ctx.guild
+    prefix = p(ctx)
 
     # Already set?
     if not jail_system_not_set(guild):
-        await ctx.send(embed=create_embed(
+        config = get_guild_jail(guild.id)
+        role = guild.get_role(config["role_id"])
+        channel = guild.get_channel(config["channel_id"])
+        embed = create_embed(
             "",
             f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system is already set.",
-            ctx,
-            include_author=False
-        ))
-        return
+            ctx, include_author=False
+        )
+        embed.add_field(name="Role",    value=role.mention    if role    else "`deleted`", inline=True)
+        embed.add_field(name="Channel", value=channel.mention if channel else "`deleted`", inline=True)
+        embed.set_footer(text=f"To change: {prefix}jailset role <role>  |  {prefix}jailset channel <channel>")
+        return await ctx.send(embed=embed)
 
     loading_embed = create_embed(
         "",
@@ -1760,8 +1766,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     if role_arg is None:
         role = await guild.create_role(name="jailed", reason="auto-generated jail role")
     else:
-        role = discord.utils.get(guild.roles, mention=role_arg) or \
-               discord.utils.get(guild.roles, name=role_arg)
+        role = resolve_role(guild, role_arg)
 
         if role is None:
             role = await guild.create_role(name=role_arg, reason="jailset created role")
@@ -1769,10 +1774,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     # 2) CHANNEL SETUP
     channel = None
     if channel_arg is not None:
-        channel = (
-            discord.utils.get(guild.text_channels, mention=channel_arg) or discord.utils.get(guild.text_channels, name=channel_arg)
-        )
-
+        channel = resolve_channel(guild, channel_arg)
     if channel:
         try:
             await channel.set_permissions(
@@ -1837,7 +1839,150 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     final_embed.add_field(name="Channel", value=channel.mention, inline=False)
     await status_msg.edit(embed=final_embed)
 
+@jailset.command(name="role")
+@commands.has_permissions(manage_roles=True)
+async def jailset_role(ctx, *, role_input: str = None):
+    guild = ctx.guild
+    prefix = p(ctx)
 
+    if jail_system_not_set(guild):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
+            ctx, include_author=False
+        ))
+    
+    if role_input is None:
+        embed = create_embed(
+            "command: jailset role",
+            "Edit jailed role",
+            ctx
+        )
+        embed.add_field(
+            name="Permissions Required",
+            value="`Manage Roles`",
+            inline=False
+        )
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}jailset role @newrole\n\u001b[35mexample: \u001b[0m{prefix}jailset role @convict```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    new_role = resolve_role(guild, role_input)
+    if new_role is None:
+        return await ctx.send(embed=create_embed(
+            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            ctx, include_author=False
+        ))
+    
+    config = get_guild_jail(guild.id)
+    channel = guild.get_channel(config["channel_id"])
+    old_role = guild.get_role(config["role_id"])
+
+    if old_role:
+        if channel:
+            try:
+                await channel.set_permissions(old_role, overwrite=None)
+            except discord.Forbidden:
+                pass
+        for ch in guild.text_channels:
+            try:
+                await ch.set_permissions(old_role, overwrite=None)
+            except discord.Forbidden:
+                pass
+        for vc in guild.voice_channels:
+            try:
+                await vc.set_permissions(old_role, overwrite=None)
+            except discord.Forbidden:
+                pass
+
+    if channel:
+        try:
+            await channel.set_permissions(new_role, view_channel=True, send_messages=True)
+        except discord.Forbidden:
+            pass
+
+    for ch in guild.text_channels:
+        if ch.id != (channel.id if channel else None):
+            try:
+                await ch.set_permissions(new_role, send_messages=False)
+            except discord.Forbidden:
+                pass
+    
+    for vc in guild.voice_channels:
+        try:
+            await vc.set_permissions(new_role, connect=False, speak=False)
+        except discord.Forbidden:
+            pass
+
+    set_guild_jail(guild.id, new_role.id, config["channel_id"])
+    await ctx.send(embed=create_embed(
+        "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Jail role updated to {new_role.mention}.",
+        ctx, include_author=False
+    ))
+
+@jailset.command(name="channel")
+@commands.has_permissions(manage_messages=True)
+async def jailset_channel(ctx, *, channel_input: str = None):
+    guild = ctx.guild
+    prefix = p(ctx)
+
+    if jail_system_not_set(guild):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
+            ctx, include_author=False
+        ))
+    
+    if channel_input is None:
+        embed = create_embed(
+            "command: jailset channel",
+            "Edit jail channel", ctx
+        )
+        embed.add_field(
+            name="Permissions Required",
+            value="`Manage Channels`",
+            inline=False
+        )
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}jailset channel #newchannel\n\u001b[35mexample: \u001b[0m{prefix}jailset channel #prison```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    new_channel = resolve_channel(guild, channel_input)
+    if new_channel is None:
+        return await ctx.send(embed=create_embed(
+            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel `{channel_input}` not found.",
+            ctx, include_author=False
+        ))
+    
+    config = get_guild_jail(guild.id)
+    jail_role = guild.get_role(config["role_id"])
+    old_channel = guild.get_channel(config["channel_id"])
+
+    if old_channel and jail_role:
+        try:
+            await old_channel.set_permissions(guild.default_role, overwrite=None)
+            await old_channel.set_permissions(jail_role, overwrite=None)
+        except discord.Forbidden:
+            pass
+
+    if jail_role:
+        try:
+            await new_channel.set_permissions(guild.default_role, view_channel=False)
+            await new_channel.set_permissions(jail_role, view_channel=True, send_messages=True)
+        except discord.Forbidden:
+            pass
+
+    set_guild_jail(guild.id, config["role_id"], new_channel.id)
+    await ctx.send(embed=create_embed(
+        "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Jail channel updated to {new_channel.mention}.",
+        ctx, include_author=False
+    ))
 
 # ---------------------------------------------------------
 # jail — apply punishment
@@ -1848,7 +1993,6 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
 async def jail(ctx, member: discord.Member = None, *, reason=None):
     
     prefix = p(ctx)
-    
     guild = ctx.guild
 
     if jail_system_not_set(guild):
@@ -1883,7 +2027,7 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: **{member.name}** is already in `jail`.", ctx, include_author=False))
 
     await member.add_roles(role)
-    case_id = create_case(ctx.guild.id, member.id, "jail", reason, ctx.author.id)
+    create_case(ctx.guild.id, member.id, "jail", reason, ctx.author.id)
 
     await ctx.send(embed=create_embed(
         "",
@@ -1912,7 +2056,6 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
 async def unjail(ctx, member: discord.Member = None):
     
     prefix = p(ctx)
-    
     guild = ctx.guild
 
     if jail_system_not_set(guild):
@@ -1965,35 +2108,22 @@ async def unjail(ctx, member: discord.Member = None):
         
 @bot.event
 async def on_guild_role_delete(role):
-    data = load_jail_config()
-    gid = str(role.guild.id)
-
-    if gid not in data:
-        return
+    data = get_jail_config(role.guild.id)
+    if data and data["role_id"] == role.id:
+        delete_jail_config(role.guild.id)
+    istored = get_imute_role_id(role.guild.id)
+    if istored == role.id:
+        delete_imute_role(role.guild.id)
+    rstored = get_rmute_role_id(role.guild.id)
+    if rstored == role.id:
+        delete_rmute_role(role.guild.id)
     
-    if data[gid].get("role_id") == role.id:
-        data[gid]["role_id"] = None
-
-        # If both role and channel are None → delete entire guild entry
-        if data[gid].get("channel_id") is None:
-            del data[gid]
-        save_jail_config(data)
         
 @bot.event
 async def on_guild_channel_delete(channel):
-    data = load_jail_config()
-    gid = str(channel.guild.id)
-
-    if gid not in data:
-        return
-
-    if data[gid].get("channel_id") == channel.id:
-        data[gid]["channel_id"] = None
-
-        # If both role and channel are None → delete entire guild entry
-        if data[gid].get("role_id") is None:
-            del data[gid]
-        save_jail_config(data)
+    data = get_jail_config(channel.guild.id)
+    if data and data["channel_id"] == channel.id:
+        delete_jail_config(channel.guild.id)
 
 # ===========================
 #      PER-SERVER IMUTE
@@ -2031,7 +2161,7 @@ async def imute_instruction_embed(ctx):
 #         imuteset
 # ===========================
 
-@bot.command(name="imuteset")
+@bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
 async def imuteset(ctx, *, role_arg=None):
     guild = ctx.guild
@@ -2068,7 +2198,7 @@ async def imuteset(ctx, *, role_arg=None):
 
         # Exact name
         if role is None:
-            role = discord.utils.get(guild.roles, name=role_arg)
+            role = resolve_role(guild, role_arg)
 
         # Create if not found
         if role is None:
@@ -2101,6 +2231,69 @@ async def imuteset(ctx, *, role_arg=None):
     final_embed.add_field(name="Role", value=role.mention, inline=False)
     await status_msg.edit(embed=final_embed)
 
+@imuteset.command(name="role")
+@commands.has_permissions(manage_roles=True)
+async def imuteset_role(ctx, *, role_input: str = None):
+    guild = ctx.guild
+    prefix = p(ctx)
+
+    if imute_not_set(guild):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system not set up yet. Run `{prefix}imuteset` first.",
+            ctx, include_author=False
+        ))
+
+    if role_input is None:
+        embed = create_embed(
+            "command: imuteset role",
+            "Edits imute role", ctx
+        )
+        embed.add_field(
+            name="Permissions Required",
+            value="`Manage Roles`",
+            inline=False
+        )
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}imuteset role @role\n\u001b[35mexample: \u001b[0m{prefix}imuteset role @no image```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    new_role = resolve_role(guild, role_input)
+
+    if new_role is None:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            ctx, include_author=False
+        ))
+    
+    config = get_imute_role_id(guild.id)
+    old_role = guild.get_role(config) if config else None
+    if old_role:
+        for ch in guild.channels:
+            try:
+                await ch.set_permissions(old_role, overwrite=None)
+            except discord.Forbidden:
+                pass
+    
+    for ch in guild.channels:
+        try:
+            perms = ch.overwrites_for(new_role)
+            perms.attach_files = False
+            perms.embed_links = False
+            await ch.set_permissions(new_role, overwrite=perms)
+        except discord.Forbidden:
+            pass
+    
+    set_imute_role_id(guild.id, new_role.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` role updated to {new_role.mention}.",
+        ctx, include_author=False
+    ))
 
 # ===========================
 #          imute
@@ -2158,20 +2351,13 @@ async def imute(ctx, member: discord.Member = None, *, reason=None):
     ))
     else:
         await member.add_roles(imute_role)
-        case_id = create_case(ctx.guild.id, member.id, "imute", reason, ctx.author.id)
+        create_case(ctx.guild.id, member.id, "imute", reason, ctx.author.id)
         await ctx.send(embed=create_embed(
             "",
             f"{ctx.author.mention}: **{member.name}** has been revoked of their image perms. **Reason**: {reason or 'n/a'}",
             ctx, color=0x963939,
             include_author=False
         ))
-
-
-@bot.event
-async def on_guild_role_delete(role):
-    stored = get_imute_role_id(role.guild.id)
-    if stored == role.id:
-        delete_imute_role(role.guild.id)
 
 # ===========================
 #      PER-SERVER RMUTE
@@ -2185,7 +2371,7 @@ def rmute_not_set(guild):
     role = guild.get_role(role_id)
     if not role:
         # clean invalid entry
-        set_rmute_role_id(guild.id, None)
+        delete_rmute_role(guild.id)
         return True
 
     return False
@@ -2210,7 +2396,7 @@ async def rmute_instruction_embed(ctx):
 #         rmuteset
 # ===========================
 
-@bot.command(name="rmuteset")
+@bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
 async def rmuteset(ctx, *, role_arg=None):
     guild = ctx.guild
@@ -2248,7 +2434,7 @@ async def rmuteset(ctx, *, role_arg=None):
 
         # Exact name
         if role is None:
-            role = discord.utils.get(guild.roles, name=role_arg)
+            role = resolve_role(guild, role_arg)
 
         # Create new if not found
         if role is None:
@@ -2278,6 +2464,69 @@ async def rmuteset(ctx, *, role_arg=None):
     )
     final_embed.add_field(name="Role", value=role.mention, inline=False)
     await status_msg.edit(embed=final_embed)
+
+@rmuteset.command(name="role")
+@commands.has_permissions(manage_roles=True)
+async def rmuteset_role(ctx, *, role_input: str = None):
+    guild = ctx.guild
+    prefix = p(ctx)
+
+    if rmute_not_set(guild):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` system not set up yet. Run `{prefix}rmuteset` first.",
+            ctx, include_author=False
+        ))
+
+    if role_input is None:
+        embed = create_embed(
+            "command: rmuteset role",
+            "Edits rmute role", ctx
+        )
+        embed.add_field(
+            name="Permissions Required",
+            value="`Manage Roles`",
+            inline=False
+        )
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}rmuteset role @role\n\u001b[35mexample: \u001b[0m{prefix}rmuteset role @no react```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    new_role = resolve_role(guild, role_input)
+    
+    if new_role is None:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            ctx, include_author=False
+        ))
+    
+    config = get_rmute_role_id(guild.id)
+    old_role = guild.get_role(config) if config else None
+    if old_role:
+        for ch in guild.channels:
+            try:
+                await ch.set_permissions(old_role, overwrite=None)
+            except discord.Forbidden:
+                pass
+    
+    for ch in guild.channels:
+        try:
+            perms = ch.overwrites_for(new_role)
+            perms.add_reactions = False
+            await ch.set_permissions(new_role, overwrite=perms)
+        except discord.Forbidden:
+            pass
+    
+    set_rmute_role_id(guild.id, new_role.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` role updated to {new_role.mention}.",
+        ctx, include_author=False
+    ))
 
 
 # ===========================
@@ -2340,7 +2589,7 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
     ))
     else:
         await member.add_roles(rmute_role)
-        case_id = create_case(ctx.guild.id, member.id, "rmute", reason, ctx.author.id)
+        create_case(ctx.guild.id, member.id, "rmute", reason, ctx.author.id)
         await ctx.send(
             embed=create_embed(
                 "",
@@ -2350,12 +2599,7 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
                 include_author=False
             )
         )
-
-@bot.event
-async def on_guild_role_delete(role):
-    stored = get_rmute_role_id(role.guild.id)
-    if stored == role.id:
-        delete_rmute_role(role.guild.id)
+    
         
 @bot.command(aliases=["r"])
 @commands.has_permissions(manage_roles=True)
