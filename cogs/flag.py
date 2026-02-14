@@ -38,6 +38,7 @@ class Flag(commands.Cog):
         self.EMBED_COLOR = 0x2f3136
         self.running_games = {}
         self.cancelled_games = set()
+        self.current_countdown = {}
 
     def _embed(self, title, description, ctx_or_msg, include_author=True, color=None):
 
@@ -326,6 +327,7 @@ class Flag(commands.Cog):
                     countdown_task = asyncio.create_task(
                         countdown(embed_msg, time_limit, countdown_state)
                     )
+                    self.current_countdown[channel_id] = countdown_task
     
                     def check(m):
                         return m.author == player and m.channel == ctx.channel
@@ -455,12 +457,19 @@ class Flag(commands.Cog):
         
         if self.running_games[channel_id] != ctx.author.id:
             return await ctx.send(embed=self._embed(
-                "", f"<a:sword_spin:1211611749426667560> {ctx.author.mentiom}: Only the host can reset the game.",
+                "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Only the host can reset the game.",
                 ctx, include_author=False
             ))
         
         self.cancelled_games.add(channel_id)
         self.running_games.pop(channel_id, None)
+
+        task = self.current_countdown.pop(channel_id, None)
+        if task and not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
         await ctx.send(embed=self._embed(
             "",
             f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: The game has been reset.",
