@@ -54,7 +54,8 @@ class BlackTea(commands.Cog):
         self.bot = bot
         self.EMBED_COLOR = 0x2f3136
         self.running_games = {}
-        self.cancelled_games = set()
+        self.reset_events = {}
+        self.current_countdown = {}
 
     @staticmethod
     def render_lives(remaining: int):
@@ -98,7 +99,7 @@ class BlackTea(commands.Cog):
 
         return embed
     
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, aliases=["bt"])
     async def blacktea(self, ctx):
 
         channel_id = ctx.channel.id
@@ -158,12 +159,10 @@ class BlackTea(commands.Cog):
 
         round_index = 0
         self.running_games[channel_id] = ctx.author.id
+        self.reset_events[channel_id] = asyncio.Event()
 
         try:
             while len(players) > 1:
-                if channel_id in self.cancelled_games:
-                    self.cancelled_games.discard(channel_id)
-                    return
                 
                 player = players[round_index % len(players)]
     
@@ -195,6 +194,7 @@ class BlackTea(commands.Cog):
                 countdown_task = asyncio.create_task(
                     countdown(embed_msg, time_limit, countdown_state)
                 )
+                self.current_countdown[channel_id] = countdown_task
     
                 def check(m):
                     return m.author == player and m.channel == ctx.channel
@@ -206,15 +206,22 @@ class BlackTea(commands.Cog):
                     remaining = time_limit - (asyncio.get_running_loop().time() - start)
                     if remaining <= 0:
                         break
+
+                    if self.reset_events.get(channel_id, asyncio.Event()).is_set():
+                        countdown_task.cancel()
+                        with contextlib.suppress(asyncio.CancelledError):
+                            await countdown_task
+                        with contextlib.suppress(Exception):
+                            await embed_msg.clear_reactions()
+                        return
     
                     try:
-                        guess = await self.bot.wait_for(
-                            "message",
-                            timeout=remaining,
-                            check=check
+                        guess = await asyncio.wait_for(
+                            self.bot.wait_for("message", check=check),
+                            timeout=min(remaining, 1.0)
                         )
                     except asyncio.TimeoutError:
-                        break
+                        continue
     
                     word = guess.content.lower().strip()
 
@@ -306,6 +313,8 @@ class BlackTea(commands.Cog):
             )
         finally:
             self.running_games.pop(channel_id, None)
+            self.current_countdown.pop(channel_id, None)
+            self.reset_events.pop(channel_id, None)
 
     @blacktea.command(name="reset", aliases=["stop"])
     async def blacktea_reset(self, ctx):
@@ -325,11 +334,20 @@ class BlackTea(commands.Cog):
                 ctx, include_author=False
             ))
         
-        self.cancelled_games.add(channel_id)
+        if channel_id in self.reset_events:
+            self.reset_events[channel_id].set()
+        
+        task = self.current_countdown.pop(channel_id, None)
+        if task and not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
         self.running_games.pop(channel_id, None)
         await ctx.send(embed=self._embed(
             "",
-            f""
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: The game has been reset.",
+            ctx, include_author=False
         ))
     
 async def setup(bot):

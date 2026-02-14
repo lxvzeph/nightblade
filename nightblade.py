@@ -905,14 +905,14 @@ def _fmt_case_detailed(case_id:int, case:dict, guild: discord.Guild, bot: comman
 PAGE_SIZE = 10
 
 class HistoryView(discord.ui.View):
-    def __init__(self, ctx: commands.Context, member: discord.Member, case_list: list[tuple], page:int=1, timeout: int = 120):
-        super().__init__(timeout=timeout)
+    def __init__(self, ctx: commands.Context, member: discord.Member, case_list: list[tuple], page:int=1):
+        super().__init__(timeout=60)
         self.ctx = ctx
         self.member = member
         self.timed_out = False
         self.case_list = case_list  # list of (case_id, case)
         self.page = page
-        self.EMBED_COLOR = 0x2f3136
+        self.message = None
 
     def make_embed(self):
         start = (self.page - 1) * PAGE_SIZE
@@ -987,10 +987,8 @@ class HistoryView(discord.ui.View):
             child.disabled = True
 
         try:
-            msg = await self.message.channel.fetch_message(self.message.id)
-            embed = msg.embeds[0]
-            await self.message.edit(embed=embed, view=None)
-        except:
+            await self.message.edit(view=None)
+        except discord.Forbidden:
             pass
 
         self.stop()
@@ -1018,9 +1016,7 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
         page = pages
 
     view = HistoryView(ctx, member, case_list, page=page)
-    embed = view.make_embed()
-    await ctx.send(embed=embed, view=view)
-
+    view.message = await ctx.send(embed=view.make_embed(), view=view)
 # -------------------------
 # history view subcommand
 # -------------------------
@@ -3968,9 +3964,7 @@ class MembersView(discord.ui.View):
             child.disabled = True
 
         try:
-            msg = await self.message.channel.fetch_message(self.message.id)
-            embed = msg.embeds[0]
-            await self.message.edit(embed=embed, view=None)
+            await self.message.edit(view=None)
         except:
             pass
 
@@ -4008,9 +4002,7 @@ async def members(ctx, *, role_input: str = None):
 
     # make the pagination view
     view = MembersView(ctx, role, members_list)
-
-    msg = await ctx.send(embed=view.get_embed(), view=view)
-    view.message = msg
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 
         
@@ -4605,6 +4597,95 @@ async def out(ctx):
 async def oc(ctx):
     await ctx.send("https://cdn.discordapp.com/attachments/1069850380114067490/1445654781724201050/lv_0_20251130213805-ezgif.com-optimize.gif")
 
+@bot.command(name="8ball")
+async def ball(ctx, *, question: str = None):
+
+    prefix = p(ctx)
+
+    responses = [
+        "Yes.",
+        "mhmm",
+        "i think so",
+        "No.",
+        "Maybe.",
+        "Definitely.",
+        "never ask me again",
+        "hell no",
+        "folk 😭😭😭😭😭😭😭",
+        "ehhhhh i meannn",
+        "yessir",
+        "nah",
+        "hell yeah",
+        "i guess",
+        "i'll lyk when i have the answer",
+        "yea no",
+        "naw",
+        "nuh uh",
+        "uh huh",
+        "mmmaaaybe",
+        "who knows",
+        "ask zeph",
+        "you tell me",
+        f"{prefix}afk",
+        f"{prefix}leave",
+        "ofc bro 😂",
+        "come again?",
+        "beep boop",
+        "indeed",
+        "yup",
+        "HELL YEAAAA",
+        "FUK NAW 😭😭😭",
+        "brb",
+        "that goes without saying",
+        "indubitably",
+        "aaaabsolutely",
+        "Absolutely not.",
+        "Ask again later.",
+        "It is certain.",
+        "Very doubtful.",
+        "Without a doubt.",
+        "Duh.",
+        "You may rely on it.",
+        "Concentrate and ask again.",
+        "Don't count on it.",
+        "Outlook not so good.",
+        "Signs point to yes."
+    ]
+
+    if question is None:
+        embed = create_embed(
+            "command: 8ball",
+            "Ask the magic 8-ball a yes-or-no question",
+            ctx
+        )
+        embed.add_field(
+            name="**Aliases**",
+            value=alss_ctx(ctx),
+            inline=False
+        )
+        embed.add_field(
+            name="**Utilization**",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {p(ctx)}8ball <question>\n\u001b[35mexample:\u001b[0m {p(ctx)}8ball will nightblade ever be completed```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+
+
+    answer = random.choice(responses)
+
+    placeholder = await ctx.reply(embed=create_embed(
+        "",
+        f"🎱  hmmm",
+        ctx,
+        include_author=False
+    ), mention_author=False)
+    await asyncio.sleep(1.5)
+    await placeholder.edit(embed=create_embed(
+        "",
+        f"🎱  {answer}",
+        ctx,
+        include_author=False
+    ))
 
 # -------------------------
 # DEFINE COMMAND
@@ -4682,99 +4763,11 @@ class DefinitionView(discord.ui.View):
             child.disabled = True
 
         try:
-            msg = await self.message.channel.fetch_message(self.message.id)
-            embed = msg.embeds[0]
-            await self.message.edit(embed=embed, view=None)
+            await self.message.edit(view=None)
         except:
             pass
 
         self.stop()
-
-@bot.command(name="8ball")
-async def ball(ctx, *, question: str = None):
-
-    responses = [
-        "Yes.",
-        "mhmm",
-        "i think so",
-        "No.",
-        "Maybe.",
-        "Definitely.",
-        "never ask me again",
-        "hell no",
-        "folk 😭😭😭😭😭😭😭",
-        "ehhhhh i meannn",
-        "yessir",
-        "nah",
-        "hell yeah",
-        "i guess",
-        "i'll lyk when i have the answer",
-        "yea no",
-        "naw",
-        "nuh uh",
-        "uh huh",
-        "mmmaaaybe",
-        "who knows",
-        "ask zeph",
-        "you tell me",
-        ";afk",
-        "ofc bro 😂",
-        "come again?",
-        "beep boop",
-        "indeed",
-        "yup",
-        "HELL YEAAAA",
-        "FUK NAW 😭😭😭",
-        "brb",
-        "Absolutely not.",
-        "Ask again later.",
-        "It is certain.",
-        "Very doubtful.",
-        "Without a doubt.",
-        "Duh.",
-        "You may rely on it.",
-        "Concentrate and ask again.",
-        "Don't count on it.",
-        "Outlook not so good.",
-        "Signs point to yes."
-    ]
-
-    if question is None:
-        embed = create_embed(
-            "command: 8ball",
-            "Ask the magic 8-ball a yes-or-no question",
-            ctx
-        )
-        embed.add_field(
-            name="**Aliases**",
-            value=alss_ctx(ctx),
-            inline=False
-        )
-        embed.add_field(
-            name="**Utilization**",
-            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {p(ctx)}8ball <question>\n\u001b[35mexample:\u001b[0m {p(ctx)}8ball will nightblade ever be completed```",
-            inline=False
-        )
-        return await ctx.send(embed=embed)
-
-
-    answer = random.choice(responses)
-
-    placeholder = await ctx.reply(embed=create_embed(
-        "",
-        f"🎱  hmmm",
-        ctx,
-        include_author=False
-    ), mention_author=False)
-    await asyncio.sleep(1.5)
-    await placeholder.edit(embed=create_embed(
-        "",
-        f"🎱  {answer}",
-        ctx,
-        include_author=False
-    ))
-
-
 
 @bot.command(aliases=["def"])
 async def define(ctx, *, word: str = None):
@@ -4863,8 +4856,7 @@ async def define(ctx, *, word: str = None):
 
     # Send result
     view = DefinitionView(definitions, word, pronunciation, ctx)
-    msg = await ctx.send(embed=view.get_embed(), view=view)
-    view.message = msg
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 class RolesView(discord.ui.View):
     def __init__(self, ctx, roles):
@@ -4940,9 +4932,7 @@ class RolesView(discord.ui.View):
             child.disabled = True
 
         try:
-            msg = await self.message.channel.fetch_message(self.message.id)
-            embed = msg.embeds[0]
-            await self.message.edit(embed=embed, view=None)
+            await self.message.edit(view=None)
         except:
             pass
 
@@ -4967,8 +4957,7 @@ async def roles(ctx):
     roles = sorted(roles, key=lambda r: r.position, reverse=True)
 
     view = RolesView(ctx, roles)
-    msg = await ctx.send(embed=view.get_embed(), view=view)
-    view.message = msg
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 class BotsView(discord.ui.View):
     def __init__(self, bots, ctx):
@@ -5043,9 +5032,7 @@ class BotsView(discord.ui.View):
             child.disabled = True
 
         try:
-            msg = await self.message.channel.fetch_message(self.message.id)
-            embed = msg.embeds[0]
-            await self.message.edit(embed=embed, view=None)
+            await self.message.edit(view=None)
         except:
             pass
 
@@ -5065,8 +5052,7 @@ async def bots(ctx):
         )
 
     view = BotsView(bots, ctx)
-    msg = await ctx.send(embed=view.get_embed(), view=view)
-    view.message = msg
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 @bot.command(aliases=["folk"])
 async def zephfolk(ctx):

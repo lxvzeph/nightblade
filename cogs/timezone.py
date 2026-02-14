@@ -288,8 +288,7 @@ class Timezone(commands.Cog):
             key=lambda tz: TimezoneListView.format_city(self, tz)
         )
         view = TimezoneListView(ctx, cities)
-        message = await ctx.send(embed=view.get_embed(), view=view)
-        view.message = message
+        view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 async def setup(bot):
     await bot.add_cog(Timezone(bot))
