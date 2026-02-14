@@ -35,6 +35,8 @@ LIVES = 3
 
 COUNTDOWN_EMOJIS = ["3️⃣", "2️⃣", "1️⃣"]
 
+SKIP_WORDS = {"skip", "idk", "pass"}
+
 async def countdown(embed_msg, total_time: int, state: dict):
     try:
         await asyncio.sleep(max(0, total_time - 4))
@@ -51,6 +53,8 @@ class BlackTea(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.EMBED_COLOR = 0x2f3136
+        self.running_games = {}
+        self.cancelled_games = set()
 
     @staticmethod
     def render_lives(remaining: int):
@@ -94,8 +98,18 @@ class BlackTea(commands.Cog):
 
         return embed
     
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     async def blacktea(self, ctx):
+
+        channel_id = ctx.channel.id
+
+        if channel_id in self.running_games:
+            return await ctx.send(embed=self._embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> A game is already running in this channel.",
+                ctx, include_author=False
+            ))
+        
         queue_embed = self._embed(
             "Blacktea",
             "React with `✅` to join. The game will start in **30 seconds**.",
@@ -143,119 +157,180 @@ class BlackTea(commands.Cog):
         )
 
         round_index = 0
+        self.running_games[channel_id] = ctx.author.id
 
-        while len(players) > 1:
-            player = players[round_index % len(players)]
-
-            if lives[player.id] <= 0:
-                round_index += 1
-                continue
-
-            difficulty = rounds.pop(0) if rounds else "hard"
-            time_limit = TIME_LIMITS[difficulty]
-
-            substring = random.choice(list(SUBSTRINGS.keys()))
-
-            bt_embed = self._embed(
-                "☕",
-                f"Type a word containing: `{substring}`\n"
-                f"You have **{time_limit} seconds**",
-                ctx,
-                include_author=False
-            )
-            bt_embed.add_field(
-                name="Difficulty",
-                value=difficulty.capitalize(),
-                inline=False
-            )
-            embed_msg = await ctx.send(content=player.mention, embed=bt_embed)
-            countdown_state = {"started": False}
-
-            countdown_task = asyncio.create_task(
-                countdown(embed_msg, time_limit, countdown_state)
-            )
-
-            def check(m):
-                return m.author == player and m.channel == ctx.channel
-            
-            start = asyncio.get_running_loop().time()
-            correct = False
-
-            while True:
-                remaining = time_limit - (asyncio.get_running_loop().time() - start)
-                if remaining <= 0:
-                    break
-
-                try:
-                    guess = await self.bot.wait_for(
-                        "message",
-                        timeout=remaining,
-                        check=check
-                    )
-                except asyncio.TimeoutError:
-                    break
-
-                word = guess.content.lower().strip()
+        try:
+            while len(players) > 1:
+                if channel_id in self.cancelled_games:
+                    self.cancelled_games.discard(channel_id)
+                    return
                 
-                if (
-                    word in WORDS
-                    and substring in word
-                    and word not in used_words
-                ):
-                    if countdown_state["started"]:
+                player = players[round_index % len(players)]
+    
+                if lives[player.id] <= 0:
+                    round_index += 1
+                    continue
+    
+                difficulty = rounds.pop(0) if rounds else "hard"
+                time_limit = TIME_LIMITS[difficulty]
+    
+                substring = random.choice(list(SUBSTRINGS.keys()))
+    
+                bt_embed = self._embed(
+                    "☕",
+                    f"Type a word containing: `{substring}`\n"
+                    f"You have **{time_limit} seconds**",
+                    ctx,
+                    include_author=False
+                )
+                bt_embed.add_field(
+                    name="Difficulty",
+                    value=difficulty.capitalize(),
+                    inline=False
+                )
+                bt_embed.set_footer(text="Typing 'skip', 'idk', or 'pass' will skip your turn.")
+                embed_msg = await ctx.send(content=player.mention, embed=bt_embed)
+                countdown_state = {"started": False}
+    
+                countdown_task = asyncio.create_task(
+                    countdown(embed_msg, time_limit, countdown_state)
+                )
+    
+                def check(m):
+                    return m.author == player and m.channel == ctx.channel
+                
+                start = asyncio.get_running_loop().time()
+                correct = False
+    
+                while True:
+                    remaining = time_limit - (asyncio.get_running_loop().time() - start)
+                    if remaining <= 0:
+                        break
+    
+                    try:
+                        guess = await self.bot.wait_for(
+                            "message",
+                            timeout=remaining,
+                            check=check
+                        )
+                    except asyncio.TimeoutError:
+                        break
+    
+                    word = guess.content.lower().strip()
+
+                    if word in SKIP_WORDS:
                         countdown_task.cancel()
                         with contextlib.suppress(asyncio.CancelledError):
                             await countdown_task
-
                         with contextlib.suppress(Exception):
                             await embed_msg.clear_reactions()
 
-                    await guess.add_reaction("✅")
-                    used_words.add(word)
-                    correct = True
-                    break
-                else: await guess.add_reaction("❌")
+                        lives[player.id] -= 1
 
-            countdown_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await countdown_task
-
-            with contextlib.suppress(Exception):
-                await embed_msg.clear_reactions()
-
-            if not correct:
-                lives[player.id] -= 1
-
-                if lives[player.id] <= 0:
-                    await ctx.send(
-                        embed=self._embed(
+                        if lives[player.id] <= 0:
+                            await ctx.send(embed=self._embed(
+                                "",
+                                f"**Skipped!** {player.name} has lost a life!\n"
+                                f"**{player.name}** has been eliminated!",
+                                ctx, include_author=False
+                            ))
+                            players.remove(player)
+                        else:
+                            await ctx.send(embed=self._embed(
+                                "",
+                                f"**Skipped!** {player.name} has lost a life!\n"
+                                f"**{player.name}'s** lives: {self.render_lives(lives[player.id])}",
+                                ctx, include_author=False
+                            ))
+                        correct = True
+                        break
+                    
+                    if (
+                        word in WORDS
+                        and substring in word
+                        and word not in used_words
+                    ):
+                        if countdown_state["started"]:
+                            countdown_task.cancel()
+                            with contextlib.suppress(asyncio.CancelledError):
+                                await countdown_task
+    
+                            with contextlib.suppress(Exception):
+                                await embed_msg.clear_reactions()
+    
+                        await guess.add_reaction("✅")
+                        used_words.add(word)
+                        correct = True
+                        break
+                    else: await guess.add_reaction("❌")
+    
+                countdown_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await countdown_task
+    
+                with contextlib.suppress(Exception):
+                    await embed_msg.clear_reactions()
+    
+                if not correct:
+                    lives[player.id] -= 1
+    
+                    if lives[player.id] <= 0:
+                        await ctx.send(
+                            embed=self._embed(
+                                "",
+                                f"**Time's up!** {player.name} has lost a life!\n"
+                                f"**{player.name}** has been eliminated!",
+                                ctx,
+                                include_author=False
+                            )
+                        )
+                        players.remove(player)
+                    else:
+                        await ctx.send(embed=self._embed(
                             "",
-                            f"**Time's up!** {player.name} has lost a life!\n"
-                            f"**{player.name}** has been eliminated!",
+                            f"**Time's up!** {player.name} has lost a life!\n**{player.name}**'s lives: {self.render_lives(lives[player.id])}",
                             ctx,
                             include_author=False
-                        )
-                    )
-                    players.remove(player)
-                else:
-                    await ctx.send(embed=self._embed(
-                        "",
-                        f"**Time's up!** {player.name} has lost a life!\n**{player.name}**'s lives: {self.render_lives(lives[player.id])}",
-                        ctx,
-                        include_author=False
-                    ))
+                        ))
+                
+                round_index += 1
             
-            round_index += 1
-        
-        winner = players[0]
-        await ctx.send(
-            embed=self._embed(
-                "",
-                f"🏆 **{winner.name}** won the game!",
-                ctx,
-                include_author=False
+            winner = players[0]
+            await ctx.send(
+                embed=self._embed(
+                    "",
+                    f"🏆 **{winner.name}** won the game!",
+                    ctx,
+                    include_author=False
+                )
             )
-        )
+        finally:
+            self.running_games.pop(channel_id, None)
+
+    @blacktea.command(name="reset", aliases=["stop"])
+    async def blacktea_reset(self, ctx):
+        channel_id = ctx.channel.id
+
+        if channel_id not in self.running_games:
+            return await ctx.send(embed=self._embed(
+                "",
+                "<a:sword_spin:1211611749426667560> No game is currently running in this channel.",
+                ctx, include_author=False
+            ))
+        
+        if self.running_games[channel_id] != ctx.author.id:
+            return await ctx.send(embed=self._embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Only the host can reset the game.",
+                ctx, include_author=False
+            ))
+        
+        self.cancelled_games.add(channel_id)
+        self.running_games.pop(channel_id, None)
+        await ctx.send(embed=self._embed(
+            "",
+            f""
+        ))
     
 async def setup(bot):
     await bot.add_cog(BlackTea(bot))

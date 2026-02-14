@@ -191,6 +191,7 @@ class Flag(commands.Cog):
         if not correct:
             embed.color = discord.Color.from_rgb(150, 57, 57)
             embed.description = f"**Time's up!** The answer was **{country['name']}**"
+            embed.set_footer(text=None)
             await embed_msg.edit(embed=embed)
 
     @flag.error
@@ -464,8 +465,6 @@ class Flag(commands.Cog):
             f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: The game has been reset.",
             ctx, include_author=False
         ))
-
-
 
 async def setup(bot):
     await bot.add_cog(Flag(bot))
