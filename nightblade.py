@@ -4793,8 +4793,8 @@ async def translate(ctx, language: str = None, *, text: str = None):
     
     to_name = LANGUAGE_NAMES.get(target_lang, target_lang.capitalize())
 
-    embed = create_embed("Google Translate", f"```{translated}```", ctx)
-    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+    embed = create_embed(text, f"```{translated}```", ctx)
+    embed.set_author(name="Google Translate", icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Google_Translate_logo.svg/960px-Google_Translate_logo.svg.png")
     embed.set_footer(text=f"Translated from {from_name} to {to_name}")
     await ctx.send(embed=embed)
 
