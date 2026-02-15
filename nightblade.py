@@ -3460,7 +3460,7 @@ class Dropdown(discord.ui.Select):
             discord.SelectOption(label="/moderation", description="Show a list of moderation commands"),
             discord.SelectOption(label="/authorization", description="Show a list of server authorization commands"),
             discord.SelectOption(label="/cmdmanagement", description="Show command management commands"),
-            discord.SelectOption(label="/servermanagement", description="Show a list of server management commands"),
+            discord.SelectOption(label="/config", description="Show a list of config commands"),
             discord.SelectOption(label="/rolemanagement", description="Show a list of role management commands"),
             discord.SelectOption(label="/information", description="Show a list of information commands"),
             discord.SelectOption(label="/utilities", description="Show a list of utilities commands"),
@@ -3488,10 +3488,13 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}untimeout` — Removes timeout from a member\n"
                 f"`{prefix}jail` — Sends a member to jail\n"
                 f"`{prefix}unjail` — Releases a member from jail\n"
+                f"`{prefix}warn` — Warns a member\n"
+                f"`{prefix}warnings` — See all warnings for a member\n"
                 f"`{prefix}forcename` — Forcibly changes a user's name\n"
                 f"`{prefix}imute` — Toggles image permissions\n"
                 f"`{prefix}rmute` — Toggles reaction permissions\n"
                 f"`{prefix}purge` — Purges message(s)\n"
+                f"`{prefix}history` — See a member's case log\n"
                 f"`{prefix}lockdown` — Locks a channel\n"
                 f"`{prefix}unlock` — Unlocks a channel\n"
             )
@@ -3513,7 +3516,7 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}unrestrict` — Removes a restriction from a command\n"
             )
         	
-        elif category == "/servermanagement":
+        elif category == "/config":
             desc = (
                 f"`{prefix}jailset` — Sets up a jail system\n"
                 f"`{prefix}imuteset` — Sets up an imute system\n"
@@ -3529,6 +3532,8 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}members` — See all members in a role\n"
                 f"`{prefix}autorole` — Adds or removes auto-assign role(s)\n"
                 f"`{prefix}roleedit` — Edits a role\n"
+                f"`{prefix}roleinfo` — See a role's information\n"
+                f"`{prefix}roles` — See all roles in the server\n"
             )
 
         elif category == "/information":
@@ -3538,10 +3543,12 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}guildicon` — Fetch the server icon\n"
                 f"`{prefix}banner` — Fetch a user's banner\n"
                 f"`{prefix}define` — Get a definition of the specified word\n"
+                f"`{prefix}ping` — See bot's latency\n"
+                f"`{prefix}nightblade` — See bot's info\n"
                 f"`{prefix}serverinfo` — See server's information\n"
                 f"`{prefix}userinfo` — See a user's information\n"
-                f"`{prefix}roleinfo` — See a role's information\n"
                 f"`{prefix}channelinfo` — See a channel's information\n"
+                f"`{prefix}bots` — See all bots in the server\n"
                 f"`{prefix}timezone` — See a user's timezone\n"
                 f"`{prefix}timezone set` — Set a timezone based on location\n"
             )
@@ -3557,14 +3564,14 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}clearreactionsnipe` — Clear reaction snipe\n"
                 f"`{prefix}editsnipe` — Snipes an edited message\n"
                 f"`{prefix}cleareditsnipe` — Clear edited snipe\n"
-                f"`{prefix}steal ` — Steal emojis from other servers\n"
+                f"`{prefix}steal` — Steal emojis from other servers\n"
+                f"`{prefix}translate` — Translate text using Google Translate\n"
                 f"`{prefix}afk` — Set AFK status\n"
             )
             
         elif category == "/misc":
             desc = (
-                f"`{prefix}ping` — See bot's latency\n"
-                f"`{prefix}nightblade` — See bot's info\n"
+                f"`{prefix}8ball` — Ask 8ball a yes-or-no question\n"
                 f"`{prefix}nox` — **NOX AETERNUM**\n"
                 f"`{prefix}flag` — Displays a random country flag\n"
                 f"`{prefix}flags` — Start a Guess the Country game\n"
@@ -4445,7 +4452,7 @@ async def steal(ctx, emoji: discord.PartialEmoji | None = None, *, name: str | N
     if not emoji:
         embed = create_embed(
             "command: steal",
-            "Steal an external emoji",
+            "Steal emojis from other servers",
             ctx
         )
         embed.add_field(
@@ -4510,7 +4517,7 @@ async def steal(ctx, emoji: discord.PartialEmoji | None = None, *, name: str | N
         await ctx.send(
             embed=create_embed(
                 "",
-                f"Added <a:{new_emoji.name}:{new_emoji.id}> with the name `{new_emoji.name}`",
+                f"{ctx.author.mention}: Added <a:{new_emoji.name}:{new_emoji.id}> with the name `{new_emoji.name}`",
                 ctx,
                 include_author=False
             )
