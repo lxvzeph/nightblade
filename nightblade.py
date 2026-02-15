@@ -6,6 +6,8 @@ import asyncio
 import psutil
 import pytz
 import time
+from deep_translator import GoogleTranslator, single_detection
+from deep_translator.exceptions import LanguageNotSupportedException
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import get
@@ -3647,30 +3649,28 @@ async def on_message(message):
         return
 
     if message.reference is not None:
-        return
+        if bot.user in message.mentions:
+            content = strip_bot_mention(message, bot)
 
-    if bot.user in message.mentions:
-        content = strip_bot_mention(message, bot)
-
-        if content == "":
-            prefix = get_prefix(bot, message)
-            embed = discord.Embed(
-                description=(
-                    f"{message.author.mention}: Current prefix is (`{prefix}`)\n\n"
-                    f"To change the prefix, use:\n\n```{prefix}prefix <new_prefix>```\n"
-                    f"-# (Administrator required)"
-                ),
-                color=0x2f3136
-            )
-            await message.channel.send(embed=embed)
-            return
+            if content == "":
+                prefix = get_prefix(bot, message)
+                embed = discord.Embed(
+                    description=(
+                        f"{message.author.mention}: Current prefix is (`{prefix}`)\n\n"
+                        f"To change the prefix, use:\n\n```{prefix}prefix <new_prefix>```\n"
+                        f"-# (Administrator required)"
+                    ),
+                    color=0x2f3136
+                )
+                await message.channel.send(embed=embed)
+                return
         
-        elif "you up" in content.lower():
-            if message.author.id == OWNER_ID:
-                await message.reply("for you, sir, always", mention_author=False)
+            elif "you up" in content.lower():
+                if message.author.id == OWNER_ID:
+                    await message.reply("for you, sir, always", mention_author=False)
 
-            else:
-                await message.reply("yes", mention_author=False)
+                else:
+                    await message.reply("yes", mention_author=False)
 
         
 
@@ -4541,7 +4541,7 @@ async def nightblade(ctx):
     total_users = sum(g.member_count for g in bot.guilds)
 
     process = psutil.Process()
-    cpu = process.cpu_percent()
+    cpu = process.cpu_percent(interval=0.1)
     mem = process.memory_info().rss / (1024**2)
 
     created = bot.user.created_at
@@ -4572,6 +4572,148 @@ async def nightblade(ctx):
     embed.set_footer(text="v1.0.0 (early development)")
 
     await ctx.send(embed=embed, view=InvBtn(str(inv)))
+
+# TRANSLATE COMMAND
+
+LANGUAGE_NAMES = {
+    "af": "Afrikaans", "sq": "Albanian", "am": "Amharic", "ar": "Arabic",
+    "hy": "Armenian", "as": "Assamese", "ay": "Aymara", "az": "Azerbaijani",
+    "bm": "Bambara", "eu": "Basque", "be": "Belarusian", "bn": "Bengali",
+    "bho": "Bhojpuri", "bs": "Bosnian", "bg": "Bulgarian", "ca": "Catalan",
+    "ceb": "Cebuano", "zh-CN": "Chinese (Simplified)", "zh-TW": "Chinese (Traditional)",
+    "co": "Corsican", "hr": "Croatian", "cs": "Czech", "da": "Danish",
+    "dv": "Dhivehi", "doi": "Dogri", "nl": "Dutch", "en": "English",
+    "eo": "Esperanto", "et": "Estonian", "ee": "Ewe", "fil": "Filipino",
+    "fi": "Finnish", "fr": "French", "fy": "Frisian", "gl": "Galician",
+    "ka": "Georgian", "de": "German", "el": "Greek", "gn": "Guarani",
+    "gu": "Gujarati", "ht": "Haitian Creole", "ha": "Hausa", "haw": "Hawaiian",
+    "he": "Hebrew", "hi": "Hindi", "hmn": "Hmong", "hu": "Hungarian",
+    "is": "Icelandic", "ig": "Igbo", "ilo": "Ilocano", "id": "Indonesian",
+    "ga": "Irish", "it": "Italian", "ja": "Japanese", "jv": "Javanese",
+    "kn": "Kannada", "kk": "Kazakh", "km": "Khmer", "rw": "Kinyarwanda",
+    "gom": "Konkani", "ko": "Korean", "kri": "Krio", "ku": "Kurdish (Kurmanji)",
+    "ckb": "Kurdish (Sorani)", "ky": "Kyrgyz", "lo": "Lao", "la": "Latin",
+    "lv": "Latvian", "ln": "Lingala", "lt": "Lithuanian", "lg": "Luganda",
+    "lb": "Luxembourgish", "mk": "Macedonian", "mai": "Maithili", "mg": "Malagasy",
+    "ms": "Malay", "ml": "Malayalam", "mt": "Maltese", "mi": "Maori",
+    "mr": "Marathi", "mni-Mtei": "Meitei", "lus": "Mizo", "mn": "Mongolian",
+    "my": "Myanmar (Burmese)", "ne": "Nepali", "no": "Norwegian", "ny": "Nyanja",
+    "or": "Odia", "om": "Oromo", "ps": "Pashto", "fa": "Persian",
+    "pl": "Polish", "pt": "Portuguese", "pa": "Punjabi", "qu": "Quechua",
+    "ro": "Romanian", "ru": "Russian", "sm": "Samoan", "sa": "Sanskrit",
+    "gd": "Scots Gaelic", "nso": "Sepedi", "sr": "Serbian", "st": "Sesotho",
+    "sn": "Shona", "sd": "Sindhi", "si": "Sinhala", "sk": "Slovak",
+    "sl": "Slovenian", "so": "Somali", "es": "Spanish", "su": "Sundanese",
+    "sw": "Swahili", "sv": "Swedish", "tg": "Tajik", "ta": "Tamil",
+    "tt": "Tatar", "te": "Telugu", "th": "Thai", "ti": "Tigrinya",
+    "ts": "Tsonga", "tr": "Turkish", "tk": "Turkmen", "ak": "Twi",
+    "uk": "Ukrainian", "ur": "Urdu", "ug": "Uyghur", "uz": "Uzbek",
+    "vi": "Vietnamese", "cy": "Welsh", "xh": "Xhosa", "yi": "Yiddish",
+    "yo": "Yoruba", "zu": "Zulu"
+}
+LANGUAGE_CODES = {v.lower(): k for k, v in LANGUAGE_NAMES.items()}
+
+async def detect_language(text: str) -> str:
+    import urllib.parse
+    encoded = urllib.parse.quote(text)
+    url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q={encoded}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as r:
+            if r.status == 200:
+                data = await r.json()
+                return data[2]
+    return None
+
+@bot.command(aliases=["tr"])
+async def translate(ctx, language: str = None, *, text: str = None):
+    prefix = p(ctx)
+
+    if language is None and text is None:
+        ref = ctx.message.reference
+        if ref is None:
+            embed = create_embed(
+                "command: translate",
+                "Translate text using Google Translate", ctx
+            )
+            embed.add_field(
+                name="Aliases",
+                value=alss_ctx(ctx),
+                inline=False
+            )
+            embed.add_field(
+                name="Utilization",
+                value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}translate (language) (text)\n\u001b[35mexample: \u001b[0m{prefix}translate en hola```",
+                inline=False
+            )
+            return await ctx.send(embed=embed)
+        
+        replied = await ctx.channel.fetch_message(ref.message_id)
+        if not replied.content:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: That message has no text to translate.",
+                ctx, include_author=False
+            ))
+        target_lang = "en"
+        source_text = replied.content
+
+    else:
+        if language is None and text is None:
+            embed = create_embed(
+                "command: translate",
+                "Translate text using Google Translate", ctx
+            )
+            embed.add_field(
+                name="Aliases",
+                value=alss_ctx(ctx),
+                inline=False
+            )
+            embed.add_field(
+                name="Utilization",
+                value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}translate (language) (text)\n\u001b[35mexample: \u001b[0m{prefix}translate en hola```",
+                inline=False
+            )
+            return await ctx.send(embed=embed)
+        
+        original_input = language.lower()
+
+        if original_input in LANGUAGE_NAMES:
+            target_lang = original_input
+        else:
+            target_lang = LANGUAGE_CODES.get(original_input)
+            if target_lang is None:
+                return await ctx.send(embed=create_embed(
+                    "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown language code `{original_input}`. Use codes like `en`, `fr`, `de`, `ja`, etc.",
+                    ctx, include_author=False
+                ))
+        
+        source_text = text
+
+    try:
+        translated = GoogleTranslator(source="auto", target=target_lang).translate(source_text)
+    except LanguageNotSupportedException:
+        return await ctx.send(embed=create_embed(
+            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Language `{target_lang}` is not supported.",
+            ctx, include_author=False
+        ))
+    except Exception as e:
+        return await ctx.send(embed=create_embed(
+            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Translation failed: `{e}`",
+            ctx, include_author=False
+        ))
+    try:
+        detected_code = await detect_language(source_text)
+        from_name = LANGUAGE_NAMES.get(detected_code, detected_code.upper()) if detected_code else "Unknown"
+    except:
+        from_name = "Unknown"
+    
+    to_name = LANGUAGE_NAMES.get(target_lang, target_lang.capitalize())
+
+    embed = create_embed("Google Translate", f"```{translated}```", ctx)
+    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+    embed.set_footer(text=f"Translated from {from_name} to {to_name}")
+    await ctx.send(embed=embed)
+
 
 @commands.cooldown(1, 5, BucketType.channel)
 @bot.command()

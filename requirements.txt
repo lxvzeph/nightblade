@@ -5,3 +5,4 @@ asyncio
 psutil
 pytz
 aiosqlite
+deep-translator
