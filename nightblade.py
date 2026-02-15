@@ -132,6 +132,7 @@ async def load_extensions():
     await bot.load_extension("cogs.serverinfo")
     await bot.load_extension("cogs.flag")
     await bot.load_extension("cogs.blacktea")
+    await bot.load_extension("cogs.tictactoe")
     
 loaded = False
 
@@ -2598,7 +2599,82 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
             )
         )
     
-        
+@bot.command(aliases=["sm"])
+@commands.has_permissions(manage_channels=True)
+async def slowmode(ctx, duration: str = None):
+    prefix = p(ctx)
+
+    if duration is None:
+        embed = create_embed(
+            "command: slowmode",
+            "Set slowmode for a channel", ctx
+        )
+        embed.add_field(
+            name="Aliases",
+            value=alss_ctx(ctx),
+            inline=False
+        )
+        embed.add_field(
+            name="Permissions Required",
+            value="`Manage Channels`",
+            inline=False
+        )
+        embed.add_field(
+            name="Utilization",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}slowmode <duration>\n\u001b[35mexample: \u001b[0m{prefix}slowmode 5m```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    if duration.lower() in ("off", "0", "disable"):
+        if ctx.channel.slowmode_delay == 0:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Slowmode is already turned off.",
+                ctx, include_author=False
+            ))
+        await ctx.channel.edit(slowmode_delay=0)
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Slowmode has been turned off in {ctx.channel.mention}.",
+            ctx, include_author=False
+        ))
+    
+    try:
+        amount = int(duration[:-1])
+        unit = duration[-1].lower()
+
+        if unit == "s":
+            seconds = amount
+        elif unit == "m":
+            seconds = amount * 60
+        elif unit == "h":
+            seconds = amount * 3600
+        else:
+            raise ValueError("Invalid unit")
+    except (ValueError, IndexError):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Invalid duration. Use `s`, `m`, or `h`. Example: `10s`, `1m`, `1h`.",
+            ctx, include_author=False
+        ))
+    
+    if seconds < 1:
+        return await ctx.send("what is 0s slowmode gonna do bro...")
+    if seconds > 21600:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Maximum duration is `6h` (21600 seconds).",
+            ctx, include_author=False
+        ))
+    
+    await ctx.channel.edit(slowmode_delay=seconds)
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Slowmode set to `{duration}` in {ctx.channel.mention}.",
+        ctx, include_author=False
+    ))
+
 @bot.command(aliases=["r"])
 @commands.has_permissions(manage_roles=True)
 async def role(ctx, user: str = None, *, role: str = None):
@@ -3457,14 +3533,14 @@ class Dropdown(discord.ui.Select):
     def __init__(self, ctx):
         self.ctx = ctx
         options = [
-            discord.SelectOption(label="/moderation", description="Show a list of moderation commands"),
-            discord.SelectOption(label="/authorization", description="Show a list of server authorization commands"),
-            discord.SelectOption(label="/cmdmanagement", description="Show command management commands"),
-            discord.SelectOption(label="/config", description="Show a list of config commands"),
-            discord.SelectOption(label="/rolemanagement", description="Show a list of role management commands"),
-            discord.SelectOption(label="/information", description="Show a list of information commands"),
-            discord.SelectOption(label="/utilities", description="Show a list of utilities commands"),
-            discord.SelectOption(label="/misc", description="Show miscellaneous commands")
+            discord.SelectOption(label="/moderation", description="Bans, kicks, timeouts, jails, etc"),
+            discord.SelectOption(label="/history", description="View, remove, and manage member case logs"),
+            discord.SelectOption(label="/config", description="Set up and configure server systems"),
+            discord.SelectOption(label="/rolemanagement", description="Assign, edit, and manage roles"),
+            discord.SelectOption(label="/information", description="Look up users, servers, roles, and channels"),
+            discord.SelectOption(label="/utilities", description="Translation, message snipes, AFK, embeds, and more"),
+            discord.SelectOption(label="/games", description="Games like Guess the Country, Blacktea, Tic-Tac-Toe, and more (to come)"),
+            discord.SelectOption(label="/misc", description="Everything else")
         ]
 
         super().__init__(placeholder="Select a category", options=options, min_values=1, max_values=1)
@@ -3494,30 +3570,26 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}imute` — Toggles image permissions\n"
                 f"`{prefix}rmute` — Toggles reaction permissions\n"
                 f"`{prefix}purge` — Purges message(s)\n"
-                f"`{prefix}history` — See a member's case log\n"
+                f"`{prefix}slowmode` — Set a slowmode in a channel\n"
                 f"`{prefix}lockdown` — Locks a channel\n"
                 f"`{prefix}unlock` — Unlocks a channel\n"
             )
 
-        elif category == "/authorization":
+        elif category == "/history":
             desc = (
-                f"`{prefix}genkey` — Generates a bot license key for a specific server\n"
-                f"`{prefix}activate` — Activate a server using its assigned license key\n"
-                f"`{prefix}deactivate` — Deactivate a server's license key\n"
-                f"`{prefix}revoke` — Revoke a server's license key\n"
-                f"`{prefix}licenseinfo` — See a server's license info\n"
+                f"`{prefix}history` — See a member's case log\n"
+                f"`{prefix}history view` — View a case log by its number\n"
+                f"`{prefix}history remove` — Remove a member's case log\n"
+                f"`{prefix}history clear` — Clear all member's case logs\n"
             )
-
-        elif category == "/cmdmanagement":
+        	
+        elif category == "/config":
             desc = (
                 f"`{prefix}enablecommand` — Enables a command\n"
                 f"`{prefix}disablecommand` — Disables a command\n"
                 f"`{prefix}restrict` — Make a restriction for a command\n"
                 f"`{prefix}unrestrict` — Removes a restriction from a command\n"
-            )
-        	
-        elif category == "/config":
-            desc = (
+                f"`{prefix}autorole` — Adds or removes auto-assign role(s)\n"
                 f"`{prefix}jailset` — Sets up a jail system\n"
                 f"`{prefix}imuteset` — Sets up an imute system\n"
                 f"`{prefix}rmuteset` — Sets up an rmute system\n"
@@ -3530,7 +3602,6 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}restore` — Restore/clear a member's role backup\n"
                 f"`{prefix}role` — Assign/remove a role from a member\n"
                 f"`{prefix}members` — See all members in a role\n"
-                f"`{prefix}autorole` — Adds or removes auto-assign role(s)\n"
                 f"`{prefix}roleedit` — Edits a role\n"
                 f"`{prefix}roleinfo` — See a role's information\n"
                 f"`{prefix}roles` — See all roles in the server\n"
@@ -3542,9 +3613,6 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}serveravatar` — Fetch a member's server avatar\n"
                 f"`{prefix}guildicon` — Fetch the server icon\n"
                 f"`{prefix}banner` — Fetch a user's banner\n"
-                f"`{prefix}define` — Get a definition of the specified word\n"
-                f"`{prefix}ping` — See bot's latency\n"
-                f"`{prefix}nightblade` — See bot's info\n"
                 f"`{prefix}serverinfo` — See server's information\n"
                 f"`{prefix}userinfo` — See a user's information\n"
                 f"`{prefix}channelinfo` — See a channel's information\n"
@@ -3564,19 +3632,28 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}clearreactionsnipe` — Clear reaction snipe\n"
                 f"`{prefix}editsnipe` — Snipes an edited message\n"
                 f"`{prefix}cleareditsnipe` — Clear edited snipe\n"
+                f"`{prefix}define` — Get a definition of the specified word\n"
+                f"`{prefix}ping` — See bot's latency\n"
                 f"`{prefix}steal` — Steal emojis from other servers\n"
                 f"`{prefix}translate` — Translate text using Google Translate\n"
                 f"`{prefix}afk` — Set AFK status\n"
             )
-            
-        elif category == "/misc":
+
+        elif category == "/games":
             desc = (
-                f"`{prefix}8ball` — Ask 8ball a yes-or-no question\n"
-                f"`{prefix}nox` — **NOX AETERNUM**\n"
                 f"`{prefix}flag` — Displays a random country flag\n"
                 f"`{prefix}flags` — Start a Guess the Country game\n"
                 f"`{prefix}blacktea` — Start a Blacktea game\n"
+                f"`{prefix}tictactoe` — Challenge a member to a tic-tac-toe game\n"
+            )
+            
+        elif category == "/misc":
+            desc = (
+                f"`{prefix}nightblade` — See bot's info\n"
+                f"`{prefix}8ball` — Ask 8ball a yes-or-no question\n"
+                f"`{prefix}nox` — **NOX AETERNUM**\n"
                 f"`{prefix}out` — Leave the chat\n"
+                f"`{prefix}zephfolk` — folk\n"
             )
 
         embed = discord.Embed(title=f"{category} commands", description=desc, color=EMBED_COLOR)
