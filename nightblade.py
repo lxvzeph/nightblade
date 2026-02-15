@@ -5205,7 +5205,8 @@ async def zephfolk(ctx):
         "https://giphy.com/gifs/folk-druski-mbappe-19IfsgThQuUQnZIjf9",
         "https://giphy.com/gifs/folk-polish-coach-nvY2DqdQwDx6zUnBKn",
         "https://cdn.discordapp.com/attachments/1069850380114067490/1472166276443930624/image.png",
-        "https://cdn.discordapp.com/attachments/1069850380114067490/1472166977777696883/fd9be3c8e401e94d9beb31f69ed80e63.jpg"
+        "https://cdn.discordapp.com/attachments/1069850380114067490/1472166977777696883/fd9be3c8e401e94d9beb31f69ed80e63.jpg",
+        "https://cdn.discordapp.com/attachments/1388217572503060490/1472470330806108375/image.png"
 
     ]
 
