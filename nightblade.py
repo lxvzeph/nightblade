@@ -797,7 +797,7 @@ async def prefix(ctx, new_prefix: str = None):
         embed = discord.Embed(
             description=(
                 f"{ctx.author.mention}: Current prefix is (`{current}`)\n\n"
-                f"To change the prefix, use:\n\n```{current}prefix <new_prefix>```\n"
+                f"To change the prefix, use:\n```{current}prefix <new_prefix>```\n"
                 f"-# (Administrator required)"
             ),
             color=0x2f3136
@@ -2164,16 +2164,20 @@ async def imute_instruction_embed(ctx):
 @commands.has_permissions(moderate_members=True, manage_roles=True)
 async def imuteset(ctx, *, role_arg=None):
     guild = ctx.guild
-    prefix = get_prefix(bot, ctx.message)
+    prefix = p(ctx)
 
     if not imute_not_set(guild):
-        await ctx.send(embed=create_embed(
+        config = get_imute_role_id(guild.id)
+        role = guild.get_role(config)
+        embed = create_embed(
             "",
             f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system is already set.",
             ctx,
             include_author=False
-        ))
-        return
+        )
+        embed.add_field(name="Role", value=role.mention if role else "`deleted`", inline=True)
+        embed.set_footer(text=f"To change: {prefix}imuteset role <role>")
+        return await ctx.send(embed=embed)
 
     loading_embed = create_embed(
         "",
@@ -2402,13 +2406,17 @@ async def rmuteset(ctx, *, role_arg=None):
     prefix = get_prefix(bot, ctx.message)
 
     if not rmute_not_set(guild):
-        await ctx.send(embed=create_embed(
+        config = get_rmute_role_id(guild.id)
+        role = guild.get_role(config)
+        embed = create_embed(
             "",
             f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` system is already set.",
             ctx,
             include_author=False
-        ))
-        return
+        )
+        embed.add_field(name="Role", value=role.mention if role else "`deleted`", inline=True)
+        embed.set_footer(text=f"To change: {prefix}rmuteset role <role>")
+        return await ctx.send(embed=embed)
 
     loading_embed = create_embed(
         "",
@@ -3741,7 +3749,7 @@ async def on_message(message):
                 embed = discord.Embed(
                     description=(
                         f"{message.author.mention}: Current prefix is (`{prefix}`)\n\n"
-                        f"To change the prefix, use:\n\n```{prefix}prefix <new_prefix>```\n"
+                        f"To change the prefix, use:\n```{prefix}prefix <new_prefix>```\n"
                         f"-# (Administrator required)"
                     ),
                     color=0x2f3136
