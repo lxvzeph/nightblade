@@ -216,12 +216,14 @@ class Flag(commands.Cog):
             await ctx.send(
                 embed=self._embed(
                     "",
-                    "<a:sword_spin:1211611749426667560> A game is already running in this channel.",
+                    "<a:sword_spin:1211611749426667560> A game is already queued or in progress.",
                     ctx,
                     include_author=False
                 )
             )
             return
+        
+        self.running_games[channel_id] = ctx.author.id
         
         queue_embed = self._embed(
             "Guess the Country!",
@@ -255,6 +257,7 @@ class Flag(commands.Cog):
                     players.append(user)
 
         if len(players) < 2:
+            self.running_games.pop(channel_id, None)
             cancel_embed = self._embed(
                 "",
                 "<a:sword_spin:1211611749426667560> Not enough players. Game cancelled.",
@@ -263,8 +266,7 @@ class Flag(commands.Cog):
             )
             await ctx.send(embed=cancel_embed)
             return
-        
-        self.running_games[channel_id] = ctx.author.id
+
         self.reset_events[channel_id] = asyncio.Event()
         
         try:
@@ -356,7 +358,7 @@ class Flag(commands.Cog):
 
                         guess_text = guess.content.lower().strip()
                         valid_answers = {country["name"].lower()}
-                        SKIP_WORDS = {"skip", "idk", "pass"}
+                        SKIP_WORDS = {"skip", "pass"}
 
                         for alias in country.get("aliases", []):
                             valid_answers.add(alias.lower())

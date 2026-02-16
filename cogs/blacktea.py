@@ -35,8 +35,6 @@ LIVES = 3
 
 COUNTDOWN_EMOJIS = ["3️⃣", "2️⃣", "1️⃣"]
 
-SKIP_WORDS = {"skip", "idk", "pass"}
-
 async def countdown(embed_msg, total_time: int, state: dict):
     try:
         await asyncio.sleep(max(0, total_time - 4))
@@ -107,9 +105,11 @@ class BlackTea(commands.Cog):
         if channel_id in self.running_games:
             return await ctx.send(embed=self._embed(
                 "",
-                f"<a:sword_spin:1211611749426667560> A game is already running in this channel.",
+                f"<a:sword_spin:1211611749426667560> A game is already queued or in progress.",
                 ctx, include_author=False
             ))
+        
+        self.running_games[channel_id] = ctx.author.id
         
         queue_embed = self._embed(
             "Blacktea",
@@ -141,6 +141,7 @@ class BlackTea(commands.Cog):
                     players.append(user)
 
         if len(players) < 2:
+            self.running_games.pop(channel_id, None)
             await ctx.send(embed=self._embed(
                 "",
                 "<a:sword_spin:1211611749426667560> Not enough players, Game cancelled.",
@@ -158,7 +159,6 @@ class BlackTea(commands.Cog):
         )
 
         round_index = 0
-        self.running_games[channel_id] = ctx.author.id
         self.reset_events[channel_id] = asyncio.Event()
 
         try:
@@ -187,7 +187,6 @@ class BlackTea(commands.Cog):
                     value=difficulty.capitalize(),
                     inline=False
                 )
-                bt_embed.set_footer(text="Typing 'skip', 'idk', or 'pass' will skip your turn.")
                 embed_msg = await ctx.send(content=player.mention, embed=bt_embed)
                 countdown_state = {"started": False}
     
@@ -224,33 +223,6 @@ class BlackTea(commands.Cog):
                         continue
     
                     word = guess.content.lower().strip()
-
-                    if word in SKIP_WORDS:
-                        countdown_task.cancel()
-                        with contextlib.suppress(asyncio.CancelledError):
-                            await countdown_task
-                        with contextlib.suppress(Exception):
-                            await embed_msg.clear_reactions()
-
-                        lives[player.id] -= 1
-
-                        if lives[player.id] <= 0:
-                            await ctx.send(embed=self._embed(
-                                "",
-                                f"**Skipped!** {player.name} has lost a life!\n"
-                                f"**{player.name}** has been eliminated!",
-                                ctx, include_author=False
-                            ))
-                            players.remove(player)
-                        else:
-                            await ctx.send(embed=self._embed(
-                                "",
-                                f"**Skipped!** {player.name} has lost a life!\n"
-                                f"**{player.name}'s** lives: {self.render_lives(lives[player.id])}",
-                                ctx, include_author=False
-                            ))
-                        correct = True
-                        break
                     
                     if (
                         word in WORDS
