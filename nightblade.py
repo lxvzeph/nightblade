@@ -11,7 +11,7 @@ from deep_translator.exceptions import LanguageNotSupportedException
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import get
-from data.db import init_db, migrate_disabled_commands
+from data.db import init_db
 from data.prefixes import (
     get_prefix_for_guild,
     set_prefix_for_guild,
@@ -67,7 +67,6 @@ from datetime import datetime, timezone, timedelta
 from discord.ext.commands import BucketType, MemberConverter, BadArgument
 from discord.ui import View, Button
 
-migrate_disabled_commands()
 init_db()
 
 intents = discord.Intents.default()
@@ -671,13 +670,6 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
         user = await resolve_user(ctx, value_or_command)
         if not user:
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid user.", ctx, include_author=False))
-        
-        if user.id == ctx.author.id:
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You cannot restrict yourself.",
-                ctx, include_author=False
-            ))
 
         member = ctx.guild.get_member(user.id)
         if member and not has_higher_role(ctx.author, member):
@@ -811,11 +803,11 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
         member = ctx.guild.get_member(user.id)
 
         if member:
-            if member and member.id == ctx.author.id:
+            if member and not has_higher_role(ctx.author, member):
                 return await ctx.send(
                     embed=create_embed(
                         "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You cannot unrestrict yourself.",
+                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot unrestrict `{member}` due to hierarchy.",
                         ctx,
                         include_author=False
                     )

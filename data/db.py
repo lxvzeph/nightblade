@@ -186,38 +186,3 @@ def init_db():
             PRIMARY KEY (guild_id, command_name, type, value_id)
         )
         """)
-
-def migrate_disabled_commands():
-    """
-    Migrates the old disabled_commands table (guild_id, command_name)
-    to the new schema (guild_id, command_name, channel_id).
-    Safe to run on an already-migrated DB — checks for column existence first.
-    """
-    with get_connection() as conn:
-        # Check if channel_id column already exists
-        cols = [row[1] for row in conn.execute("PRAGMA table_info(disabled_commands)").fetchall()]
-        if "channel_id" in cols:
-            return  # already migrated
-
-        # Backup existing rows
-        existing = conn.execute(
-            "SELECT guild_id, command_name FROM disabled_commands"
-        ).fetchall()
-
-        # Drop and recreate with new schema
-        conn.execute("DROP TABLE disabled_commands")
-        conn.execute("""
-            CREATE TABLE disabled_commands (
-                guild_id TEXT NOT NULL,
-                command_name TEXT NOT NULL,
-                channel_id TEXT NOT NULL DEFAULT '0',
-                PRIMARY KEY (guild_id, command_name, channel_id)
-            )
-        """)
-
-        # Restore old rows as server-wide disables (channel_id = '0')
-        for guild_id, command_name in existing:
-            conn.execute(
-                "INSERT OR IGNORE INTO disabled_commands (guild_id, command_name, channel_id) VALUES (?, ?, '0')",
-                (guild_id, command_name)
-            )
