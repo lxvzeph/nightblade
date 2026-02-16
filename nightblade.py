@@ -383,13 +383,16 @@ async def enablecommand(ctx, command_name: str = None, channel_input: str = None
         )
         return await ctx.send(embed=embed)
 
-    command = bot.get_command(command_name.strip())
+    command = command_name.strip()
+    cmd_obj = bot.get_command(command)
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
+                ctx, include_author=False
+            ))
     
-    if not command:
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  Unknown command: `{command_name}`, Use `{prefix}commands` for help.",
-        ctx,
-        include_author=False))
-
+    full_name = cmd_obj.name
     gid = ctx.guild.id
 
     if channel_input:
@@ -401,27 +404,27 @@ async def enablecommand(ctx, command_name: str = None, channel_input: str = None
                 ctx, include_author=False
             ))
         
-        if not is_command_disabled_in_channel(gid, command_name, channel.id):
+        if not is_command_disabled_in_channel(gid, full_name, channel.id):
             return await ctx.send(embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{command_name}` is not disabled in {channel.mention}.",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` is not disabled in {channel.mention}.",
                 ctx, include_author=False
             ))
         
-        enable_command(gid, command_name, channel.id)
+        enable_command(gid, full_name, channel.id)
         return await ctx.send(embed=create_embed(
             "",
-            f"{ctx.author.mention}: `{command_name}` has been enabled in {channel.mention}.",
+            f"{ctx.author.mention}: `{full_name}` has been enabled in {channel.mention}.",
             ctx, include_author=False, color=0x71906e
         ))
 
-    if not is_command_disabled_serverwide(gid, command_name):
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{command_name}` is already enabled.",
+    if not is_command_disabled_serverwide(gid, full_name):
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{full_name}` is already enabled.",
         ctx,
         include_author=False))
 
-    enable_command(gid, command_name)
-    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{command_name}` has been enabled.",
+    enable_command(gid, full_name)
+    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{full_name}` has been enabled.",
     ctx,
     include_author=False,
     color=0x71906e))
@@ -454,19 +457,21 @@ async def disablecommand(ctx, command_name: str = None, channel_input: str = Non
         )
         return await ctx.send(embed=embed)
 
-    command = bot.get_command(command_name.strip())
-    if not command:
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.",
+    command = command_name.strip()
+    cmd_obj = bot.get_command(command)
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command}`. Use `{prefix}commands` for help.",
         ctx,
         include_author=False))
 
+    full_name = cmd_obj.name
     gid = ctx.guild.id
 
     protected = {"enablecommand", "disablecommand", "restrict", "unrestrict"}
-    if command_name in protected:
+    if full_name in protected:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{command_name}` cannot be disabled.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` cannot be disabled.",
             ctx, include_author=False
         ))
     
@@ -479,27 +484,27 @@ async def disablecommand(ctx, command_name: str = None, channel_input: str = Non
                 ctx, include_author=False
             ))
         
-        if is_command_disabled_in_channel(gid, command_name, channel.id):
+        if is_command_disabled_in_channel(gid, full_name, channel.id):
             return await ctx.send(embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{command_name}` is already disabled in {channel.mention}.",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` is already disabled in {channel.mention}.",
                 ctx, include_author=False
             ))
         
-        disable_command(gid, command_name, channel.id)
+        disable_command(gid, full_name, channel.id)
         return await ctx.send(embed=create_embed(
             "",
-            f"{ctx.author.mention}: `{command_name}` has been disabled in {channel.mention}.",
+            f"{ctx.author.mention}: `{full_name}` has been disabled in {channel.mention}.",
             ctx, include_author=False, color=0x963939
         ))
 
-    if is_command_disabled_serverwide(gid, command_name):
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{command_name}` is already disabled.",
+    if is_command_disabled_serverwide(gid, full_name):
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `{full_name}` is already disabled.",
         ctx,
         include_author=False))
 
-    disable_command(gid, command_name)
-    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{command_name}` has been disabled.",
+    disable_command(gid, full_name)
+    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Command `{full_name}` has been disabled.",
     ctx,
     include_author=False,
     color=0x963939))
@@ -549,8 +554,8 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
 
     # LIST Subcommand
     if restriction_type == "list":
-        command_name = (value_or_command or "").strip()
-        if not command_name:
+        command = (value_or_command or "").strip()
+        if not command:
             return await ctx.send(
                 embed=create_embed(
                     "",
@@ -560,20 +565,22 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
                 )
             )
 
-        if not bot.get_command(command_name):
+        cmd_obj = bot.get_command(command)
+        if not cmd_obj:
             return await ctx.send(
                 embed=create_embed(
                     "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
                     ctx,
                     include_author=False
                 )
             )
 
-        data = get_restrictions(ctx.guild.id, command_name)
+        full_name = cmd_obj.name
+        data = get_restrictions(ctx.guild.id, full_name)
 
         embed = create_embed(
-            f"Restrictions for `{command_name}`",
+            f"Restrictions for `{full_name}`",
             "",
             ctx
         )
@@ -603,16 +610,18 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
         )
 
     command = command_name.strip()
-    if not bot.get_command(command):
+    cmd_obj = bot.get_command(command)
+    if not cmd_obj:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
             ctx,
             include_author=False
         ))
 
+    full_name = cmd_obj.name
     gid = ctx.guild.id
-    settings = get_restrictions(gid, command_name)
+    settings = get_restrictions(gid, full_name)
 
     # Restrict ROLE
     if restriction_type == "role":
@@ -623,20 +632,20 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
         if not has_higher_role(ctx.author, role):
             return await ctx.send(embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot restrict {role.mention} from using `{command_name}` due to hierarchy.",
+                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot restrict {role.mention} from using `{full_name}` due to hierarchy.",
                 ctx,
                 include_author=False
             ))
 
         if role.id in settings["roles"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is already on the allowlist for `{command_name}`", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is already on the allowlist for `{full_name}`", ctx, include_author=False))
 
-        add_restriction(gid, command_name, "role", role.id)
+        add_restriction(gid, full_name, "role", role.id)
 
         return await ctx.send(
             embed=create_embed(
                 "",
-                f"{ctx.author.mention}: `{command_name}` is now restricted to {role.mention}.",
+                f"{ctx.author.mention}: `{full_name}` is now restricted to {role.mention}.",
                 ctx,
                 include_author=False,
                 color=0xf9c414
@@ -651,14 +660,14 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
 
         if channel.id in settings["channels"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {channel.mention} is already on the allowlist for `{command_name}`.", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {channel.mention} is already on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        add_restriction(gid, command_name, "channel", channel.id)
+        add_restriction(gid, full_name, "channel", channel.id)
 
         return await ctx.send(
             embed=create_embed(
                 "",
-                f"{ctx.author.mention}: `{command_name}` is now restricted to {channel.mention}.",
+                f"{ctx.author.mention}: `{full_name}` is now restricted to {channel.mention}.",
                 ctx,
                 include_author=False,
                 color=0xf9c414
@@ -680,14 +689,14 @@ async def restrict(ctx, restriction_type: str = None, value_or_command: str = No
             ))
 
         if user.id in settings["users"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is already on the allowlist for `{command_name}`.", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is already on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        add_restriction(gid, command_name, "user", user.id)
+        add_restriction(gid, full_name, "user", user.id)
 
         return await ctx.send(
             embed=create_embed(
                 "",
-                f"{ctx.author.mention}: `{command_name}` is now restricted to **{user.name}**.",
+                f"{ctx.author.mention}: `{full_name}` is now restricted to {user.mention}.",
                 ctx,
                 include_author=False,
                 color=0xf9c414
@@ -720,12 +729,45 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
 
     mode = mode.lower()
 
-    if mode not in ["role", "channel", "user"]:
+    if mode not in ["role", "channel", "user", "all"]:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid subcommand. Use `role`, `channel`, or `user`.",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid subcommand. Use `role`, `channel`, `user`, or `all`.",
             ctx,
             include_author=False
+        ))
+    
+    if mode == "all":
+        cmd_name = (value or "").strip()
+        cmd_obj = bot.get_command(cmd_name)
+        if not cmd_obj:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide a command to clear restrictions for.",
+                ctx, include_author=False
+            ))
+
+        full_name = cmd_obj.name
+        if not full_name:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{cmd_name}`. Use `{prefix}commands` for help.",
+                ctx, include_author=False
+            ))
+
+        restrictions = get_restrictions(ctx.guild.id, full_name)
+        if not any(restrictions.values()):
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` has no restrictions.",
+                ctx, include_author=False
+            ))
+
+        clear_command_restrictions(ctx.guild.id, full_name)
+        return await ctx.send(embed=create_embed(
+            "",
+            f"{ctx.author.mention}: Cleared all restrictions for `{full_name}`.",
+            ctx, include_author=False, color=0x71906e
         ))
 
     if not value:
@@ -748,11 +790,13 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
 
     # Validate command exists
     command = command_name.strip()
-    if not bot.get_command(command):
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.", ctx, include_author=False))
+    cmd_obj = bot.get_command(command)
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command}`. Use `{prefix}commands` for help.", ctx, include_author=False))
 
+    full_name = cmd_obj.name
     gid = ctx.guild.id
-    restrictions = get_restrictions(gid, command_name)
+    restrictions = get_restrictions(gid, full_name)
 
     # ------------------------------------------------
     # ROLE UNRESTRICTION
@@ -766,17 +810,17 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
             return await ctx.send(
                 embed=create_embed(
                     "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot remove `{command_name}` restriction for {role.mention} due to hierarchy.",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot remove `{full_name}` restriction for {role.mention} due to hierarchy.",
                     ctx,
                     include_author=False
                 )
             )
 
         if role.id not in restrictions["roles"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} is not on the allowlist for `{command_name}`.", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        remove_restriction(gid, command_name, "role", role.id)
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{command_name}` restriction for {role.mention}.", ctx, include_author=False, color=0x71906e))
+        remove_restriction(gid, full_name, "role", role.id)
+        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for {role.mention}.", ctx, include_author=False, color=0x71906e))
 
     # ------------------------------------------------
     # CHANNEL UNRESTRICTION
@@ -787,10 +831,10 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
             return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
 
         if channel.id not in restrictions["channels"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is not on the allowlist for `{command_name}`.", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        removed = remove_restriction(gid, command_name, "channel", channel.id)      
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed restriction for `{command_name}` in {channel.mention}.", ctx, include_author=False, color=0x71906e))
+        remove_restriction(gid, full_name, "channel", channel.id)      
+        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed restriction for `{full_name}` in {channel.mention}.", ctx, include_author=False, color=0x71906e))
 
     # ------------------------------------------------
     # USER UNRESTRICTION
@@ -815,10 +859,10 @@ async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: 
         
 
         if user.id not in restrictions["users"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not on the allowlist for `{command_name}`.", ctx, include_author=False))
+            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        remove_restriction(gid, command_name, "user", user.id)
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{command_name}` restriction for **{user.name}**.", ctx, include_author=False, color=0x71906e))
+        remove_restriction(gid, full_name, "user", user.id)
+        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for **{user.name}**.", ctx, include_author=False, color=0x71906e))
 
 # PREFIX SYSTEM
 
