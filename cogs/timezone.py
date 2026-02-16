@@ -175,7 +175,7 @@ class Timezone(commands.Cog):
                 return await ctx.send(
                     embed=self._embed(
                         "",
-                        f"{author.mention}: You do not have a timezone set. Use `{ctx.prefix}timezone set <city>` to set your timezone.",
+                        f"{author.mention}: You do not have a timezone set. Use `{ctx.prefix}timezone set <timezone>` to set it.",
                         ctx, include_author=False
                     )
                 )
@@ -227,7 +227,7 @@ class Timezone(commands.Cog):
             )
             embed.add_field(
                 name="Utilization",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}timezone set <city>\n"
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}timezone set <timezone>\n"
                       f"\u001b[35mexample:\u001b[0m {prefix}timezone set jakarta```",
                 inline=False
             )

@@ -320,7 +320,7 @@ class Flag(commands.Cog):
                         value=difficulty.capitalize(),
                         inline=False
                     )
-                    flag_embed.set_footer(text="Typing 'skip', 'idk', or 'pass' will skip your turn.")
+                    flag_embed.set_footer(text="Typing 'skip' and 'pass' will skip your turn.")
                     embed_msg = await ctx.send(content=player.mention, embed=flag_embed)
                     countdown_state = {"started": False}
 
