@@ -3970,6 +3970,9 @@ async def on_message(message):
         await message.add_reaction("✅")
         await message.add_reaction("❌")
 
+    if "sob/" in message.content.lower():
+        await message.add_reaction("😭")
+
     await bot.process_commands(message)
 
 from discord.ext import commands
