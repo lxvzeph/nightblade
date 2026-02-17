@@ -33,7 +33,8 @@ from data.cases import (
     get_case,
     get_cases_for_member,
     remove_case,
-    clear_member_cases
+    clear_member_cases,
+    get_all_cases
 )
 from data.warnings import (
     add_warning,
@@ -1078,7 +1079,7 @@ class HistoryView(discord.ui.View):
         self.stop()
 
 @bot.group(aliases=["h"], invoke_without_command=True)
-@commands.has_permissions(manage_messages=True)
+@commands.has_permissions(moderate_members=True)
 async def history(ctx, member: discord.Member | None = None, page: int = 1):
     """List a member's history (paginated)."""
     if member is None:
@@ -1105,7 +1106,7 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
 # history view subcommand
 # -------------------------
 @history.command(name="view")
-@commands.has_permissions(manage_messages=True)
+@commands.has_permissions(moderate_members=True)
 async def history_view(ctx, case_number: int = None):
     """View full details for a specific case number (global per guild)."""
     prefix = p(ctx)
@@ -1151,7 +1152,7 @@ async def history_view(ctx, case_number: int = None):
 # history remove subcommand
 # -------------------------
 @history.command(name="remove", aliases=["delete", "del"])
-@commands.has_permissions(manage_messages=True)
+@commands.has_permissions(moderate_members=True)
 async def history_remove(ctx, member: discord.Member | None = None, case_number: int = None):
     """
     Remove a specific case (requires Manage Messages).
@@ -1236,6 +1237,101 @@ async def history_clear(ctx, member: discord.Member | None = None):
     clear_warnings(ctx.guild.id, member.id)
             
     await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed {count} case(s) for **{member.name}**.", ctx, include_author=False))
+
+@history.command(name="all")
+@commands.has_permissions(moderate_members=True)
+async def history_all(ctx):
+
+    case_list = get_all_cases(ctx.guild.id)
+
+    if not case_list:
+        return await ctx.send(embed=create_embed(
+            "", f"{ctx.author.mention}: This server has no case history.",
+            ctx, include_author=False
+        ))
+    
+    class HistoryAllView(discord.ui.View):
+        def __init__(self, ctx, case_list):
+            super().__init__(timeout=60)
+            self.ctx = ctx
+            self.case_list = case_list
+            self.page = 1
+            self.message = None
+
+        def make_embed(self):
+            start = (self.page - 1) * PAGE_SIZE
+            subset = self.case_list[start:start + PAGE_SIZE]
+            embed = create_embed(
+                f"Punishment History",
+                "",
+                self.ctx
+            )
+            lines = []
+            for case_id, case in subset:
+                user_id = case.get("user_id")
+                typ = case.get("type", "unknown")
+                reason = case.get("reason") or "n/a"
+                lines.append(f"`{case_id}.` <@{user_id}> — {typ} (`{reason}`)")
+            embed.description = "\n".join(lines)
+            embed.set_author(name=self.ctx.guild.name, icon_url=self.ctx.guild.icon.url if self.ctx.guild.icon else None)
+            total = len(self.case_list)
+            pages = (total + PAGE_SIZE - 1) // PAGE_SIZE or 1
+            embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} cases")
+            return embed
+
+        async def update_message(self, interaction):
+            await interaction.response.edit_message(embed=self.make_embed(), view=self)
+
+        @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary)
+        async def prev(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            if self.page > 1:
+                self.page -= 1
+                await self.update_message(interaction)
+            else:
+                await interaction.response.defer()
+
+        @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary)
+        async def nxt(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            total = len(self.case_list)
+            pages = (total + PAGE_SIZE - 1) // PAGE_SIZE or 1
+            if self.page < pages:
+                self.page += 1
+                await self.update_message(interaction)
+            else:
+                await interaction.response.defer()
+
+        @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
+        async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            await interaction.message.delete()
+            self.stop()
+
+        async def on_timeout(self):
+            for child in self.children:
+                child.disabled = True
+            try:
+                await self.message.edit(view=None)
+            except:
+                pass
+            self.stop()
+
+    view = HistoryAllView(ctx, case_list)
+    view.message = await ctx.send(embed=view.make_embed(), view=view)
+
 
 @bot.command()
 @commands.has_permissions(ban_members=True)

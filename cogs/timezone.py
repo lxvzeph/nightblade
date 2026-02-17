@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 from zoneinfo import ZoneInfo, available_timezones
-from data.timezones import get_timezone, set_timezone # Built-in Python timezone database
+from data.timezones import get_timezone, set_timezone, get_all_timezones_in_guild # Built-in Python timezone database
 
 class TimezoneListView(discord.ui.View):
     def __init__(self, ctx, cities: list[str]):
@@ -289,6 +289,103 @@ class Timezone(commands.Cog):
         )
         view = TimezoneListView(ctx, cities)
         view.message = await ctx.send(embed=view.get_embed(), view=view)
+
+    @timezone.command(name="all")
+    async def timezone_all(self, ctx):
+        member_ids = [m.id for m in ctx.guild.members if not m.bot]
+        tz_map = get_all_timezones_in_guild(member_ids)
+
+        entries = []
+        for member in ctx.guild.members:
+            if member.bot or member.id not in tz_map:
+                continue
+            tzname = tz_map[member.id]
+            try:
+                now = datetime.now(ZoneInfo(tzname))
+                formatted = now.strftime("%I:%M %p")
+            except Exception:
+                formatted = "invalid tz"
+            entries.append((member, tzname, formatted))
+
+        if not entries:
+            return await ctx.send(embed=self._embed(
+                "", f"{ctx.author.mention}: No members have set a timezone in this server.",
+                ctx, include_author=False
+            ))
+
+        entries.sort(key=lambda e: e[2])  # sort by time string
+
+        PER_PAGE = 10
+
+        class TimezoneAllView(discord.ui.View):
+            def __init__(self, ctx, entries, embed_fn):
+                super().__init__(timeout=60)
+                self.ctx = ctx
+                self.entries = entries
+                self.embed_fn = embed_fn
+                self.page = 1
+                self.message = None
+
+            def make_embed(self):
+                start = (self.page - 1) * PER_PAGE
+                subset = self.entries[start:start + PER_PAGE]
+                lines = []
+                for i, (member, tzname, formatted) in enumerate(subset, start=start + 1):
+                    lines.append(f"`{i}.` **{member.display_name}** — {formatted} (`{tzname.replace('_', ' ')}`)")
+                embed = self.embed_fn(
+                    "All Members' Timezones",
+                    "\n".join(lines),
+                    self.ctx
+                )
+                total = len(self.entries)
+                pages = (total + PER_PAGE - 1) // PER_PAGE or 1
+                embed.set_author(name=self.ctx.guild.name, icon_url=self.ctx.guild.icon.url if self.ctx.guild.icon else None)
+                embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} members")
+                return embed
+
+            async def update_message(self, interaction):
+                await interaction.response.edit_message(embed=self.make_embed(), view=self)
+
+            @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary)
+            async def prev(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if interaction.user.id != self.ctx.author.id:
+                    return await interaction.response.send_message("Not your embed.", ephemeral=True)
+                if self.page > 1:
+                    self.page -= 1
+                    await self.update_message(interaction)
+                else:
+                    await interaction.response.defer()
+
+            @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary)
+            async def nxt(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if interaction.user.id != self.ctx.author.id:
+                    return await interaction.response.send_message("Not your embed.", ephemeral=True)
+                total = len(self.entries)
+                pages = (total + PER_PAGE - 1) // PER_PAGE or 1
+                if self.page < pages:
+                    self.page += 1
+                    await self.update_message(interaction)
+                else:
+                    await interaction.response.defer()
+
+            @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
+            async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if interaction.user.id != self.ctx.author.id:
+                    return await interaction.response.send_message("Not your embed.", ephemeral=True)
+                await interaction.message.delete()
+                self.stop()
+
+            async def on_timeout(self):
+                for child in self.children:
+                    child.disabled = True
+                try:
+                    await self.message.edit(view=None)
+                except:
+                    pass
+                self.stop()
+
+        view = TimezoneAllView(ctx, entries, self._embed)
+        view.message = await ctx.send(embed=view.make_embed(), view=view)
 
 async def setup(bot):
     await bot.add_cog(Timezone(bot))

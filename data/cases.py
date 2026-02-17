@@ -64,6 +64,24 @@ def get_cases_for_member(guild_id: int, user_id: int) -> list[tuple]:
         "timestamp": row[5],
     }) for row in rows]
 
+def get_all_cases(guild_id: int) -> list[tuple]:
+    """Return [(case_num, case_dict), ...] for all cases in a guild, sorted ascending."""
+    with get_connection() as conn:
+        rows = conn.execute("""
+            SELECT case_num, user_id, mod_id, type, reason, timestamp
+            FROM cases WHERE guild_id = ?
+            ORDER BY case_num ASC
+        """, (str(guild_id),)).fetchall()
+
+    return [(row[0], {
+        "case_num":  row[0],
+        "user_id":   int(row[1]),
+        "mod":       int(row[2]),
+        "type":      row[3],
+        "reason":    row[4],
+        "timestamp": row[5],
+    }) for row in rows]
+
 
 def remove_case(guild_id: int, case_id: int) -> bool:
     """Delete a single case. Returns True if a row was deleted."""
@@ -83,3 +101,4 @@ def clear_member_cases(guild_id: int, user_id: int) -> int:
             (str(guild_id), str(user_id))
         )
     return cursor.rowcount
+
