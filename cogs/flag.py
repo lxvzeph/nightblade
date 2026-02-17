@@ -286,8 +286,8 @@ class Flag(commands.Cog):
                 return pool.pop()
     
             rounds = (
-                [("easy", 20)] * 6 +
-                [("medium", 15)] * 8 +
+                [("easy", 20)] * 4 +
+                [("medium", 15)] * 6 +
                 [("hard", 10)] * 10
             )
     
