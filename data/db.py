@@ -186,3 +186,13 @@ def init_db():
             PRIMARY KEY (guild_id, command_name, type, value_id)
         )
         """)
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS forced_nicknames (
+            guild_id TEXT NOT NULL,
+            user_id TEXT NOT NULL,
+            original_name TEXT NOT NULL,
+            forced_name TEXT NOT NULL,
+            PRIMARY KEY (guild_id, user_id)
+        )
+        """)

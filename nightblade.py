@@ -6,6 +6,7 @@ import asyncio
 import psutil
 import pytz
 import time
+import aiohttp
 from deep_translator import GoogleTranslator, single_detection
 from deep_translator.exceptions import LanguageNotSupportedException
 from discord import app_commands
@@ -63,6 +64,7 @@ from data.commands import (
     remove_restriction,
     clear_command_restrictions
 )
+from data.forcename import get_forced_nickname, set_forced_nickname, remove_forced_nickname, get_all_forced_in_guild
 from datetime import datetime, timezone, timedelta
 from discord.ext.commands import BucketType, MemberConverter, BadArgument
 from discord.ui import View, Button
@@ -3874,10 +3876,7 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# Keep a dictionary of forced nicknames: {guild_id: {member_id: {"original": original_name, "forced": forced_name}}}
 from discord.ext import commands
-forced_nicknames = {}
-
 @bot.command(aliases=["fn"])
 @commands.has_permissions(manage_nicknames=True)
 async def forcename(ctx, member: discord.Member = None, *, forced_name: str = None):
@@ -3885,7 +3884,6 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
     prefix = p(ctx)
     
     if not member:
-        # Always need a member
         embed = create_embed(
             "command: forcename",
             "Forcibly changes a user's name",
@@ -3906,39 +3904,45 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         return
 
     # Check if bot has higher role than target
-    if member.top_role >= ctx.guild.me.top_role:
-        await ctx.send(embed=create_embed(
+    if member.top_role >= ctx.author.top_role:
+        return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: I can't `forcename` someone with a higher role.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You can't forcename someone with a role equal to or higher than yours.",
             ctx, include_author=False
         ))
-        return
+    
+    if member.id == ctx.author.id:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You cannot forcename yourself.",
+            ctx, include_author=False
+        ))
+    
+    
+    if member.top_role >= ctx.guild.me.top_role:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: I can't `forcename` someone with a higher role.",
+            ctx, include_author=False
+        ))
 
-    guild_forced = forced_nicknames.setdefault(ctx.guild.id, {})
-
-    # If member already has a forced nickname, undo it (restore original)
-    if member.id in guild_forced:
-        original_name = guild_forced.pop(member.id).get("original")
+    entry = get_forced_nickname(ctx.guild.id, member.id)
+    if entry:
+        # Undo forcename
+        original = entry["original"]
         try:
-            # original_name might be a username (global) or a nickname (can be None)
-            if original_name is None:
+            if original is None or original == member.name:
                 await member.edit(nick=None)
             else:
-                # If original_name equals the user's global username, set nick to None
-                if original_name == member.name:
-                    await member.edit(nick=None)
-                else:
-                    await member.edit(nick=original_name)
-        except Exception:
-            # Best effort; ignore failures
+                await member.edit(nick=original)
+        except:
             pass
 
-        await ctx.send(embed=create_embed(
-            "",
-            f"{ctx.author.mention}: `forcename` on {member.mention} is undone.",
+        remove_forced_nickname(ctx.guild.id, member.id)
+        return await ctx.send(embed=create_embed(
+            "", f"{ctx.author.mention}: `forcename` on {member.mention} is undone.",
             ctx, color=0x71906e, include_author=False
         ))
-        return
 
     # Now we require a forced_name to apply a new nickname
     if not forced_name:
@@ -3957,25 +3961,22 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         value="`Manage Nicknames`",
         inline=False
         )
-        embed.add_field(name="**Utilization**", value=f"```syntax: {prefix}forcename <member> <new_name>\nexample: {prefix}forcename zeph dumdum```", inline=False)
+        embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}forcename <member> <new_name>\n\u001b[35mexample: \u001b[0m{prefix}forcename zeph dumdum```", inline=False)
         await ctx.send(embed=embed)
         return
 
     # Apply new forced nickname and store original
     try:
-        original_name = member.nick if member.nick is not None else member.name
-        guild_forced[member.id] = {"original": original_name, "forced": forced_name}
+        original = member.nick if member.nick else member.name
+        set_forced_nickname(ctx.guild.id, member.id, original, forced_name)
         await member.edit(nick=forced_name)
-    except Exception:
-        await ctx.send("Failed to change nickname. Make sure I have permission.")
-        return
+    except:
+        return await ctx.send("Failed to change nickname.")
 
     await ctx.send(embed=create_embed(
-        "",
-        f"{ctx.author.mention}: Forced {member.mention}'s name to **{forced_name}**",
+        "", f"{ctx.author.mention}: Forced {member.mention}'s name to **{forced_name}**",
         ctx, color=0x71906e, include_author=False
     ))
-
 
 # Event: re-apply forced nicknames when a member changes their nickname
 @bot.event
@@ -3984,15 +3985,11 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     if before.nick == after.nick:
         return
 
-    guild_forced = forced_nicknames.get(after.guild.id)
-    if not guild_forced:
-        return
-
-    entry = guild_forced.get(after.id)
+    entry = get_forced_nickname(after.guild.id, after.id)
     if not entry:
         return
 
-    forced_name = entry.get("forced")
+    forced_name = entry["forced"]
     # If the current nickname is already the forced name, nothing to do
     if after.nick == forced_name:
         return
@@ -5014,7 +5011,6 @@ async def ball(ctx, *, question: str = None):
 # -------------------------
 # DEFINE COMMAND
 # -------------------------
-import aiohttp
 
 def clean_def(text: str) -> str:
     return text.replace("[", "").replace("]", "").strip()
