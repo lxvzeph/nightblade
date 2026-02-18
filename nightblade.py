@@ -5304,7 +5304,7 @@ async def urbandictionary(ctx, *, word: str = None):
         )
         embed.add_field(
             name="**Utilization**",
-            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}urbandictionary <word>\n\u001b[35mexample:\u001b[0m {prefix}urbandictionary rizz```",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}urbandictionary <word>\n\u001b[35mexample:\u001b[0m {prefix}urbandictionary folk```",
             inline=False
         )
         return await ctx.send(embed=embed)
