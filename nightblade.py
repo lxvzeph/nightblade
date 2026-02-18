@@ -5235,12 +5235,6 @@ class UrbanDictionaryView(discord.ui.View):
         )
         
         embed.add_field(
-            name="**Votes**",
-            value=f"👍 `{entry['thumbs_up']}` 👎 `{entry['thumbs_down']}`",
-            inline=False
-        )
-        
-        embed.add_field(
             name="_ _",
             value=f"-# By **{entry['author']}**",
             inline=False
@@ -5347,8 +5341,6 @@ async def urbandictionary(ctx, *, word: str = None):
             "word": entry["word"],
             "definition": entry["definition"].replace("[", "").replace("]", ""),
             "example": entry["example"].replace("[", "").replace("]", "") if entry.get("example") else None,
-            "thumbs_up": entry.get("thumbs_up", 0),
-            "thumbs_down": entry.get("thumbs_down", 0),
             "author": entry.get("author", "Unknown"),
             "permalink": entry.get("permalink", f"https://www.urbandictionary.com/define.php?term={word}")
         })
