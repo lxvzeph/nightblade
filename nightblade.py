@@ -3837,31 +3837,26 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    if message.reference is not None:
-        if bot.user in message.mentions:
-            content = strip_bot_mention(message, bot)
+    if bot.user in message.mentions:
+        content = strip_bot_mention(message, bot)
+        if content == "":
+            prefix = get_prefix(bot, message)
+            embed = discord.Embed(
+                description=(
+                    f"{message.author.mention}: Current prefix is (`{prefix}`)\n\n"
+                    f"To change the prefix, use:\n```{prefix}prefix <new_prefix>```\n"
+                    f"-# (Administrator required)"
+                ),
+                color=0x2f3136
+            )
+            return await message.channel.send(embed=embed)
+            
+        elif "you up" in content.lower():
+            if message.author.id == OWNER_ID:
+                await message.reply("for you, sir, always", mention_author=False)
 
-            if content == "":
-                prefix = get_prefix(bot, message)
-                embed = discord.Embed(
-                    description=(
-                        f"{message.author.mention}: Current prefix is (`{prefix}`)\n\n"
-                        f"To change the prefix, use:\n```{prefix}prefix <new_prefix>```\n"
-                        f"-# (Administrator required)"
-                    ),
-                    color=0x2f3136
-                )
-                await message.channel.send(embed=embed)
-                return
-        
-            elif "you up" in content.lower():
-                if message.author.id == OWNER_ID:
-                    await message.reply("for you, sir, always", mention_author=False)
-
-                else:
-                    await message.reply("yes", mention_author=False)
-
-        
+            else:
+                await message.reply("yes", mention_author=False)
 
     # Remove AFK status if the AFK user sends a message
     if message.author.id in afk_users:
