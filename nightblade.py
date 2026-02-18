@@ -4861,7 +4861,7 @@ async def translate(ctx, language: str = None, *, text: str = None):
         source_text = replied.content
 
     else:
-        if language is None and text is None:
+        if language is None:
             embed = create_embed(
                 "command: translate",
                 "Translate text using Google Translate", ctx
@@ -4877,6 +4877,13 @@ async def translate(ctx, language: str = None, *, text: str = None):
                 inline=False
             )
             return await ctx.send(embed=embed)
+        
+        if language and text is None:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide a text to translate.",
+                ctx, include_author=False
+            ))
         
         original_input = language.lower()
 
