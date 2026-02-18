@@ -512,360 +512,344 @@ async def disablecommand(ctx, command_name: str = None, channel_input: str = Non
     include_author=False,
     color=0x963939))
 
-@bot.command(aliases=["rc"])
+@bot.group(aliases=["rc"], invoke_without_command=True)
 @commands.has_permissions(manage_guild=True)
-async def restrict(ctx, restriction_type: str = None, value_or_command: str = None, *, command_name: str = None):
+async def restrict(ctx):
+    prefix = p(ctx)
+    embed = create_embed("command: restrict", "Restricts a command to specific roles, channels, or users", ctx)
+    embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+    embed.add_field(
+        name="**Permissions Required**",
+        value="`Manage Server`",
+        inline=False
+    )
+    embed.add_field(
+        name="**Subcommands**",
+        value="`role`\n`channel`\n`user`\n`list`",
+        inline=False
+    )
+    embed.add_field(
+        name="**Utilization**",
+        value=(
+            f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
+            f"{prefix}restrict role <role> <command>\n"
+            f"{prefix}restrict channel <channel> <command>\n"
+            f"{prefix}restrict user <user> <command>\n"
+            f"{prefix}restrict list <command>```"
+        ),
+        inline=False
+    )
+    return await ctx.send(embed=embed)
+
+@restrict.command(name="role")
+@commands.has_permissions(manage_guild=True)
+async def restrict_role(ctx, role_input: str = None, *, command_name: str = None):
     prefix = p(ctx)
 
-    # Help embed when nothing typed
-    if not restriction_type:
-        embed = create_embed("command: restrict", "Restricts a command to specific roles, channels, or users", ctx)
-        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
-        embed.add_field(
-            name="**Permissions Required**",
-            value="`Manage Server`",
-            inline=False
-        )
-        embed.add_field(
-            name="**Subcommands**",
-            value="`role`\n`channel`\n`user`\n`list`",
-            inline=False
-        )
-        embed.add_field(
-            name="**Utilization**",
-            value=(
-                f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
-                f"{prefix}restrict role <role> <command>\n"
-                f"{prefix}restrict channel <channel> <command>\n"
-                f"{prefix}restrict user <user> <command>\n"
-                f"{prefix}restrict list <command>```"
-            ),
-            inline=False
-        )
-        return await ctx.send(embed=embed)
-
-    restriction_type = restriction_type.lower()
-
-    # Missing type? show mini-help
-    if restriction_type not in ["role", "channel", "user", "list"]:
+    if not role_input or not command_name:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid subcommand. Use `role`, `channel`, `user`, or `list`.",
-            ctx,
-            include_author=False
-        ))
-
-    # LIST Subcommand
-    if restriction_type == "list":
-        command = (value_or_command or "").strip()
-        if not command:
-            return await ctx.send(
-                embed=create_embed(
-                    "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Provide a command to list its restrictions for.",
-                    ctx,
-                    include_author=False
-                )
-            )
-
-        cmd_obj = bot.get_command(command)
-        if not cmd_obj:
-            return await ctx.send(
-                embed=create_embed(
-                    "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
-                    ctx,
-                    include_author=False
-                )
-            )
-
-        full_name = cmd_obj.name
-        data = get_restrictions(ctx.guild.id, full_name)
-
-        embed = create_embed(
-            f"Restrictions for `{full_name}`",
-            "",
-            ctx
-        )
-
-        embed.add_field(name="Allowed Roles", value=", ".join([f"<@&{r}>" for r in data["roles"]]) or "`n/a`", inline=False)
-        embed.add_field(name="Allowed Channels", value=", ".join([f"<#{c}>" for c in data["channels"]]) or "`n/a`", inline=False)
-        embed.add_field(name="Allowed Users", value=", ".join([f"<@{u}>" for u in data["users"]]) or "`n/a`", inline=False)
-
-        return await ctx.send(embed=embed)
-
-    if not value_or_command:
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Missing target. Provide a role/channel/user.",
-            ctx,
-            include_author=False
-        ))
-
-    if not command_name:
-        return await ctx.send(
-            embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Provide a command to restrict.",
-                ctx,
-                include_author=False
-            )
-        )
-
-    command = command_name.strip()
-    cmd_obj = bot.get_command(command)
-    if not cmd_obj:
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
-            ctx,
-            include_author=False
-        ))
-
-    full_name = cmd_obj.name
-    gid = ctx.guild.id
-    settings = get_restrictions(gid, full_name)
-
-    # Restrict ROLE
-    if restriction_type == "role":
-        role = resolve_role(ctx.guild, value_or_command)
-        if not role:
-            return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Role not found.", ctx, include_author=False))
-
-        if not has_higher_role(ctx.author, role):
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot restrict {role.mention} from using `{full_name}` due to hierarchy.",
-                ctx,
-                include_author=False
-            ))
-
-        if role.id in settings["roles"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} is already on the allowlist for `{full_name}`", ctx, include_author=False))
-
-        add_restriction(gid, full_name, "role", role.id)
-
-        return await ctx.send(
-            embed=create_embed(
-                "",
-                f"{ctx.author.mention}: `{full_name}` is now restricted to {role.mention}.",
-                ctx,
-                include_author=False,
-                color=0xf9c414
-            )
-        )
-
-    # Restrict CHANNEL
-    if restriction_type == "channel":
-        channel = resolve_channel(ctx.guild, value_or_command)
-
-        if not channel:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
-
-        if channel.id in settings["channels"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {channel.mention} is already on the allowlist for `{full_name}`.", ctx, include_author=False))
-
-        add_restriction(gid, full_name, "channel", channel.id)
-
-        return await ctx.send(
-            embed=create_embed(
-                "",
-                f"{ctx.author.mention}: `{full_name}` is now restricted to {channel.mention}.",
-                ctx,
-                include_author=False,
-                color=0xf9c414
-            )
-        )
-
-    # Restrict USER
-    if restriction_type == "user":
-        user = await resolve_user(ctx, value_or_command)
-        if not user:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid user.", ctx, include_author=False))
-
-        member = ctx.guild.get_member(user.id)
-        if member and not has_higher_role(ctx.author, member):
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Cannot restrict **{member.name}** due to hierarchy.",
-                ctx, include_author=False
-            ))
-
-        if user.id in settings["users"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is already on the allowlist for `{full_name}`.", ctx, include_author=False))
-
-        add_restriction(gid, full_name, "user", user.id)
-
-        return await ctx.send(
-            embed=create_embed(
-                "",
-                f"{ctx.author.mention}: `{full_name}` is now restricted to {user.mention}.",
-                ctx,
-                include_author=False,
-                color=0xf9c414
-            )
-        )
-
-
-@bot.command(aliases=["urc"])
-@commands.has_permissions(manage_guild=True)
-async def unrestrict(ctx, mode: str = None, value: str = None, *, command_name: str = None):
-    prefix = p(ctx)
-
-    # HELP MENU
-    if not mode:
-        embed = create_embed("command: unrestrict", "Removes a restriction from a command", ctx)
-        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
-        embed.add_field(name="**Permissions Required**", value="`Manage Server`", inline=False)
-        embed.add_field(name="**Subcommands**", value="`role`\n`channel`\n`user`")
-        embed.add_field(
-            name="**Utilization**",
-            value=(
-                f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
-                f"{prefix}unrestrict role <role> <command>\n"
-                f"{prefix}unrestrict channel <channel> <command>\n"
-                f"{prefix}unrestrict user <user> <command>```"
-            ),
-            inline=False
-        )
-        return await ctx.send(embed=embed)
-
-    mode = mode.lower()
-
-    if mode not in ["role", "channel", "user", "all"]:
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid subcommand. Use `role`, `channel`, `user`, or `all`.",
-            ctx,
-            include_author=False
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a role and a command.\nUsage: `{prefix}restrict role <role> <command>`",
+            ctx, include_author=False
         ))
     
-    if mode == "all":
-        cmd_name = (value or "").strip()
-        cmd_obj = bot.get_command(cmd_name)
-        if not cmd_obj:
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide a command to clear restrictions for.",
-                ctx, include_author=False
-            ))
-
-        full_name = cmd_obj.name
-        if not full_name:
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{cmd_name}`. Use `{prefix}commands` for help.",
-                ctx, include_author=False
-            ))
-
-        restrictions = get_restrictions(ctx.guild.id, full_name)
-        if not any(restrictions.values()):
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` has no restrictions.",
-                ctx, include_author=False
-            ))
-
-        clear_command_restrictions(ctx.guild.id, full_name)
-        return await ctx.send(embed=create_embed(
-            "",
-            f"{ctx.author.mention}: Cleared all restrictions for `{full_name}`.",
-            ctx, include_author=False, color=0x71906e
-        ))
-
-    if not value:
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Missing target. Provide a role/channel/user.",
-            ctx,
-            include_author=False
-        ))
-
-    if not command_name:
-        return await ctx.send(
-            embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Provide a command to unrestrict.",
-                ctx,
-                include_author=False
-            )
-        )
-
-    # Validate command exists
-    command = command_name.strip()
-    cmd_obj = bot.get_command(command)
+    cmd_obj = bot.get_command(command_name.strip())
     if not cmd_obj:
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command: `{command}`. Use `{prefix}commands` for help.", ctx, include_author=False))
-
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            ctx, include_author=False
+        ))
+    
     full_name = cmd_obj.name
-    gid = ctx.guild.id
-    restrictions = get_restrictions(gid, full_name)
+    role = resolve_role(ctx.guild, role_input)
+    if not role:
+        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Role not found.", ctx, include_author=False))
+    
+    if not has_higher_role(ctx.author, role):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Cannot restrict `{full_name}` to {role.mention} due to hierarchy.",
+            ctx, include_author=False
+        ))
+    
+    settings = get_restrictions(ctx.guild.id, full_name)
+    if role.id in settings["roles"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} is already on the allowlist for `{full_name}`", ctx, include_author=False))
+    
+    add_restriction(ctx.guild.id, full_name, "role", role.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"{ctx.author.mention}: `{full_name}` is now restricted to {role.mention}.",
+        ctx, include_author=False, color=0xf9c414
+    ))
 
-    # ------------------------------------------------
-    # ROLE UNRESTRICTION
-    # ------------------------------------------------
-    if mode == "role":
-        role = resolve_role(ctx.guild, value)
-        if not role:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role not found.", ctx, include_author=False))
+@restrict.command(name="channel")
+@commands.has_permissions(manage_guild=True)
+async def restrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
+    prefix = p(ctx)
 
-        if not has_higher_role(ctx.author, role):
-            return await ctx.send(
-                embed=create_embed(
-                    "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot remove `{full_name}` restriction for {role.mention} due to hierarchy.",
-                    ctx,
-                    include_author=False
-                )
-            )
+    if not channel_input or not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a channel and a command.\nUsage: `{prefix}restrict channel <channel> <command>`",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            ctx, include_author=False
+        ))
+    
+    full_name = cmd_obj.name
+    channel = resolve_channel(ctx.guild, channel_input)
+    if not channel:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Channel not found.", ctx, include_author=False))
+    
+    settings = get_restrictions(ctx.guild.id, full_name)
+    if channel.id in settings["channels"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {channel.mention} is already on the allowlist for `{full_name}`.", ctx, include_author=False))
+    
+    add_restriction(ctx.guild.id, full_name, "channel", channel.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"{ctx.author.mention}: `{full_name}` is now restricted to {channel.mention}.",
+        ctx, include_author=False, color=0xf9c414
+    ))
 
-        if role.id not in restrictions["roles"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
+@restrict.command(name="user")
+@commands.has_permissions(manage_guild=True)
+async def restrict_user(ctx, user_input: str = None, *, command_name: str = None):
+    prefix = p(ctx)
 
-        remove_restriction(gid, full_name, "role", role.id)
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for {role.mention}.", ctx, include_author=False, color=0x71906e))
+    if not user_input or not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a user and a command.\nUsage: `{prefix}restrict user <user> <command>`",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            ctx, include_author=False
+        ))
+    
+    full_name = cmd_obj.name
+    user = await resolve_user(ctx, user_input)
+    if not user:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Invalid user.", ctx, include_author=False))
+    
+    member = ctx.guild.get_member(user.id)
+    if member and not has_higher_role(ctx.author, member):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Cannot restrict **{member.name}** due to hierarchy.",
+            ctx, include_author=False
+        ))
+    
+    settings = get_restrictions(ctx.guild.id, full_name)
+    if user.id in settings["users"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: **{user.name}** is already on the allowlist for `{full_name}`.", ctx, include_author=False))
+    
+    add_restriction(ctx.guild.id, full_name, "user", user.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"{ctx.author.mention}: `{full_name}` is now restricted to {user.mention}.",
+        ctx, include_author=False, color=0xf9c414
+    ))
 
-    # ------------------------------------------------
-    # CHANNEL UNRESTRICTION
-    # ------------------------------------------------
-    if mode == "channel":
-        channel = resolve_channel(ctx.guild, value)
-        if not channel:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel not found.", ctx, include_author=False))
+@restrict.command(name="list")
+@commands.has_permissions(manage_guild=True)
+async def restrict_list(ctx, *, command_name: str = None):
+    prefix = p(ctx)
+    
+    if not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Provide a command to list its restrictions for.",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            ctx, include_author=False
+        ))
+    
+    full_name = cmd_obj.name
+    data = get_restrictions(ctx.guild.id, full_name)
+    
+    embed = create_embed(f"Restrictions for `{full_name}`", "", ctx)
+    embed.add_field(name="Allowed Roles", value=", ".join([f"<@&{r}>" for r in data["roles"]]) or "`n/a`", inline=False)
+    embed.add_field(name="Allowed Channels", value=", ".join([f"<#{c}>" for c in data["channels"]]) or "`n/a`", inline=False)
+    embed.add_field(name="Allowed Users", value=", ".join([f"<@{u}>" for u in data["users"]]) or "`n/a`", inline=False)
+    await ctx.send(embed=embed)
 
-        if channel.id not in restrictions["channels"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {channel.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
 
-        remove_restriction(gid, full_name, "channel", channel.id)      
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed restriction for `{full_name}` in {channel.mention}.", ctx, include_author=False, color=0x71906e))
+@bot.group(aliases=["urc"], invoke_without_command=True)
+@commands.has_permissions(manage_guild=True)
+async def unrestrict(ctx):
+    """Show unrestrict help menu."""
+    prefix = p(ctx)
+    embed = create_embed("command: unrestrict", "Removes a restriction from a command", ctx)
+    embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+    embed.add_field(name="**Permissions Required**", value="`Manage Server`", inline=False)
+    embed.add_field(name="**Subcommands**", value="`role`\n`channel`\n`user`\n`all`", inline=False)
+    embed.add_field(
+        name="**Utilization**",
+        value=(
+            f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
+            f"{prefix}unrestrict role <role> <command>\n"
+            f"{prefix}unrestrict channel <channel> <command>\n"
+            f"{prefix}unrestrict user <user> <command>\n"
+            f"{prefix}unrestrict all <command>```"
+        ),
+        inline=False
+    )
+    await ctx.send(embed=embed)
 
-    # ------------------------------------------------
-    # USER UNRESTRICTION
-    # ------------------------------------------------
-    if mode == "user":
-        user = await resolve_user(ctx, value)
-        if not user:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: User not found.", ctx, include_author=False))
+@unrestrict.command(name="role")
+@commands.has_permissions(manage_guild=True)
+async def unrestrict_role(ctx, role_input: str = None, *, command_name: str = None):
+    prefix = p(ctx)
+    
+    if not role_input or not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a role and a command.\nUsage: `{prefix}unrestrict role <role> <command>`",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.", ctx, include_author=False))
+    
+    full_name = cmd_obj.name
+    role = resolve_role(ctx.guild, role_input)
+    if not role:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Role not found.", ctx, include_author=False))
+    
+    if not has_higher_role(ctx.author, role):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Cannot remove `{full_name}` restriction for {role.mention} due to hierarchy.",
+            ctx, include_author=False
+        ))
+    
+    restrictions = get_restrictions(ctx.guild.id, full_name)
+    if role.id not in restrictions["roles"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
+    
+    remove_restriction(ctx.guild.id, full_name, "role", role.id)
+    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for {role.mention}.", ctx, include_author=False, color=0x71906e))
 
-        member = ctx.guild.get_member(user.id)
+@unrestrict.command(name="channel")
+@commands.has_permissions(manage_guild=True)
+async def unrestrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
+    prefix = p(ctx)
+    
+    if not channel_input or not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a channel and a command.\nUsage: `{prefix}unrestrict channel <channel> <command>`",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.", ctx, include_author=False))
+    
+    full_name = cmd_obj.name
+    channel = resolve_channel(ctx.guild, channel_input)
+    if not channel:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Channel not found.", ctx, include_author=False))
+    
+    restrictions = get_restrictions(ctx.guild.id, full_name)
+    if channel.id not in restrictions["channels"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {channel.mention} is not on the allowlist for `{full_name}`.", ctx, include_author=False))
+    
+    remove_restriction(ctx.guild.id, full_name, "channel", channel.id)
+    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed restriction for `{full_name}` in {channel.mention}.", ctx, include_author=False, color=0x71906e))
 
-        if member:
-            if member and not has_higher_role(ctx.author, member):
-                return await ctx.send(
-                    embed=create_embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cannot unrestrict `{member}` due to hierarchy.",
-                        ctx,
-                        include_author=False
-                    )
-                )
-        
+@unrestrict.command(name="user")
+@commands.has_permissions(manage_guild=True)
+async def unrestrict_user(ctx, user_input: str = None, *, command_name: str = None):
+    prefix = p(ctx)
+    
+    if not user_input or not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide both a user and a command.\nUsage: `{prefix}unrestrict user <user> <command>`",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command: `{command_name}`. Use `{prefix}commands` for help.", ctx, include_author=False))
+    
+    full_name = cmd_obj.name
+    user = await resolve_user(ctx, user_input)
+    if not user:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: User not found.", ctx, include_author=False))
+    
+    member = ctx.guild.get_member(user.id)
+    if member and not has_higher_role(ctx.author, member):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Cannot unrestrict `{member}` due to hierarchy.",
+            ctx, include_author=False
+        ))
+    
+    restrictions = get_restrictions(ctx.guild.id, full_name)
+    if user.id not in restrictions["users"]:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: **{user.name}** is not on the allowlist for `{full_name}`.", ctx, include_author=False))
+    
+    remove_restriction(ctx.guild.id, full_name, "user", user.id)
+    await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for **{user.name}**.", ctx, include_author=False, color=0x71906e))
 
-        if user.id not in restrictions["users"]:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not on the allowlist for `{full_name}`.", ctx, include_author=False))
-
-        remove_restriction(gid, full_name, "user", user.id)
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Removed `{full_name}` restriction for **{user.name}**.", ctx, include_author=False, color=0x71906e))
+@unrestrict.command(name="all")
+@commands.has_permissions(manage_guild=True)
+async def unrestrict_all(ctx, *, command_name: str = None):
+    prefix = p(ctx)
+    
+    if not command_name:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Provide a command to clear restrictions for.",
+            ctx, include_author=False
+        ))
+    
+    cmd_obj = bot.get_command(command_name.strip())
+    if not cmd_obj:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{command_name}`. Use `{prefix}commands` for help.",
+            ctx, include_author=False
+        ))
+    
+    full_name = cmd_obj.name
+    restrictions = get_restrictions(ctx.guild.id, full_name)
+    if not any(restrictions.values()):
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `{full_name}` has no restrictions.",
+            ctx, include_author=False
+        ))
+    
+    clear_command_restrictions(ctx.guild.id, full_name)
+    await ctx.send(embed=create_embed(
+        "",
+        f"{ctx.author.mention}: Cleared all restrictions for `{full_name}`.",
+        ctx, include_author=False, color=0x71906e
+    ))
 
 # PREFIX SYSTEM
 
@@ -2864,7 +2848,7 @@ async def slowmode(ctx, duration: str = None):
 @commands.has_permissions(manage_roles=True)
 async def role(ctx, user: str = None, *, role: str = None):
 
-    prefix = get_prefix(bot, ctx.message)
+    prefix = p(ctx)
 
     # ===========================
     #   Missing Arguments
@@ -3040,57 +3024,36 @@ async def roleinfo(ctx, *, role_input: str = None):
 
     await ctx.send(embed=embed)
 
-
 # -----------------------------
 # Role management: autorole
 # -----------------------------
 
-@bot.command(aliases=["ar"])
+@bot.group(aliases=["ar"], invoke_without_command=True)
 @commands.has_permissions(manage_roles=True)
-async def autorole(ctx, action: str = None, *, role_input: str = None):
-    
+async def autorole(ctx):
+    """Show autorole help menu."""
     prefix = p(ctx)
-    action = action.lower() if action else None
+    embed = create_embed(
+        "command: autorole",
+        "Adds or removes auto-assign role(s)",
+        ctx
+    )
+    embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+    embed.add_field(name="**Subcommands**", value="`add`\n`remove`", inline=False)
+    embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
+    embed.add_field(
+        name="**Utilization**",
+        value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autorole <add/remove> <role>\n\u001b[35mexample:\u001b[0m {prefix}autorole add @members```",
+        inline=False
+    )
+    await ctx.send(embed=embed)
 
-    # If no action or invalid action → send main help embed
-    if not action or action not in ["add", "remove"]:
-        embed = create_embed(
-            "command: autorole",
-            "Adds or removes auto-assign role(s)",
-            ctx
-        )
-        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
-        embed.add_field(name="**Subcommands**", value="`add`\n`remove`", inline=False)
-        embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
-        embed.add_field(
-            name="**Utilization**",
-            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autorole <add/remove> <role>\n\u001b[35mexample:\u001b[0m {prefix}autorole add @members```",
-            inline=False
-        )
-        return await ctx.send(embed=embed)
-
-    # =====================================================
-    #                REMOVE  (no role specified)
-    # =====================================================
-    if action == "remove" and not role_input:
-        embed = create_embed(
-            "command: autorole remove",
-            "Removes an existing autorole",
-            ctx
-        )
-        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
-        embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
-        embed.add_field(
-            name="**Utilization**",
-            value=f"```syntax: {prefix}autorole remove <role>\nexample: {prefix}autorole remove @members```",
-            inline=False
-        )
-        return await ctx.send(embed=embed)
-
-    # =====================================================
-    #                ADD  (no role specified)
-    # =====================================================
-    if action == "add" and not role_input:
+@autorole.command(name="add")
+@commands.has_permissions(manage_roles=True)
+async def autorole_add(ctx, *, role_input: str = None):
+    prefix = p(ctx)
+    
+    if not role_input:
         embed = create_embed(
             "command: autorole add",
             "Sets a role to auto-assign to members upon joining",
@@ -3100,74 +3063,71 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
         embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
         embed.add_field(
             name="**Utilization**",
-            value=f"```syntax: {prefix}autorole add <role>\nexample: {prefix}autorole add @members```",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}autorole add <role>\n\u001b[35mexample: \u001b[0m{prefix}autorole add @members```",
             inline=False
         )
         return await ctx.send(embed=embed)
-
-    # From this point: action has a role_input
-    # =====================================================
-    #                PARSE THE ROLE
-    # =====================================================
-
-    role = None
-    role_input = role_input.strip()
-
-    if role_input.startswith("<@&") and role_input.endswith(">"):
-        try:
-            role = ctx.guild.get_role(int(role_input[3:-1]))
-        except:
-            pass
-    else:
-        try:
-            role = ctx.guild.get_role(int(role_input))
-        except:
-            pass
-
+    
+    role = resolve_role(ctx.guild, role_input.strip())
     if not role:
-        msg = await ctx.send("Role not found. Use  `@role`  or  `role ID`")
+        msg = await ctx.send("Role not found. Use `@role` or `role ID`")
         await asyncio.sleep(3)
         return await msg.delete()
-
-    # =====================================================
-    #                REMOVE (with role)
-    # =====================================================
-    if action == "remove":
-
-        if get_autorole(ctx.guild.id) != role.id:
-            return await ctx.send(embed=create_embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: That role is not set as an auto-assign role.",
-                ctx,
-                include_author=False
-            ))
-
-        delete_autorole(ctx.guild.id)
-
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Auto-assign role {role.mention} has been removed.",
-            ctx,
-            include_author=False
-        ))
-
-    # =====================================================
-    #                ADD (with role)
-    # =====================================================
-
+    
     if get_autorole(ctx.guild.id) == role.id:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: That role is already set as an auto-assign role.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: That role is already set as an auto-assign role.",
             ctx,
             include_author=False
         ))
-
+    
     set_autorole(ctx.guild.id, role.id)
-
     await ctx.send(embed=create_embed(
         "",
-        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: {role.mention} will be auto-assigned to new members upon joining.",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: {role.mention} will be auto-assigned to new members upon joining.",
+        ctx,
+        include_author=False
+    ))
+
+@autorole.command(name="remove")
+@commands.has_permissions(manage_roles=True)
+async def autorole_remove(ctx, *, role_input: str = None):
+    prefix = p(ctx)
+    
+    if not role_input:
+        embed = create_embed(
+            "command: autorole remove",
+            "Removes an existing autorole",
+            ctx
+        )
+        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+        embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
+        embed.add_field(
+            name="**Utilization**",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}autorole remove <role>\n\u001b[35mexample: \u001b[0m{prefix}autorole remove @members```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    role = resolve_role(ctx.guild, role_input.strip())
+    if not role:
+        msg = await ctx.send("Role not found. Use `@role` or `role ID`")
+        await asyncio.sleep(3)
+        return await msg.delete()
+    
+    if get_autorole(ctx.guild.id) != role.id:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: That role is not set as an auto-assign role.",
+            ctx,
+            include_author=False
+        ))
+    
+    delete_autorole(ctx.guild.id)
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Auto-assign role {role.mention} has been removed.",
         ctx,
         include_author=False
     ))
@@ -3175,7 +3135,7 @@ async def autorole(ctx, action: str = None, *, role_input: str = None):
 @bot.event
 async def on_member_join(member):
     if member.bot:
-        return  # skip bots
+        return
     role_id = get_autorole(member.guild.id)
     if not role_id:
         return
@@ -3189,156 +3149,115 @@ async def on_member_join(member):
     except Exception as e:
         print(f"Failed to assign role to {member}: {e}")
 
+
 # -----------------------------
 # Role management: roleedit
 # -----------------------------
-@bot.command(aliases=["re"])
+@bot.group(aliases=["re"], invoke_without_command=True)
 @commands.has_permissions(manage_roles=True)
-async def roleedit(ctx, action: str = None, role_input: str = None, *, value: str = None):
-
+async def roleedit(ctx):
+    """Show roleedit help menu."""
     prefix = p(ctx)
+    embed = create_embed("command: roleedit", "Edits a role", ctx)
+    embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+    embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
+    embed.add_field(
+        name="**Subcommands**",
+        value="`name`\n`color`",
+        inline=False
+    )
+    embed.add_field(
+        name="**Utilization**",
+        value=(
+            f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
+            f"{prefix}roleedit name <role> <newName>\n"
+            f"{prefix}roleedit color <role> <color>```"
+        ),
+        inline=False
+    )
+    await ctx.send(embed=embed)
 
-    # -----------------------------
-    # NO ACTION → HELP EMBED
-    # -----------------------------
-    if action is None:
-        embed = create_embed("command: roleedit", "Edits a role", ctx)
+@roleedit.command(name="name")
+@commands.has_permissions(manage_roles=True)
+async def roleedit_name(ctx, role_input: str = None, *, new_name: str = None):
+    prefix = p(ctx)
+    
+    if not role_input or not new_name:
+        embed = create_embed(
+            "command: roleedit name",
+            "Edits a role's name",
+            ctx
+        )
         embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
         embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
         embed.add_field(
-            name="**Subcommands**",
-            value=(
-                "`name`\n"
-                "`color`\n"
-            ),
-            inline=False
-        )
-        embed.add_field(
             name="**Utilization**",
-            value=(
-                f"```ansi\n\u001b[35msyntax:\u001b[0m\n"
-                f"{prefix}roleedit name <role> <newName>\n"
-                f"{prefix}roleedit color <role> <color>```"
-            ),
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}roleedit name <role> <newName>\n\u001b[35mexample: \u001b[0m{prefix}roleedit name @members citizens```",
             inline=False
         )
         return await ctx.send(embed=embed)
-
-    action = action.lower().strip()
-
-    if action not in ["name", "color"]:
-        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  Unknown subcommand `{action}`. Use `{prefix}roleedit` for help.", ctx, include_author=False))
-
-    # -----------------------------
-    # REQUIRE ROLE + VALUE
-    # -----------------------------
-    if role_input is None:
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Missing role. Use `{prefix}roleedit` for instructions.", ctx, include_author=False))
-    if value is None:
-        return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Missing arguments. Use `{prefix}roleedit` for instructions.", ctx, include_author=False))
-
-
-    # -----------------------------
-    # ROLE RESOLUTION
-    # -----------------------------
-    role = None
-
-    if role_input.startswith("<@&") and role_input.endswith(">"):
-        try:
-            rid = int(role_input[3:-1])
-            role = ctx.guild.get_role(rid)
-        except:
-            pass
-    else:
-        try:
-            role = ctx.guild.get_role(int(role_input))
-        except:
-            role = discord.utils.get(ctx.guild.roles, name=role_input)
-
+    
+    role = resolve_role(ctx.guild, role_input)
     if not role:
-        await ctx.send(embed=create_embed("", "<a:sword_spin:1211611749426667560>  Role not found.", ctx, include_author=False))
+        return await ctx.send(embed=create_embed("", "<a:sword_spin:1211611749426667560>  Role not found.", ctx, include_author=False))
+    
+    try:
+        await role.edit(name=new_name.strip())
+    except Exception as e:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  Failed to update role name: `{e}`", ctx, include_author=False))
+    
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated name for {role.mention}.",
+        ctx,
+        include_author=False
+    ))
 
-    # -----------------------------
-    # ACTION: NAME
-    # -----------------------------
-    if action == "name":
-        new_name = value.strip()
-
-        if new_name is None:
-            embed = create_embed(
-                "command: roleedit name",
-                "Edits a role's name",
-                ctx
-            )
-            embed.add_field(
-                name="**Aliases**",
-                value=alss_ctx(ctx),
-                inline=False
-            )
-            embed.add_field(
-                name="**Permissions Required**",
-                value="`Manage Roles`",
-                inline=False
-            )
-            embed.add_field(
-                name="**Utilization**",
-                value=f"```syntax: {prefix}roleedit name <role> <newName>\nexample: {prefix}roleedit name @members citizens```"
-            )
-            return await ctx.send(embed=embed)
-
-        try:
-            await role.edit(name=new_name)
-        except Exception as e:
-            return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  Failed to update role name: `{e}`", ctx, include_author=False))
-
+@roleedit.command(name="color")
+@commands.has_permissions(manage_roles=True)
+async def roleedit_color(ctx, role_input: str = None, hex_code: str = None):
+    prefix = p(ctx)
+    
+    if not role_input or not hex_code:
+        embed = create_embed(
+            "command: roleedit color",
+            "Edits a role's color",
+            ctx
+        )
+        embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
+        embed.add_field(name="**Permissions Required**", value="`Manage Roles`", inline=False)
+        embed.add_field(
+            name="**Utilization**",
+            value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}roleedit color <role> <color>\n\u001b[35mexample: \u001b[0m{prefix}roleedit color @members #ff8800```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    role = resolve_role(ctx.guild, role_input)
+    if not role:
+        return await ctx.send(embed=create_embed("", "<a:sword_spin:1211611749426667560>  Role not found.", ctx, include_author=False))
+    
+    hex_code = hex_code.strip()
+    if not (hex_code.startswith("#") and len(hex_code) == 7):
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated name for {role.mention}.",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Invalid hex code. Format: `#RRGGBB` (e.g., `#ff8800`)",
             ctx,
             include_author=False
         ))
-
-    # -----------------------------
-    # ACTION: COLOR
-    # -----------------------------
-    if action == "color":
-
-        hex_code = value.strip()
-
-        if not (hex_code.startswith("#") and len(hex_code) == 7):
-            embed = create_embed(
-                "command: roleedit color",
-                "Edits a role's color",
-                ctx
-            )
-            embed.add_field(
-                name="**Aliases**",
-                value=alss_ctx(ctx),
-                inline=False
-            )
-            embed.add_field(
-                name="**Permissions Required**",
-                value="`Manage Roles`",
-                inline=False
-            )
-            embed.add_field(
-                name="**Utilization**",
-                value=f"```syntax: {prefix}roleedit color <role> <color>\nexample: {prefix}roleedit name @members #ff8800```"
-            )
-            return await ctx.send(embed=embed)
-
-        try:
-            color = discord.Color(int(hex_code.replace("#", "0x"), 16))
-            await role.edit(color=color)
-        except Exception as e:
-            return await ctx.send(f"Failed to update color: `{e}`")
-
-        return await ctx.send(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated color for {role.mention}.",
-            ctx,
-            include_author=False
-        ))
+    
+    try:
+        color = discord.Color(int(hex_code.replace("#", "0x"), 16))
+        await role.edit(color=color)
+    except Exception as e:
+        return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  Failed to update color: `{e}`", ctx, include_author=False))
+    
+    await ctx.send(embed=create_embed(
+        "",
+        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated color for {role.mention}.",
+        ctx,
+        include_author=False
+    ))
 
     
 # -----------------------------
@@ -3820,6 +3739,7 @@ class Dropdown(discord.ui.Select):
                 f"`{prefix}define` — Get a definition of the specified word\n"
                 f"`{prefix}ping` — See bot's latency\n"
                 f"`{prefix}steal` — Steal emojis from other servers\n"
+                f"`{prefix}urbandictionary` — Get the definition of a slang/word from Urban Dictionary\n"
                 f"`{prefix}translate` — Translate text using Google Translate\n"
                 f"`{prefix}afk` — Set AFK status\n"
             )
@@ -4814,7 +4734,12 @@ async def nightblade(ctx):
 
     inv = f"https://discord.com/oauth2/authorize?client_id={bot.user.id}&permissions=8&integration_type=0&scope=bot+applications.commands"
 
-    total_commands = len(bot.commands)
+    total_commands = 0
+    for command in bot.commands:
+        total_commands += 1
+        if isinstance(command, commands.Group):
+            total_commands += len(command.commands)
+
     total_servers = len(bot.guilds)
     total_users = sum(g.member_count for g in bot.guilds)
 
@@ -5133,6 +5058,7 @@ class DefinitionView(discord.ui.View):
             description=f"# [{self.word} {self.pronunciation}](https://en.wiktionary.org/wiki/{self.word})\n{definition}",
             color=0x2f3136
         )
+        embed.set_author(name="Wiktionary", icon_url="https://upload.wikimedia.org/wikipedia/commons/f/fc/Wiktionary_logo2_noW.png")
         embed.set_footer(text=f"{self.index + 1}/{len(self.definitions)}")
 
         return embed
@@ -5276,6 +5202,161 @@ async def define(ctx, *, word: str = None):
     # Send result
     view = DefinitionView(definitions, word, pronunciation, ctx)
     view.message = await ctx.send(embed=view.get_embed(), view=view)
+
+# URBAN DICTIONARY
+
+class UrbanDictionaryView(discord.ui.View):
+    def __init__(self, definitions, word, ctx):
+        super().__init__(timeout=60)
+        self.definitions = definitions
+        self.word = word
+        self.ctx = ctx
+        self.index = 0
+        self.message = None
+
+    def get_embed(self):
+        entry = self.definitions[self.index]
+        
+        embed = discord.Embed(
+            title="",
+            description=f"# [{entry["word"]}]({entry["permalink"]})\n{entry["definition"]}",
+            color=0x2f3136
+        )
+        
+        embed.set_author(
+            name="Urban Dictionary",
+            icon_url="https://cdn.discordapp.com/attachments/1069850380114067490/1473561929434796032/urbandictionary_logo.png"
+        )
+        
+        embed.add_field(
+            name="**Example**",
+            value=entry["example"] or "*No example provided*",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="**Votes**",
+            value=f"👍 `{entry['thumbs_up']}` 👎 `{entry['thumbs_down']}`",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="_ _",
+            value=f"-# By **{entry['author']}**",
+            inline=False
+        )
+        
+        embed.set_footer(text=f"{self.index + 1}/{len(self.definitions)}")
+        
+        return embed
+
+    async def update(self, interaction):
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary)
+    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        self.index = (self.index - 1) % len(self.definitions)
+        await self.update(interaction)
+
+    @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary)
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        self.index = (self.index + 1) % len(self.definitions)
+        await self.update(interaction)
+
+    @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        await interaction.message.delete()
+        self.stop()
+
+    async def on_timeout(self):
+        for child in self.children:
+            child.disabled = True
+        try:
+            await self.message.edit(view=None)
+        except:
+            pass
+        self.stop()
+
+
+@bot.command(aliases=["ud", "urban"])
+async def urbandictionary(ctx, *, word: str = None):
+    prefix = p(ctx)
+    
+    if not word:
+        embed = create_embed(
+            "command: urbandictionary",
+            "Get the definition of slang/word from Urban Dictionary",
+            ctx
+        )
+        embed.add_field(
+            name="**Aliases**",
+            value="`ud`, `urban`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Utilization**",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}urbandictionary <word>\n\u001b[35mexample:\u001b[0m {prefix}urbandictionary rizz```",
+            inline=False
+        )
+        return await ctx.send(embed=embed)
+    
+    url = f"https://api.urbandictionary.com/v0/define?term={word}"
+    
+    async with ctx.typing():
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as r:
+                if r.status != 200:
+                    return await ctx.send(embed=create_embed(
+                        "",
+                        f"Could not find a definition for **{word}**.",
+                        ctx,
+                        include_author=False
+                    ))
+                
+                data = await r.json()
+    
+    definitions = data.get("list", [])
+    
+    if not definitions:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"No definitions found for **{word}**.",
+            ctx,
+            include_author=False
+        ))
+    
+    # Format definitions
+    formatted_defs = []
+    for entry in definitions:
+        formatted_defs.append({
+            "word": entry["word"],
+            "definition": entry["definition"].replace("[", "").replace("]", ""),
+            "example": entry["example"].replace("[", "").replace("]", "") if entry.get("example") else None,
+            "thumbs_up": entry.get("thumbs_up", 0),
+            "thumbs_down": entry.get("thumbs_down", 0),
+            "author": entry.get("author", "Unknown"),
+            "permalink": entry.get("permalink", f"https://www.urbandictionary.com/define.php?term={word}")
+        })
+    
+    view = UrbanDictionaryView(formatted_defs, word, ctx)
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
+
+# ROLES COMMAND
 
 class RolesView(discord.ui.View):
     def __init__(self, ctx, roles):
