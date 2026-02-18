@@ -3746,8 +3746,8 @@ class Dropdown(discord.ui.Select):
 
         elif category == "/games":
             desc = (
-                f"`{prefix}flag` — Displays a random country flag\n"
-                f"`{prefix}flags` — Start a Guess the Country game\n"
+                f"`{prefix}flag` — Displays a random flag\n"
+                f"`{prefix}flags` — Start a Guess the Flag game\n"
                 f"`{prefix}blacktea` — Start a Blacktea game\n"
                 f"`{prefix}tictactoe` — Challenge a member to a tic-tac-toe game\n"
             )

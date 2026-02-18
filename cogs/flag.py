@@ -97,7 +97,7 @@ class Flag(commands.Cog):
         answer = country["name"].lower()
 
         embed = discord.Embed(
-            title="Guess the Country!",
+            title="Guess the Flag!",
             description="You have **30 seconds** to guess.\nType your answer in the chat.",
             color=0x2f3136
         )
@@ -226,7 +226,7 @@ class Flag(commands.Cog):
         self.running_games[channel_id] = ctx.author.id
         
         queue_embed = self._embed(
-            "Guess the Country!",
+            "Guess the Flag!",
             "React with `✅` to join. Game starting in **30 seconds**.",
             ctx
         )
@@ -310,7 +310,7 @@ class Flag(commands.Cog):
                     answer = country["name"].lower()
     
                     flag_embed = self._embed(
-                        "Guess the Country!",
+                        "Guess the Flag!",
                         f"You have **{time_limit} seconds** to guess!",
                         ctx,
                         include_author=False)
@@ -320,7 +320,7 @@ class Flag(commands.Cog):
                         value=difficulty.capitalize(),
                         inline=False
                     )
-                    flag_embed.set_footer(text="Typing 'skip' and 'pass' will skip your turn.")
+                    flag_embed.set_footer(text="Typing 'skip' or 'pass' will skip your turn.")
                     embed_msg = await ctx.send(content=player.mention, embed=flag_embed)
                     countdown_state = {"started": False}
 
