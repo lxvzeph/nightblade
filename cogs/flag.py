@@ -83,7 +83,8 @@ class Flag(commands.Cog):
     @commands.command(aliases=["country"])
     @commands.cooldown(2, 6, commands.BucketType.user)
     async def flag(self, ctx, difficulty: str | None = None):
-        """Displays a random flag"""
+        """Displays a random flag
+        example: flag insane"""
         if difficulty:
             difficulty = difficulty.lower()
         

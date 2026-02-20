@@ -49,8 +49,7 @@ class Roles(commands.Cog):
         return ", ".join(f"{a}" for a in command.aliases)
 
     def alss_ctx(self, ctx):
-        cmd = self.bot.get_command(ctx.command.name)
-        return self.get_aliases_string(cmd)
+        return self.get_aliases_string(ctx.command)
 
     # --- HELPERS --------------------------------------------------------------
 
@@ -59,7 +58,6 @@ class Roles(commands.Cog):
         backup_member_roles(member.guild.id, member.id,  role_ids)
 
     async def restore_member_roles(self, member: discord.Member):
-
         role_ids = get_member_role_backup(member.guild.id, member.id)
         if role_ids is None:
             return False
@@ -67,8 +65,12 @@ class Roles(commands.Cog):
         roles = [member.guild.get_role(rid) for rid in role_ids]
         roles = [r for r in roles if r is not None]
 
+        roles.append(member.guild.default_role)
+        roles.extend([r for r in member.roles if r not in roles])
+
         try:
-            await member.add_roles(*roles)
+            await member.edit(roles=roles)
+            clear_member_role_backup(member.guild.id, member.id)
         except discord.Forbidden:
             return False
         
@@ -92,7 +94,8 @@ class Roles(commands.Cog):
     @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
     async def strip(self, ctx, member: discord.Member = None):
-        """Strip roles from a member"""
+        """Strip roles from a member
+        example: strip zeph"""
         prefix = ctx.prefix 
 
         if member is None:
@@ -127,7 +130,7 @@ class Roles(commands.Cog):
         if member.top_role.position >= ctx.guild.me.top_role.position:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: **{member.name}** has a higher role than me.", ctx, include_author=False))
 
-        self.backup_member_roles_helper(member)
+        self.backup_member_roles(member)
         new_roles = [ctx.guild.default_role]
 
         try:
@@ -139,12 +142,13 @@ class Roles(commands.Cog):
     @strip.command(name="staff")
     @commands.has_permissions(manage_roles=True)
     async def strip_staff(self, ctx, member: discord.Member = None):
-        """Strip staff roles from a member"""
+        """Strip staff roles from a member
+        example: strip staff zeph"""
         prefix = ctx.prefix
 
         if member is None:
             embed = self._embed(
-                f"command: strip staff",
+                "command: strip staff",
                 "Strip staff roles from a member",
                 ctx
             )
@@ -169,7 +173,7 @@ class Roles(commands.Cog):
         if member.top_role.position >= ctx.guild.me.top_role.position:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{member.name}** has a higher role than me.", ctx, include_author=False))
 
-        self.backup_member_roles_helper(member)
+        self.backup_member_roles(member)
 
         def is_staff(role: discord.Role):
             perms = role.permissions
@@ -197,7 +201,8 @@ class Roles(commands.Cog):
     @commands.group(aliases=["res"], invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
     async def restore(self, ctx, member: discord.Member = None):
-        """Restore backed-up roles"""
+        """Restore backed-up roles
+        example: restore zeph"""
         prefix = ctx.prefix
 
         # --- CASE 1: No arguments -> show help
@@ -224,26 +229,27 @@ class Roles(commands.Cog):
         success = await self.restore_member_roles(member)
 
         if success:
-            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Restored **{member.name}**'s roles.", ctx, include_author=False))
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Restored **{member.name}**'s roles.", ctx, include_author=False))
         else:
-            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup saved for **{member.name}** or failed to restore.", ctx, include_author=False))
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: No backup saved for **{member.name}** or failed to restore.", ctx, include_author=False))
 
     @restore.command(name="clear", aliases=["del", "remove"])
     @commands.has_permissions(manage_roles=True)
     async def restore_clear(self, ctx, member: discord.Member = None):
-        """Clear a member's role backup"""
+        """Clear a member's role backup
+        example: restore clear zeph"""
         prefix = ctx.prefix
 
         if member is None:
             embed = self._embed(
                 "command: restore clear",
-                "Deletes a user's role backup",
+                "Clear a user's role backup",
                 ctx
             )
             embed.add_field(name="**Aliases**", value=self.alss_ctx(ctx), inline=False)
             embed.add_field(
                 name="**Utilization**",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}restore clear <member>\n\u001b[35mexample:\u001b[0m {prefix}restore clear @john```",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}restore clear <member>\n\u001b[35mexample:\u001b[0m {prefix}restore clear zeph```",
                 inline=False
             )
             return await ctx.send(embed=embed)

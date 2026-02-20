@@ -111,8 +111,7 @@ class AutoResponder(commands.Cog):
         return ", ".join(f"{a}" for a in command.aliases)
 
     def alss_ctx(self, ctx):
-        cmd = self.bot.get_command(ctx.command.name)
-        return self.get_aliases_string(cmd)
+        return self.get_aliases_string(ctx.command)
 
     @staticmethod
     def format_permission(perm: str):
@@ -230,7 +229,8 @@ class AutoResponder(commands.Cog):
     @autoresponder.command(name="add")
     @commands.has_permissions(manage_messages=True)
     async def autoresponder_add(self, ctx, trigger: str = None, *, response: str = None):
-        """Sets an autoresponder"""
+        """Sets an autoresponder
+        example: autoresponder add hi hello"""
         prefix = ctx.prefix
 
         if trigger is None or (response is None and not ctx.message.attachments):
@@ -300,7 +300,8 @@ class AutoResponder(commands.Cog):
     @autoresponder.command(name="remove")
     @commands.has_permissions(manage_messages=True)
     async def autoresponder_remove(self, ctx, trigger: str = None):
-        """Removes an autoresponder"""
+        """Removes an autoresponder
+        example: autoresponder remove hi"""
         prefix = ctx.prefix
 
         if trigger is None:
@@ -353,7 +354,8 @@ class AutoResponder(commands.Cog):
     @autoresponder.command(name="edit")
     @commands.has_permissions(manage_messages=True)
     async def autoresponder_edit(self, ctx, trigger: str = None, *, response: str = None):
-        """Edits an existing autoresponder"""
+        """Edits an existing autoresponder
+        example: autoresponder edit hi greetings"""
         prefix = ctx.prefix
 
         if trigger is None:

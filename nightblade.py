@@ -362,7 +362,8 @@ def has_higher_role(author: discord.Member, target: discord.Member | discord.Rol
 @bot.command(aliases=["ec"])
 @commands.has_permissions(manage_guild=True)
 async def enablecommand(ctx, command_name: str = None, channel_input: str = None):
-    """Enables a command server-wide or in specific channels"""
+    """Enables a command server-wide or in specific channels
+    example: enablecommand avatar #chat"""
     prefix = p(ctx)
 
     if not command_name:
@@ -437,7 +438,8 @@ async def enablecommand(ctx, command_name: str = None, channel_input: str = None
 @bot.command(aliases=["dc"])
 @commands.has_permissions(manage_guild=True)
 async def disablecommand(ctx, command_name: str = None, channel_input: str = None):
-    """Disables a command server-wide or in specific channels"""
+    """Disables a command server-wide or in specific channels
+    example: disablecommand avatar #chat"""
     prefix = p(ctx)
 
     if not command_name:
@@ -548,7 +550,8 @@ async def restrict(ctx):
 @restrict.command(name="role")
 @commands.has_permissions(manage_guild=True)
 async def restrict_role(ctx, role_input: str = None, *, command_name: str = None):
-    """Restricts a command to specific roles"""
+    """Restricts a command to specific roles
+    example: restrict role @sniper snipe"""
     prefix = p(ctx)
 
     if not role_input or not command_name:
@@ -592,7 +595,8 @@ async def restrict_role(ctx, role_input: str = None, *, command_name: str = None
 @restrict.command(name="channel")
 @commands.has_permissions(manage_guild=True)
 async def restrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
-    """Restricts a command to specific channels"""
+    """Restricts a command to specific channels
+    example: restrict channel #bots flag"""
     prefix = p(ctx)
 
     if not channel_input or not command_name:
@@ -629,7 +633,8 @@ async def restrict_channel(ctx, channel_input: str = None, *, command_name: str 
 @restrict.command(name="user")
 @commands.has_permissions(manage_guild=True)
 async def restrict_user(ctx, user_input: str = None, *, command_name: str = None):
-    """Restricts a command to specific users"""
+    """Restricts a command to specific users
+    example: restrict user zeph 8ball"""
     prefix = p(ctx)
 
     if not user_input or not command_name:
@@ -674,7 +679,8 @@ async def restrict_user(ctx, user_input: str = None, *, command_name: str = None
 @restrict.command(name="list")
 @commands.has_permissions(manage_guild=True)
 async def restrict_list(ctx, *, command_name: str = None):
-    """See a list of restrictions for a command"""
+    """See a list of restrictions for a command
+    example: restrict list avatar"""
     prefix = p(ctx)
     
     if not command_name:
@@ -727,7 +733,8 @@ async def unrestrict(ctx):
 @unrestrict.command(name="role")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_role(ctx, role_input: str = None, *, command_name: str = None):
-    """Removes a command restriction for roles"""
+    """Removes a command restriction for roles
+    example: unrestrict role @mod snipe"""
     prefix = p(ctx)
     
     if not role_input or not command_name:
@@ -763,7 +770,8 @@ async def unrestrict_role(ctx, role_input: str = None, *, command_name: str = No
 @unrestrict.command(name="channel")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
-    """Removes a command restriction for channels"""
+    """Removes a command restriction for channels
+    example: unrestrict channel #bots flag"""
     prefix = p(ctx)
     
     if not channel_input or not command_name:
@@ -792,7 +800,8 @@ async def unrestrict_channel(ctx, channel_input: str = None, *, command_name: st
 @unrestrict.command(name="user")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_user(ctx, user_input: str = None, *, command_name: str = None):
-    """Removes a command restriction from users"""
+    """Removes a command restriction from users
+    example: unrestrict user zeph 8ball"""
     prefix = p(ctx)
     
     if not user_input or not command_name:
@@ -829,7 +838,8 @@ async def unrestrict_user(ctx, user_input: str = None, *, command_name: str = No
 @unrestrict.command(name="all")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_all(ctx, *, command_name: str = None):
-    """Removes all restrictions from a command"""
+    """Removes all restrictions from a command
+    example: unrestrict all avatar"""
     prefix = p(ctx)
     
     if not command_name:
@@ -867,7 +877,8 @@ async def unrestrict_all(ctx, *, command_name: str = None):
 
 @bot.command(aliases=["pre"])
 async def prefix(ctx, new_prefix: str = None):
-    """Configure the bot's prefix in your server"""
+    """Configure the bot's prefix in your server
+    example: prefix ,"""
     guild_id = ctx.guild.id
     current = get_prefix_for_guild(guild_id)
 
@@ -1078,7 +1089,8 @@ class HistoryView(discord.ui.View):
 @bot.group(aliases=["hst"], invoke_without_command=True)
 @commands.has_permissions(moderate_members=True)
 async def history(ctx, member: discord.Member | None = None, page: int = 1):
-    """View a member's case log"""
+    """View a member's case log
+    example: history zeph"""
     if member is None:
         member = ctx.author
 
@@ -1105,7 +1117,8 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
 @history.command(name="view")
 @commands.has_permissions(moderate_members=True)
 async def history_view(ctx, case_number: int = None):
-    """View a case log by its number"""
+    """View a case log by its number
+    example: history view 5"""
     prefix = p(ctx)
 
     if case_number is None:
@@ -1151,9 +1164,8 @@ async def history_view(ctx, case_number: int = None):
 @history.command(name="remove", aliases=["delete", "del"])
 @commands.has_permissions(moderate_members=True)
 async def history_remove(ctx, member: discord.Member | None = None, case_number: int = None):
-    """
-    Remove a member's specific case log
-    """
+    """Remove a member's specific case log
+    example: history remove zeph 6"""
     prefix = p(ctx)
 
     if member is None or case_number is None:
@@ -1199,7 +1211,8 @@ async def history_remove(ctx, member: discord.Member | None = None, case_number:
 @history.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def history_clear(ctx, member: discord.Member | None = None):
-    """Clear all cases for a member"""
+    """Clear all cases for a member
+    example: history clear zeph"""
 
     prefix = p(ctx)
 
@@ -1333,7 +1346,8 @@ async def history_all(ctx):
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member = None, *, reason=None):
-    """Bans a member"""
+    """Bans a member
+    example: ban zeph being dumb"""
     
     prefix = p(ctx)
     
@@ -1428,7 +1442,8 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def unban(ctx, *, member: str = None):
-    """Unbans a member"""
+    """Unbans a member
+    example: unban zeph"""
     
     prefix = p(ctx)
     
@@ -1462,7 +1477,8 @@ async def unban(ctx, *, member: str = None):
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member = None, *, reason=None):
-    """Kicks a member"""
+    """Kicks a member
+    example: kick zeph get out"""
     
     prefix = p(ctx)
     
@@ -1547,7 +1563,8 @@ from datetime import datetime, timedelta, timezone  # <- top of your file
 @bot.command(aliases=["time"])
 @commands.has_permissions(moderate_members=True)
 async def timeout(ctx, member: discord.Member = None, duration: str = None, *, reason=None):
-    """Times out a member"""
+    """Times out a member
+    example: timeout zeph 1d being dumb again"""
     
     prefix = p(ctx)
     
@@ -1623,7 +1640,7 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
             delta = timedelta(days=amount)
         else:
             raise ValueError("Invalid time unit.")
-            return
+
         MAX_TIMEOUT = timedelta(days=28)
         if delta > MAX_TIMEOUT:
             msg = await ctx.send("Maximum duration exceeded. (**limit:** `28d`)")
@@ -1648,7 +1665,8 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
 @bot.command(aliases=["untime"])
 @commands.has_permissions(moderate_members=True)
 async def untimeout(ctx, member: discord.Member = None):
-    """Removes timeout from a member"""
+    """Removes timeout from a member
+    example: untimeout zeph"""
     
     prefix = p(ctx)
     
@@ -1684,7 +1702,8 @@ async def untimeout(ctx, member: discord.Member = None):
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def warn(ctx, member: discord.Member = None, *, reason: str = None):
-    """Warns a member"""
+    """Warns a member
+    example: warn zeph being dumb"""
     prefix = p(ctx)
 
     if member is None:
@@ -1768,7 +1787,8 @@ async def warn(ctx, member: discord.Member = None, *, reason: str = None):
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(manage_messages=True)
 async def warnings(ctx, member:discord.Member = None):
-    """View a member's warnings or your own"""
+    """View a member's warnings or your own
+    example: warnings zeph"""
 
     if member is None:
         member = ctx.author
@@ -1806,7 +1826,8 @@ async def warnings(ctx, member:discord.Member = None):
 @warnings.command(name="remove", aliases=["delete", "del"])
 @commands.has_permissions(manage_messages=True)
 async def warnings_remove(ctx, member: discord.Member = None, warning_number: int = None):
-    """Remove a specific warning from a member"""
+    """Remove a specific warning from a member
+    example: warnings remove zeph 2"""
     prefix = p(ctx)
 
     if member is None or warning_number is None:
@@ -1841,7 +1862,8 @@ async def warnings_remove(ctx, member: discord.Member = None, warning_number: in
 @warnings.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def warnings_clear(ctx, member: discord.Member = None):
-    """Clear all warnings for a member"""
+    """Clear all warnings for a member
+    example: warnings clear zeph"""
     prefix = p(ctx)
 
     if member is None:
@@ -2022,8 +2044,9 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
 
 @jailset.command(name="role")
 @commands.has_permissions(manage_roles=True)
-async def jailset_role(ctx, *, role_input: str = None):
-    """Configures jailed role"""
+async def jailset_role(ctx, *, newrole: str = None):
+    """Configures jailed role
+    example: jailset role @convict"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2034,7 +2057,7 @@ async def jailset_role(ctx, *, role_input: str = None):
             ctx, include_author=False
         ))
     
-    if role_input is None:
+    if newrole is None:
         embed = create_embed(
             "command: jailset role",
             "Edit jailed role",
@@ -2052,10 +2075,10 @@ async def jailset_role(ctx, *, role_input: str = None):
         )
         return await ctx.send(embed=embed)
     
-    new_role = resolve_role(guild, role_input)
+    new_role = resolve_role(guild, newrole)
     if new_role is None:
         return await ctx.send(embed=create_embed(
-            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
     
@@ -2107,8 +2130,9 @@ async def jailset_role(ctx, *, role_input: str = None):
 
 @jailset.command(name="channel")
 @commands.has_permissions(manage_messages=True)
-async def jailset_channel(ctx, *, channel_input: str = None):
-    """Configures jail channel"""
+async def jailset_channel(ctx, *, newchannel: str = None):
+    """Configures jail channel
+    example: jailset channel #prison"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2119,7 +2143,7 @@ async def jailset_channel(ctx, *, channel_input: str = None):
             ctx, include_author=False
         ))
     
-    if channel_input is None:
+    if newchannel is None:
         embed = create_embed(
             "command: jailset channel",
             "Edit jail channel", ctx
@@ -2136,10 +2160,10 @@ async def jailset_channel(ctx, *, channel_input: str = None):
         )
         return await ctx.send(embed=embed)
     
-    new_channel = resolve_channel(guild, channel_input)
+    new_channel = resolve_channel(guild, newchannel)
     if new_channel is None:
         return await ctx.send(embed=create_embed(
-            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel `{channel_input}` not found.",
+            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel `{newchannel}` not found.",
             ctx, include_author=False
         ))
     
@@ -2174,7 +2198,8 @@ async def jailset_channel(ctx, *, channel_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def jail(ctx, member: discord.Member = None, *, reason=None):
-    """Sends a member to jail"""
+    """Sends a member to jail
+    example: jail zeph just because"""
     
     prefix = p(ctx)
     guild = ctx.guild
@@ -2238,7 +2263,8 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
 @bot.command(aliases=["release", "unj"])
 @commands.has_permissions(moderate_members=True)
 async def unjail(ctx, member: discord.Member = None):
-    """Releases a member from jail"""
+    """Releases a member from jail
+    example: unjail zeph"""
     
     prefix = p(ctx)
     guild = ctx.guild
@@ -2423,8 +2449,9 @@ async def imuteset(ctx, *, role_arg=None):
 
 @imuteset.command(name="role")
 @commands.has_permissions(manage_roles=True)
-async def imuteset_role(ctx, *, role_input: str = None):
-    """Configures image mute role"""
+async def imuteset_role(ctx, *, newrole: str = None):
+    """Configures image mute role
+    example: imuteset role @no image"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2435,7 +2462,7 @@ async def imuteset_role(ctx, *, role_input: str = None):
             ctx, include_author=False
         ))
 
-    if role_input is None:
+    if newrole is None:
         embed = create_embed(
             "command: imuteset role",
             "Edits imute role", ctx
@@ -2452,12 +2479,12 @@ async def imuteset_role(ctx, *, role_input: str = None):
         )
         return await ctx.send(embed=embed)
     
-    new_role = resolve_role(guild, role_input)
+    new_role = resolve_role(guild, newrole)
 
     if new_role is None:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
     
@@ -2493,7 +2520,8 @@ async def imuteset_role(ctx, *, role_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def imute(ctx, member: discord.Member = None, *, reason=None):
-    """Toggles a member's image permissions """
+    """Toggles a member's image permissions
+    example: imute zeph trash memes"""
     if imute_not_set(ctx.guild):
         return await imute_instruction_embed(ctx)
 
@@ -2664,8 +2692,9 @@ async def rmuteset(ctx, *, role_arg=None):
 
 @rmuteset.command(name="role")
 @commands.has_permissions(manage_roles=True)
-async def rmuteset_role(ctx, *, role_input: str = None):
-    """Configures reaction mute role"""
+async def rmuteset_role(ctx, *, newrole: str = None):
+    """Configures reaction mute role
+    example: rmuteset role @no react"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2676,7 +2705,7 @@ async def rmuteset_role(ctx, *, role_input: str = None):
             ctx, include_author=False
         ))
 
-    if role_input is None:
+    if newrole is None:
         embed = create_embed(
             "command: rmuteset role",
             "Edits rmute role", ctx
@@ -2693,12 +2722,12 @@ async def rmuteset_role(ctx, *, role_input: str = None):
         )
         return await ctx.send(embed=embed)
     
-    new_role = resolve_role(guild, role_input)
+    new_role = resolve_role(guild, newrole)
     
     if new_role is None:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{role_input}` not found.",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
     
@@ -2734,7 +2763,8 @@ async def rmuteset_role(ctx, *, role_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def rmute(ctx, member: discord.Member = None, *, reason=None):
-    """Toggles a member's reaction permissions"""
+    """Toggles a member's reaction permissions
+    example: rmute zeph stop sobbing yourself"""
     if rmute_not_set(ctx.guild):
         return await rmute_instruction_embed(ctx)
 
@@ -2802,7 +2832,8 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
 @bot.command(aliases=["sm"])
 @commands.has_permissions(manage_channels=True)
 async def slowmode(ctx, duration: str = None):
-    """Set slowmode for a channel"""
+    """Set slowmode for a channel
+    example: slowmode 5m"""
     prefix = p(ctx)
 
     if duration is None:
@@ -2879,7 +2910,8 @@ async def slowmode(ctx, duration: str = None):
 @bot.command(aliases=["r"])
 @commands.has_permissions(manage_roles=True)
 async def role(ctx, user: str = None, *, role: str = None):
-    """Assign/remove role from a user"""
+    """Assign/remove role from a user
+    example: role zeph owner"""
 
     prefix = p(ctx)
 
@@ -2993,7 +3025,8 @@ async def role(ctx, user: str = None, *, role: str = None):
 
 @bot.command()
 async def roleinfo(ctx, *, role_input: str = None):
-    """View a specific role info or your own top role"""
+    """View a specific role info or your own top role
+    example: roleinfo @members"""
 
     # If no role specified → use author's highest role
     if role_input is None:
@@ -3085,7 +3118,8 @@ async def autorole(ctx):
 @autorole.command(name="add")
 @commands.has_permissions(manage_roles=True)
 async def autorole_add(ctx, *, role_input: str = None):
-    """Sets a role to auto-assign to members upon joining"""
+    """Sets a role to auto-assign to members upon joining
+    example: autorole add @members"""
     prefix = p(ctx)
     
     if not role_input:
@@ -3128,7 +3162,8 @@ async def autorole_add(ctx, *, role_input: str = None):
 @autorole.command(name="remove")
 @commands.has_permissions(manage_roles=True)
 async def autorole_remove(ctx, *, role_input: str = None):
-    """Removes an existing autorole"""
+    """Removes an existing autorole
+    example: autorole remove @members"""
     prefix = p(ctx)
     
     if not role_input:
@@ -3216,7 +3251,8 @@ async def roleedit(ctx):
 @roleedit.command(name="name")
 @commands.has_permissions(manage_roles=True)
 async def roleedit_name(ctx, role_input: str = None, *, new_name: str = None):
-    """Edits a role's name"""
+    """Edits a role's name
+    example: roleedit name @members citizens"""
     prefix = p(ctx)
     
     if not role_input or not new_name:
@@ -3253,7 +3289,8 @@ async def roleedit_name(ctx, role_input: str = None, *, new_name: str = None):
 @roleedit.command(name="color")
 @commands.has_permissions(manage_roles=True)
 async def roleedit_color(ctx, role_input: str = None, hex_code: str = None):
-    """Edits a role's color"""
+    """Edits a role's color
+    example: roleedit color @members #ff8800"""
     prefix = p(ctx)
     
     if not role_input or not hex_code:
@@ -3723,15 +3760,28 @@ def get_command_help_embed(ctx, command, parent_name=None):
     
     # Build usage string
     if isinstance(command, commands.Group):
-        usage = f"{prefix}{full_name} <subcommand>"
+        usage = f"{full_name} <subcommand>"
     else:
         signature = command.signature or ""
         signature = signature.replace('[', '<').replace(']', '>')
-        usage = f"{prefix}{full_name} {signature}".strip()
+        usage = f"{full_name} {signature}".strip()
+
+    description = "*No description available.*"
+    example = None
+    
+    if command.help:
+        lines = command.help.split('\n')
+        description = lines[0]  # First line is description
+        
+        # Look for example in remaining lines
+        for i, line in enumerate(lines):
+            if line.strip().lower().startswith('example:'):
+                example = line.split(':', 1)[1].strip()
+                break
     
     embed = create_embed(
         f"command: {full_name}",
-        command.help or "No description available.",
+        description,
         ctx
     )
     
@@ -3756,7 +3806,7 @@ def get_command_help_embed(ctx, command, parent_name=None):
                     except:
                         pass
     
-    perm_str = ", ".join(perms) if perms else "`n/a`"
+    perm_str = "\n".join(perms) if perms else "`n/a`"
     embed.add_field(name="**Permissions Required**", value=perm_str, inline=False)
     
     # Subcommands for groups
@@ -3765,9 +3815,14 @@ def get_command_help_embed(ctx, command, parent_name=None):
         embed.add_field(name="**Subcommands**", value=subcommands or "`n/a`", inline=False)
     
     # Usage
+    usage_text = f"```ansi\n\u001b[35msyntax: \u001b[0m{usage}"
+    if example:
+        usage_text += f"\n\u001b[35mexample: \u001b[0m{example}"
+    usage_text += "```"
+    
     embed.add_field(
         name="**Utilization**",
-        value=f"```ansi\n\u001b[35msyntax:\u001b[0m {usage}```",
+        value=usage_text,
         inline=False
     )
     
@@ -3800,7 +3855,7 @@ class Dropdown(discord.ui.Select):
             discord.SelectOption(label="/rolemanagement", description="Assign, edit, and manage roles"),
             discord.SelectOption(label="/information", description="Look up users, servers, roles, and channels"),
             discord.SelectOption(label="/utilities", description="Translation, message snipes, AFK, embeds, and more"),
-            discord.SelectOption(label="/games", description="Games like Guess the Country, Blacktea, Tic-Tac-Toe, and more (to come)"),
+            discord.SelectOption(label="/games", description="Games like Guess the Flag, Blacktea, Tic-Tac-Toe, and more (to come)"),
             discord.SelectOption(label="/misc", description="Everything else")
         ]
 
@@ -3952,7 +4007,8 @@ class View(discord.ui.View):
 
 @bot.command(aliases=["h"])
 async def help(ctx, *, command_name: str = None):
-    """Show command instructions"""
+    """Show command instructions
+    example: help ban"""
     prefix = p(ctx)
     
     # No command specified → show category menu (like ;commands)
@@ -4091,7 +4147,8 @@ from discord.ext import commands
 @bot.command(aliases=["fn"])
 @commands.has_permissions(manage_nicknames=True)
 async def forcename(ctx, member: discord.Member = None, *, forced_name: str = None):
-    """Forcibly changes and locks a user's name"""
+    """Forcibly changes and locks a user's name
+    example: forcename zeph dumdum"""
     
     prefix = p(ctx)
     
@@ -4215,7 +4272,8 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         
 @bot.command(aliases=["ci"])
 async def channelinfo(ctx, channel_input: str = None):
-    """See channel info"""
+    """See channel info
+    example: channelinfo #bots"""
     
     if channel_input is None:
         channel = ctx.channel
@@ -4364,7 +4422,8 @@ class MembersView(discord.ui.View):
 
 @bot.command(aliases=["inrole"])
 async def members(ctx, *, role_input: str = None):
-    """See all members that has a specific role or your own top role"""
+    """See all members that has a specific role or your own top role
+    example: members @admin"""
 
     # if role not provided → use author's top role
     if role_input is None:
@@ -4432,7 +4491,8 @@ def time_ago(dt):
 
 @bot.command(aliases=["ui"])
 async def userinfo(ctx, *, user: str = None):
-    """See user's info"""
+    """See user's info
+    example: userinfo zeph"""
 
     # Default target = author
     if user is None:
@@ -4639,7 +4699,8 @@ async def ping(ctx):
     
 @bot.command(aliases=["av"])
 async def avatar(ctx, user: discord.User = None):
-    """See user's avatar or your own"""
+    """See user's avatar or your own
+    example: avatar zeph"""
     # Default to command author
     target = user or ctx.author
 
@@ -4679,7 +4740,8 @@ async def avatar(ctx, user: discord.User = None):
 
 @bot.command(aliases=["sav", "gav"])
 async def serveravatar(ctx, user: discord.User = None):
-    """See user's server avatar or your own"""
+    """See user's server avatar or your own
+    example: serveravatar zeph"""
     # Default to command author
     target = user or ctx.author
 
@@ -4751,7 +4813,8 @@ async def guildicon(ctx):
     
 @bot.command()
 async def banner(ctx, user: discord.User = None):
-    """See user's banner or your own"""
+    """See user's banner or your own
+    example: banner zeph"""
     # Use command author if no user specified
     target = user or ctx.author
 
@@ -4835,13 +4898,15 @@ async def unlock(ctx):
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount=5):
-    """Purge messages in a channel"""
+    """Purge messages in a channel
+    example: purge 30"""
     await ctx.channel.purge(limit=amount)
 
 @bot.command()
 @commands.has_permissions(manage_emojis=True)
 async def steal(ctx, emoji: discord.PartialEmoji | None = None, *, name: str | None = None):
-    """Steal emojis from other servers"""
+    """Steal emojis from other servers
+    example: steal :sword_spin: sword"""
 
     prefix = p(ctx)
 
@@ -5035,7 +5100,8 @@ async def detect_language(text: str) -> str:
 
 @bot.command(aliases=["tr"])
 async def translate(ctx, language: str = None, *, text: str = None):
-    """Translate text using Google Translate"""
+    """Translate text using Google Translate
+    example: translate en hola"""
     prefix = p(ctx)
 
     if language is None and text is None:
@@ -5100,7 +5166,7 @@ async def translate(ctx, language: str = None, *, text: str = None):
             target_lang = LANGUAGE_CODES.get(original_input)
             if target_lang is None:
                 return await ctx.send(embed=create_embed(
-                    "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown language code `{original_input}`. Use codes like `en`, `fr`, `de`, `ja`, etc.",
+                    "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown language code `{original_input}`. Use codes like `en`, `fr`, `de`, `ja`, etc.",
                     ctx, include_author=False
                 ))
         
@@ -5110,12 +5176,12 @@ async def translate(ctx, language: str = None, *, text: str = None):
         translated = GoogleTranslator(source="auto", target=target_lang).translate(source_text)
     except LanguageNotSupportedException:
         return await ctx.send(embed=create_embed(
-            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Language `{target_lang}` is not supported.",
+            "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Language `{target_lang}` is not supported.",
             ctx, include_author=False
         ))
     except Exception as e:
         return await ctx.send(embed=create_embed(
-            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Translation failed: `{e}`",
+            "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Translation failed: `{e}`",
             ctx, include_author=False
         ))
     try:
@@ -5150,6 +5216,7 @@ async def nox_error(ctx, error):
     	
 @bot.command(aliases=["leave", "fuckoff"])
 async def out(ctx):
+    """Leave the chat"""
     await ctx.reply("take care", mention_author=False)
 
 @bot.command()
@@ -5158,7 +5225,8 @@ async def oc(ctx):
 
 @bot.command(name="8ball")
 async def ball(ctx, *, question: str = None):
-    """Asks the magic 8-ball a yes-or-no question"""
+    """Asks the magic 8-ball a yes-or-no question
+    example: 8ball will nightblade ever be completed"""
 
     prefix = p(ctx)
 
@@ -5331,7 +5399,8 @@ class DefinitionView(discord.ui.View):
 
 @bot.command(aliases=["def"])
 async def define(ctx, *, word: str = None):
-    """Get a definition of the specified word"""
+    """Get a definition of the specified word
+    example: define blade"""
 
     prefix = p(ctx)
 
@@ -5505,7 +5574,8 @@ class UrbanDictionaryView(discord.ui.View):
 
 @bot.command(aliases=["ud", "urban"])
 async def urbandictionary(ctx, *, word: str = None):
-    """Get the definition of slang/word from Urban Dictionary"""
+    """Get the definition of slang/word from Urban Dictionary
+    example: urbandictionary folk"""
     prefix = p(ctx)
     
     if not word:

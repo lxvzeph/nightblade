@@ -103,7 +103,8 @@ class License(commands.Cog):
 
     @commands.command()
     async def genkey(self, ctx: commands.Context, guild_id: int | None = None):
-        """Generate a one-time key for a specific guild"""
+        """Generate a one-time key for a specific guild
+        example: genkey 18643710398134652"""
         prefix = ctx.prefix
 
         # restrict to official server; global check already lets official server through,
@@ -177,7 +178,8 @@ class License(commands.Cog):
 
     @commands.command()
     async def activate(self, ctx: commands.Context, key: str | None = None):
-        """Activate the bot in your server using a license key."""
+        """Activate the bot in your server using a license key
+        example: activate NGHT-XXXX-XXXX"""
         prefix = ctx.prefix
 
         if key is None:
@@ -217,11 +219,12 @@ class License(commands.Cog):
 
     @commands.command(aliases=["li"])
     async def licenseinfo(self, ctx: commands.Context, guild_id: int | None = None):
-        """Show a server's license info or your own"""
+        """Show a server's license info or your own
+        example: licenseinfo 18932678491324653"""
         target_gid = str(guild_id if guild_id is not None else (ctx.guild.id if ctx.guild else None))
         if not target_gid:
             embed = self._embed(title="command: licenseinfo", description="Show a server's license info or your own", ctx=ctx, include_author=True)
-            embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax:\u001b[0m {ctx.prefix}licenseinfo <guild_id?>\n\u001b[35mexample:\u001b[0m {ctx.prefix}licenseinfo 18932678491324653```", inline=False)
+            embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax:\u001b[0m {ctx.prefix}licenseinfo <guild_id>\n\u001b[35mexample:\u001b[0m {ctx.prefix}licenseinfo 18932678491324653```", inline=False)
             return await ctx.send(embed=embed)
 
         guild_obj = self.bot.get_guild(int(target_gid))
@@ -241,7 +244,8 @@ class License(commands.Cog):
 
     @commands.command()
     async def revoke(self, ctx: commands.Context, guild_id: int | None = None):
-        """Revoke and remove a license (official server staff only)"""
+        """Revoke and remove a license (official server staff only)
+        example: revoke 193827189325461822"""
         if ctx.guild is None or ctx.guild.id != OFFICIAL_SERVER_ID:
             embed = self._embed(description="<a:sword_spin:1211611749426667560>  This command only works in the official server.", include_author=False)
             return await ctx.send(embed=embed)
@@ -293,7 +297,8 @@ class License(commands.Cog):
 
     @commands.command(aliases=["dea"])
     async def deactivate(self, ctx: commands.Context, target_gid: int | None = None):
-        """Deactivate a server's license for nightblade"""
+        """Deactivate a server's license for nightblade
+        example: deactivate 193827189325461822"""
         if ctx.guild is None or ctx.guild.id != OFFICIAL_SERVER_ID:
             embed = self._embed(description="<a:sword_spin:1211611749426667560>  This command only works in the official server.", include_author=False)
             return await ctx.send(embed=embed)

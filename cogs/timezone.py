@@ -163,7 +163,8 @@ class Timezone(commands.Cog):
 
     @commands.group(aliases=["tz"], invoke_without_command=True)
     async def timezone(self, ctx, member: discord.Member | None = None):
-        """See your own time or another member's"""
+        """See your own time or another member's
+        example: timezone zeph"""
         author = ctx.author
 
         # If no argument → show author's time
@@ -215,7 +216,8 @@ class Timezone(commands.Cog):
 
     @timezone.command(name="set")
     async def timezone_set(self, ctx, *, tz: str | None = None):
-        """Sets your timezone"""
+        """Sets your timezone
+        example: timezone set jakarta"""
         author = ctx.author
         prefix = ctx.prefix
 
