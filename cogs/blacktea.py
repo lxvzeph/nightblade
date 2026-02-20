@@ -99,6 +99,7 @@ class BlackTea(commands.Cog):
     
     @commands.group(invoke_without_command=True, aliases=["bt"])
     async def blacktea(self, ctx):
+        """Start a Blacktea game"""
 
         channel_id = ctx.channel.id
 
@@ -290,6 +291,7 @@ class BlackTea(commands.Cog):
 
     @blacktea.command(name="reset", aliases=["stop"])
     async def blacktea_reset(self, ctx):
+        """Resets an ongoing or queued blacktea game"""
         channel_id = ctx.channel.id
 
         if channel_id not in self.running_games:

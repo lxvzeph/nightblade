@@ -240,6 +240,7 @@ class TicTacToe(commands.Cog):
     
     @commands.command(aliases=["ttt"])
     async def tictactoe(self, ctx, member: discord.Member = None):
+        """Challenge a member to a Tic-Tac-Toe game"""
         prefix = ctx.prefix
 
         if member is None:

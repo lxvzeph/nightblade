@@ -66,6 +66,7 @@ class Sticky(commands.Cog):
     @commands.hybrid_group(name="sticky", description="Manages sticky messages")
     @commands.has_permissions(manage_messages=True)
     async def sticky(self, ctx):
+        """Sets a sticky message in a channel"""
         if ctx.invoked_subcommand is not None:
             return
 
@@ -98,6 +99,7 @@ class Sticky(commands.Cog):
     channel="Channel to set the message in (optional)")
     @commands.has_permissions(manage_messages=True)
     async def sticky_add(self, ctx, *, message: str, channel: discord.TextChannel = None):
+        """Sets a sticky message for a channel"""
         channel = channel or ctx.channel
 
         if not message:
@@ -198,6 +200,7 @@ class Sticky(commands.Cog):
     channel="Channel to remove a sticky message from (optional)")
     @commands.has_permissions(manage_messages=True)
     async def sticky_remove(self, ctx, channel: discord.TextChannel = None):
+        """Removes the sticky message from a channel"""
         channel = channel or ctx.channel
         if str(channel.id) not in self.sticky_messages:
             embed = discord.Embed(description="<:xcross:1438691789379735612>  No sticky message set for this channel.", color=discord.Color.from_str("#963939"))

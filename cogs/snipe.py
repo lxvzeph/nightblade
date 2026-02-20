@@ -117,6 +117,7 @@ class Snipe(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["s"])
     async def snipe(self, ctx, number: int = 1):
+        """Snipes a deleted message"""
         cid = ctx.channel.id
         if cid not in self.snipes or not self.snipes[cid]:
             return await ctx.send(embed=discord.Embed(
@@ -149,6 +150,7 @@ class Snipe(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["cs"])
     async def clearsnipe(self, ctx, number: int = 1):
+        """Clear snipes for deleted messages"""
         cid = ctx.channel.id
         if cid not in self.snipes or not self.snipes[cid]:
             return await ctx.send(embed=discord.Embed(
@@ -179,6 +181,7 @@ class Snipe(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["rs"])
     async def reactionsnipe(self, ctx, number: int = 1):
+        """Snipes a deleted reaction"""
         cid = ctx.channel.id
         if cid not in self.reaction_snipes or not self.reaction_snipes[cid]:
             return await ctx.send(embed=discord.Embed(
@@ -210,6 +213,7 @@ class Snipe(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["crs"])
     async def clearreactionsnipe(self, ctx, number: int = 1):
+        """Clear snipes for deleted reactions"""
         cid = ctx.channel.id
         if cid not in self.reaction_snipes or not self.reaction_snipes[cid]:
             return await ctx.send(embed=discord.Embed(
@@ -237,6 +241,7 @@ class Snipe(commands.Cog):
     @commands.command(aliases=["es"])
     @commands.has_permissions(manage_messages=True)
     async def editsnipe(self, ctx, number: int = 1):
+        """Snipes an edited message"""
         cid = ctx.channel.id
         if cid not in self.edit_snipes or not self.edit_snipes[cid]:
             return await ctx.send(
@@ -271,6 +276,7 @@ class Snipe(commands.Cog):
     @commands.command(aliases=["ces"])
     @commands.has_permissions(manage_messages=True)
     async def cleareditsnipe(self, ctx, number: int = 1):
+        """Clear snipes for edited messages"""
         cid = ctx.channel.id
         if cid not in self.edit_snipes or not self.edit_snipes[cid]:
             return await ctx.send(

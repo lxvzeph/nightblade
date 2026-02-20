@@ -134,12 +134,6 @@ class AutoResponder(commands.Cog):
                         )
 
         return perms
-
-    @staticmethod
-    def perms_ctx(ctx):
-        if ctx.command.name == "autoresponder":
-            return "`Manage Messages`"
-        return "`n/a`"
     
     # Autoresponder Trigger System
     @commands.Cog.listener()
@@ -187,336 +181,313 @@ class AutoResponder(commands.Cog):
     # Command Group: autoresponder
     # ---------------------------------------------------------
 
-    @commands.command(aliases=["aresp"])
+    @commands.group(aliases=["aresp"], invoke_without_command=True)
     @commands.has_permissions(manage_messages=True)
-    async def autoresponder(self, ctx, action=None, trigger=None, *, response=None):
+    async def autoresponder(self, ctx):
+        """Configures an autoresponder system"""
         prefix = ctx.prefix
 
         # No action provided
-        if action is None:
-            embed = self._embed(
-                "command: autoresponder",
-                "Configures an autoresponder system",
-                ctx
-            )
-            embed.add_field(
-                name="**Aliases**",
-                value=f"`{self.alss_ctx(ctx)}`",
-                inline=False
-            )
-            embed.add_field(
-                name="**Permissions Required**",
-                value=self.perms_ctx(ctx),
-                inline=False
-            )
-            embed.add_field(
-                name="**Subcommands**",
-                value="`add`\n`remove`\n`edit`\n`list`",
-                inline=False
-            )
-            embed.add_field(
-                name="**Parameters**",
-                value="`trigger`\n`response`",
-                inline=False
-            )
-            embed.add_field(
-                name="**Utilization**",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder <subcommand> <parameters>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder add hi hello```",
-                inline=False
-            )
-            embed.set_footer(
-                text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response. You can use links or attach a file."
-            )
-            return await ctx.send(embed=embed)
-
-        action = action.lower()
+        
+        embed = self._embed(
+            "command: autoresponder",
+            "Configures an autoresponder system",
+            ctx
+        )
+        embed.add_field(
+            name="**Aliases**",
+            value=f"`{self.alss_ctx(ctx)}`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Permissions Required**",
+            value="`Manage Messages`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Subcommands**",
+            value="`add`\n`remove`\n`edit`\n`list`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Parameters**",
+            value="`trigger`\n`response`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Utilization**",
+            value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder <subcommand> <parameters>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder add hi hello```",
+            inline=False
+        )
+        embed.set_footer(
+            text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response. You can use links or attach a file."
+        )
+        await ctx.send(embed=embed)
 
         # ---------------------------------------------------
         # ADD
         # ---------------------------------------------------
-        if action == "add":
-            if not ctx.author.guild_permissions.manage_messages:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You need `Manage Messages` to use this action.",
-                        ctx,
-                        include_author=False
-                    )
-                )
+    @autoresponder.command(name="add")
+    @commands.has_permissions(manage_messages=True)
+    async def autoresponder_add(self, ctx, trigger: str = None, *, response: str = None):
+        """Sets an autoresponder"""
+        prefix = ctx.prefix
 
-            if trigger is None or (response is None and not ctx.message.attachments):
-                embed = self._embed(
-                    "command: autoresponder add",
-                    "Sets an autoresponder",
-                    ctx
-                )
-                embed.add_field(
-                    name="**Aliases**",
-                    value=f"`{self.alss_ctx(ctx)} add`",
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Permissions Required**",
-                    value=self.perms_ctx(ctx),
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Utilization**",
-                    value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder add <trigger> <response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder add hi hello```",
-                    inline=False
-                )
-                embed.set_footer(
-                    text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response."
-                )
-                return await ctx.send(embed=embed)
-
-            attachment_url = None
-            attachment_name = None
-
-            if ctx.message.attachments:
-                attachment = ctx.message.attachments[0]
-                attachment_url = attachment.url
-                attachment_name = attachment.filename
-
-            insert_autoresponder(
-                ctx.guild.id,
-                trigger,
-                response,
-                attachment_url,
-                attachment_name
-            )
-
+        if trigger is None or (response is None and not ctx.message.attachments):
             embed = self._embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Successfully added autoresponder:",
-                ctx,
-                include_author=False
+                "command: autoresponder add",
+                "Sets an autoresponder",
+                ctx
             )
             embed.add_field(
-                name="**Trigger**",
-                value=f"`{trigger}`",
+                name="**Aliases**",
+                value=self.alss_ctx(ctx),
                 inline=False
             )
             embed.add_field(
-                name="**Response**",
-                value=f"`{response or 'Attachment Only'}`",
+                name="**Permissions Required**",
+                value="`Manage Messages`",
                 inline=False
+            )
+            embed.add_field(
+                name="**Utilization**",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder add <trigger> <response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder add hi hello```",
+                inline=False
+            )
+            embed.set_footer(
+                text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response."
             )
             return await ctx.send(embed=embed)
+
+        attachment_url = None
+        attachment_name = None
+
+        if ctx.message.attachments:
+            attachment = ctx.message.attachments[0]
+            attachment_url = attachment.url
+            attachment_name = attachment.filename
+
+        insert_autoresponder(
+            ctx.guild.id,
+            trigger,
+            response,
+            attachment_url,
+            attachment_name
+        )
+
+        embed = self._embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Successfully added autoresponder:",
+            ctx,
+            include_author=False
+        )
+        embed.add_field(
+            name="**Trigger**",
+            value=f"`{trigger}`",
+            inline=False
+        )
+        embed.add_field(
+            name="**Response**",
+            value=f"`{response or 'Attachment Only'}`",
+            inline=False
+        )
+        await ctx.send(embed=embed)            
 
         # ---------------------------------------------------
         # REMOVE
         # ---------------------------------------------------
-        if action == "remove":
-            if not ctx.author.guild_permissions.manage_messages:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You need `Manage Messages` to use this action.",
-                        ctx,
-                        include_author=False
-                    )
-                )
-            if trigger is None:
-                embed = self._embed(
-                    "command: autoresponder remove",
-                    "Removes an autoresponder",
-                    ctx
-                )
-                embed.add_field(
-                    name="**Aliases**",
-                    value=f"`{self.alss_ctx(ctx)} remove`",
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Permissions Required**",
-                    value=self.perms_ctx(ctx),
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Utilization**",
-                    value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder remove <trigger>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder remove hi```",
-                    inline=False
-                )
-                return await ctx.send(embed=embed)
 
-            removed = delete_autoresponder(ctx.guild.id, trigger)
-            if removed:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Removed autoresponder for `{trigger}`.",
-                        ctx,
-                        include_author=False
-                    )
+    @autoresponder.command(name="remove")
+    @commands.has_permissions(manage_messages=True)
+    async def autoresponder_remove(self, ctx, trigger: str = None):
+        """Removes an autoresponder"""
+        prefix = ctx.prefix
+
+        if trigger is None:
+            embed = self._embed(
+                "command: autoresponder remove",
+                "Removes an autoresponder",
+                ctx
+            )
+            embed.add_field(
+                name="**Aliases**",
+                value=self.alss_ctx(ctx),
+                inline=False
+            )
+            embed.add_field(
+                name="**Permissions Required**",
+                value="`Manage Messages`",
+                inline=False
+            )
+            embed.add_field(
+                name="**Utilization**",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder remove <trigger>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder remove hi```",
+                inline=False
+            )
+            return await ctx.send(embed=embed)
+
+        removed = delete_autoresponder(ctx.guild.id, trigger)
+        if removed:
+            await ctx.send(
+                embed=self._embed(
+                    "",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Removed autoresponder for `{trigger}`.",
+                    ctx,
+                    include_author=False
                 )
-            else:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponder found for `{trigger}`.",
-                        ctx,
-                        include_author=False
-                    )
+            )
+        else:
+            await ctx.send(
+                embed=self._embed(
+                    "",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponder found for `{trigger}`.",
+                    ctx,
+                    include_author=False
                 )
+            )
+        
 
         # ---------------------------------------------------
         # EDIT
         # ---------------------------------------------------
-        if action == "edit":
-            if not ctx.author.guild_permissions.manage_messages:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You need `Manage Messages` to use this action.",
-                        ctx,
-                        include_author=False
-                    )
-                )
-            if trigger is None:
-                embed = self._embed(
-                    "command: autoresponder edit",
-                    "Edits an existing autoresponder",
-                    ctx
-                )
-                embed.add_field(
-                    name="**Aliases**",
-                    value=f"`{self.alss_ctx(ctx)} remove`",
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Permissions Required**",
-                    value=self.perms_ctx(ctx),
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Utilization**",
-                    value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder edit <trigger> <new_response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder edit hi greetings```",
-                    inline=False
-                )
-                embed.set_footer(
-                    text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response."
-                )
-                return await ctx.send(embed=embed)
+    @autoresponder.command(name="edit")
+    @commands.has_permissions(manage_messages=True)
+    async def autoresponder_edit(self, ctx, trigger: str = None, *, response: str = None):
+        """Edits an existing autoresponder"""
+        prefix = ctx.prefix
 
-            old = get_single_autoresponder(ctx.guild.id, trigger)
-            if not old:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponder found for `{trigger}`.",
-                        ctx,
-                        include_author=False
-                    )
-                )
-
-            old_text, old_attachment, old_filename = old
-
-            new_text = response if response is not None else old_text
-            new_attachment = old_attachment
-            new_filename = old_filename
-
-            if ctx.message.attachments:
-                att = ctx.message.attachments[0]
-                new_attachment = att.url
-                new_filename = att.filename
-
-            if new_text is None and not ctx.message.attachments:
-                embed = self._embed(
-                    "command: autoresponder edit",
-                    "Edits an existing autoresponder",
-                    ctx
-                )
-                embed.add_field(
-                    name="**Aliases**",
-                    value=self.alss_ctx(ctx),
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Permissions Required**",
-                    value="`Manage Messages`",
-                    inline=False
-                )
-                embed.add_field(
-                    name="**Utilization**",
-                    value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder edit <trigger> <new_response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder edit hi greetings```",
-                    inline=False
-                )
-                return await ctx.send(embed=embed)
-
-            insert_autoresponder(
-                ctx.guild.id,
-                trigger,
-                new_text,
-                new_attachment,
-                new_filename
-            )
-
+        if trigger is None:
             embed = self._embed(
-                "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated autoresponder:",
-                ctx,
-                include_author=False
+                "command: autoresponder edit",
+                "Edits an existing autoresponder",
+                ctx
             )
             embed.add_field(
-                name="**Trigger**",
-                value=f"`{trigger}`",
+                name="**Aliases**",
+                value=self.alss_ctx(ctx),
                 inline=False
             )
             embed.add_field(
-                name="**New response**",
-                value=f"`{new_text or 'attachment'}`",
+                name="**Permissions Required**",
+                value="`Manage Messages`",
                 inline=False
             )
-            if new_attachment:
-                embed.add_field(
-                    name="**Attachment**",
-                    value=f"[{new_filename}]({new_attachment})",
-                    inline=False
-                )
-                
+            embed.add_field(
+                name="**Utilization**",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder edit <trigger> <new_response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder edit hi greetings```",
+                inline=False
+            )
+            embed.set_footer(
+                text="TIP: Use 'react: <emoji>' in '<response>' for a reaction response."
+            )
             return await ctx.send(embed=embed)
 
-        # ---------------------------------------------------
-        # LIST
-        # ---------------------------------------------------
-        if action == "list":
-            rows = fetch_autoresponders(ctx.guild.id)
-
-            if not rows:
-                return await ctx.send(
-                    embed=self._embed(
-                        "",
-                        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponders found in this server.",
-                        ctx,
-                        include_author=False
-                    )
-                )
-
-            lines = "\n".join(f"{trigger} → {text or '[attachment]'}" for trigger, text, _, _ in rows)
+        old = get_single_autoresponder(ctx.guild.id, trigger)
+        if not old:
             return await ctx.send(
                 embed=self._embed(
                     "",
-                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: List of all autoresponders:\n\n```{lines}```",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponder found for `{trigger}`.",
                     ctx,
                     include_author=False
                 )
             )
 
+        old_text, old_attachment, old_filename = old
+
+        new_text = response if response is not None else old_text
+        new_attachment = old_attachment
+        new_filename = old_filename
+
+        if ctx.message.attachments:
+            att = ctx.message.attachments[0]
+            new_attachment = att.url
+            new_filename = att.filename
+
+        if new_text is None and not ctx.message.attachments:
+            embed = self._embed(
+                "command: autoresponder edit",
+                "Edits an existing autoresponder",
+                ctx
+            )
+            embed.add_field(
+                name="**Aliases**",
+                value=self.alss_ctx(ctx),
+                inline=False
+            )
+            embed.add_field(
+                name="**Permissions Required**",
+                value="`Manage Messages`",
+                inline=False
+            )
+            embed.add_field(
+                name="**Utilization**",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}autoresponder edit <trigger> <new_response>\n\u001b[35mexample:\u001b[0m {prefix}autoresponder edit hi greetings```",
+                inline=False
+            )
+            return await ctx.send(embed=embed)
+
+        insert_autoresponder(
+            ctx.guild.id,
+            trigger,
+            new_text,
+            new_attachment,
+            new_filename
+        )
+
+        embed = self._embed(
+            "",
+            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Updated autoresponder:",
+            ctx,
+            include_author=False
+        )
+        embed.add_field(
+            name="**Trigger**",
+            value=f"`{trigger}`",
+            inline=False
+        )
+        embed.add_field(
+            name="**New response**",
+            value=f"`{new_text or 'attachment'}`",
+            inline=False
+        )
+        if new_attachment:
+            embed.add_field(
+                name="**Attachment**",
+                value=f"[{new_filename}]({new_attachment})",
+                inline=False
+            )
+            
+        await ctx.send(embed=embed)
+
         # ---------------------------------------------------
-        # INVALID ACTION
+        # LIST
         # ---------------------------------------------------
+    @autoresponder.command(name="list")
+    @commands.has_permissions(manage_messages=True)
+    async def autoresponder_list(self, ctx):
+        """See a list of all autoresponders"""
+        rows = fetch_autoresponders(ctx.guild.id)
+
+        if not rows:
+            return await ctx.send(
+                embed=self._embed(
+                    "",
+                    f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No autoresponders found in this server.",
+                    ctx,
+                    include_author=False
+                )
+            )
+
+        lines = "\n".join(f"{trigger} → {text or '[attachment]'}" for trigger, text, _, _ in rows)
         await ctx.send(
             embed=self._embed(
                 "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown action `{action}`.\nMust be: `add`, `remove`, `edit`, `list`.",
+                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: List of all autoresponders:\n\n```{lines}```",
                 ctx,
                 include_author=False
             )
         )
-
-
 
 # ---------------------------------------------------------
 # SETUP

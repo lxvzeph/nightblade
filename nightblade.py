@@ -85,6 +85,7 @@ def p(ctx):
 	return get_prefix(bot, ctx.message)
 
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
+bot.remove_command('help')
         
 @bot.event
 async def on_guild_remove(guild):
@@ -143,7 +144,7 @@ loaded = False
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name=";commands"))
+    await bot.change_presence(activity=discord.Game(name=";help"))
     global loaded
     if not loaded:
         await load_extensions()
@@ -361,12 +362,13 @@ def has_higher_role(author: discord.Member, target: discord.Member | discord.Rol
 @bot.command(aliases=["ec"])
 @commands.has_permissions(manage_guild=True)
 async def enablecommand(ctx, command_name: str = None, channel_input: str = None):
+    """Enables a command server-wide or in specific channels"""
     prefix = p(ctx)
 
     if not command_name:
         embed = create_embed(
             "command: enablecommand",
-            "Enables a command",
+            "Enables a command server-wide or in specific channels",
             ctx
         )
         embed.add_field(
@@ -435,12 +437,13 @@ async def enablecommand(ctx, command_name: str = None, channel_input: str = None
 @bot.command(aliases=["dc"])
 @commands.has_permissions(manage_guild=True)
 async def disablecommand(ctx, command_name: str = None, channel_input: str = None):
+    """Disables a command server-wide or in specific channels"""
     prefix = p(ctx)
 
     if not command_name:
         embed = create_embed(
             "command: disablecommand",
-            "Disables a command",
+            "Disables a command server-wide or in specific channels",
             ctx
         )
         embed.add_field(
@@ -515,6 +518,7 @@ async def disablecommand(ctx, command_name: str = None, channel_input: str = Non
 @bot.group(aliases=["rc"], invoke_without_command=True)
 @commands.has_permissions(manage_guild=True)
 async def restrict(ctx):
+    """Restricts a command to specific roles, channels, or users"""
     prefix = p(ctx)
     embed = create_embed("command: restrict", "Restricts a command to specific roles, channels, or users", ctx)
     embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
@@ -544,6 +548,7 @@ async def restrict(ctx):
 @restrict.command(name="role")
 @commands.has_permissions(manage_guild=True)
 async def restrict_role(ctx, role_input: str = None, *, command_name: str = None):
+    """Restricts a command to specific roles"""
     prefix = p(ctx)
 
     if not role_input or not command_name:
@@ -587,6 +592,7 @@ async def restrict_role(ctx, role_input: str = None, *, command_name: str = None
 @restrict.command(name="channel")
 @commands.has_permissions(manage_guild=True)
 async def restrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
+    """Restricts a command to specific channels"""
     prefix = p(ctx)
 
     if not channel_input or not command_name:
@@ -623,6 +629,7 @@ async def restrict_channel(ctx, channel_input: str = None, *, command_name: str 
 @restrict.command(name="user")
 @commands.has_permissions(manage_guild=True)
 async def restrict_user(ctx, user_input: str = None, *, command_name: str = None):
+    """Restricts a command to specific users"""
     prefix = p(ctx)
 
     if not user_input or not command_name:
@@ -667,6 +674,7 @@ async def restrict_user(ctx, user_input: str = None, *, command_name: str = None
 @restrict.command(name="list")
 @commands.has_permissions(manage_guild=True)
 async def restrict_list(ctx, *, command_name: str = None):
+    """See a list of restrictions for a command"""
     prefix = p(ctx)
     
     if not command_name:
@@ -697,7 +705,7 @@ async def restrict_list(ctx, *, command_name: str = None):
 @bot.group(aliases=["urc"], invoke_without_command=True)
 @commands.has_permissions(manage_guild=True)
 async def unrestrict(ctx):
-    """Show unrestrict help menu."""
+    """Removes a restriction from a command"""
     prefix = p(ctx)
     embed = create_embed("command: unrestrict", "Removes a restriction from a command", ctx)
     embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
@@ -719,6 +727,7 @@ async def unrestrict(ctx):
 @unrestrict.command(name="role")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_role(ctx, role_input: str = None, *, command_name: str = None):
+    """Removes a command restriction for roles"""
     prefix = p(ctx)
     
     if not role_input or not command_name:
@@ -754,6 +763,7 @@ async def unrestrict_role(ctx, role_input: str = None, *, command_name: str = No
 @unrestrict.command(name="channel")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_channel(ctx, channel_input: str = None, *, command_name: str = None):
+    """Removes a command restriction for channels"""
     prefix = p(ctx)
     
     if not channel_input or not command_name:
@@ -782,6 +792,7 @@ async def unrestrict_channel(ctx, channel_input: str = None, *, command_name: st
 @unrestrict.command(name="user")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_user(ctx, user_input: str = None, *, command_name: str = None):
+    """Removes a command restriction from users"""
     prefix = p(ctx)
     
     if not user_input or not command_name:
@@ -818,6 +829,7 @@ async def unrestrict_user(ctx, user_input: str = None, *, command_name: str = No
 @unrestrict.command(name="all")
 @commands.has_permissions(manage_guild=True)
 async def unrestrict_all(ctx, *, command_name: str = None):
+    """Removes all restrictions from a command"""
     prefix = p(ctx)
     
     if not command_name:
@@ -855,6 +867,7 @@ async def unrestrict_all(ctx, *, command_name: str = None):
 
 @bot.command(aliases=["pre"])
 async def prefix(ctx, new_prefix: str = None):
+    """Configure the bot's prefix in your server"""
     guild_id = ctx.guild.id
     current = get_prefix_for_guild(guild_id)
 
@@ -1062,10 +1075,10 @@ class HistoryView(discord.ui.View):
 
         self.stop()
 
-@bot.group(aliases=["h"], invoke_without_command=True)
+@bot.group(aliases=["hst"], invoke_without_command=True)
 @commands.has_permissions(moderate_members=True)
 async def history(ctx, member: discord.Member | None = None, page: int = 1):
-    """List a member's history (paginated)."""
+    """View a member's case log"""
     if member is None:
         member = ctx.author
 
@@ -1092,7 +1105,7 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
 @history.command(name="view")
 @commands.has_permissions(moderate_members=True)
 async def history_view(ctx, case_number: int = None):
-    """View full details for a specific case number (global per guild)."""
+    """View a case log by its number"""
     prefix = p(ctx)
 
     if case_number is None:
@@ -1139,8 +1152,7 @@ async def history_view(ctx, case_number: int = None):
 @commands.has_permissions(moderate_members=True)
 async def history_remove(ctx, member: discord.Member | None = None, case_number: int = None):
     """
-    Remove a specific case (requires Manage Messages).
-    Usage: ;history remove @member <case#>
+    Remove a member's specific case log
     """
     prefix = p(ctx)
 
@@ -1148,7 +1160,7 @@ async def history_remove(ctx, member: discord.Member | None = None, case_number:
         try:
             embed = create_embed(
                 "command: history remove",
-                "Remove a member's case history",
+                "Remove a member's specific case log",
                 ctx
             )
             embed.add_field(
@@ -1187,7 +1199,7 @@ async def history_remove(ctx, member: discord.Member | None = None, case_number:
 @history.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def history_clear(ctx, member: discord.Member | None = None):
-    """Remove all cases for a member (requires Manage Messages)."""
+    """Clear all cases for a member"""
 
     prefix = p(ctx)
 
@@ -1225,6 +1237,7 @@ async def history_clear(ctx, member: discord.Member | None = None):
 @history.command(name="all")
 @commands.has_permissions(moderate_members=True)
 async def history_all(ctx):
+    """View all case logs in the server"""
 
     case_list = get_all_cases(ctx.guild.id)
 
@@ -1320,6 +1333,7 @@ async def history_all(ctx):
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member = None, *, reason=None):
+    """Bans a member"""
     
     prefix = p(ctx)
     
@@ -1414,6 +1428,7 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def unban(ctx, *, member: str = None):
+    """Unbans a member"""
     
     prefix = p(ctx)
     
@@ -1447,6 +1462,7 @@ async def unban(ctx, *, member: str = None):
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member = None, *, reason=None):
+    """Kicks a member"""
     
     prefix = p(ctx)
     
@@ -1531,6 +1547,7 @@ from datetime import datetime, timedelta, timezone  # <- top of your file
 @bot.command(aliases=["time"])
 @commands.has_permissions(moderate_members=True)
 async def timeout(ctx, member: discord.Member = None, duration: str = None, *, reason=None):
+    """Times out a member"""
     
     prefix = p(ctx)
     
@@ -1631,6 +1648,7 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
 @bot.command(aliases=["untime"])
 @commands.has_permissions(moderate_members=True)
 async def untimeout(ctx, member: discord.Member = None):
+    """Removes timeout from a member"""
     
     prefix = p(ctx)
     
@@ -1666,6 +1684,7 @@ async def untimeout(ctx, member: discord.Member = None):
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def warn(ctx, member: discord.Member = None, *, reason: str = None):
+    """Warns a member"""
     prefix = p(ctx)
 
     if member is None:
@@ -1749,6 +1768,7 @@ async def warn(ctx, member: discord.Member = None, *, reason: str = None):
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(manage_messages=True)
 async def warnings(ctx, member:discord.Member = None):
+    """View a member's warnings or your own"""
 
     if member is None:
         member = ctx.author
@@ -1786,7 +1806,7 @@ async def warnings(ctx, member:discord.Member = None):
 @warnings.command(name="remove", aliases=["delete", "del"])
 @commands.has_permissions(manage_messages=True)
 async def warnings_remove(ctx, member: discord.Member = None, warning_number: int = None):
-    """Remove a specific warning by its number."""
+    """Remove a specific warning from a member"""
     prefix = p(ctx)
 
     if member is None or warning_number is None:
@@ -1821,7 +1841,7 @@ async def warnings_remove(ctx, member: discord.Member = None, warning_number: in
 @warnings.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def warnings_clear(ctx, member: discord.Member = None):
-    """Clear all warnings for a member."""
+    """Clear all warnings for a member"""
     prefix = p(ctx)
 
     if member is None:
@@ -1896,6 +1916,7 @@ async def jail_instruction_embed(ctx):
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True, manage_channels=True)
 async def jailset(ctx, role_arg=None, channel_arg=None):
+    """Configures a jail system in the server"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2002,6 +2023,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
 @jailset.command(name="role")
 @commands.has_permissions(manage_roles=True)
 async def jailset_role(ctx, *, role_input: str = None):
+    """Configures jailed role"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2086,6 +2108,7 @@ async def jailset_role(ctx, *, role_input: str = None):
 @jailset.command(name="channel")
 @commands.has_permissions(manage_messages=True)
 async def jailset_channel(ctx, *, channel_input: str = None):
+    """Configures jail channel"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2151,6 +2174,7 @@ async def jailset_channel(ctx, *, channel_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def jail(ctx, member: discord.Member = None, *, reason=None):
+    """Sends a member to jail"""
     
     prefix = p(ctx)
     guild = ctx.guild
@@ -2214,6 +2238,7 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
 @bot.command(aliases=["release", "unj"])
 @commands.has_permissions(moderate_members=True)
 async def unjail(ctx, member: discord.Member = None):
+    """Releases a member from jail"""
     
     prefix = p(ctx)
     guild = ctx.guild
@@ -2324,6 +2349,7 @@ async def imute_instruction_embed(ctx):
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
 async def imuteset(ctx, *, role_arg=None):
+    """Configures image mute system in the server"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2398,6 +2424,7 @@ async def imuteset(ctx, *, role_arg=None):
 @imuteset.command(name="role")
 @commands.has_permissions(manage_roles=True)
 async def imuteset_role(ctx, *, role_input: str = None):
+    """Configures image mute role"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2466,13 +2493,14 @@ async def imuteset_role(ctx, *, role_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def imute(ctx, member: discord.Member = None, *, reason=None):
+    """Toggles a member's image permissions """
     if imute_not_set(ctx.guild):
         return await imute_instruction_embed(ctx)
 
     prefix = get_prefix(bot, ctx.message)
 
     if not member:
-        embed = create_embed("command: imute", "Toggles image permissions", ctx)
+        embed = create_embed("command: imute", "Toggles a member's image permissions", ctx)
         embed.add_field(
         name="**Aliases**",
         value=alss_ctx(ctx),
@@ -2563,6 +2591,7 @@ async def rmute_instruction_embed(ctx):
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
 async def rmuteset(ctx, *, role_arg=None):
+    """Configures reaction mute system in the server"""
     guild = ctx.guild
     prefix = get_prefix(bot, ctx.message)
 
@@ -2636,6 +2665,7 @@ async def rmuteset(ctx, *, role_arg=None):
 @rmuteset.command(name="role")
 @commands.has_permissions(manage_roles=True)
 async def rmuteset_role(ctx, *, role_input: str = None):
+    """Configures reaction mute role"""
     guild = ctx.guild
     prefix = p(ctx)
 
@@ -2704,6 +2734,7 @@ async def rmuteset_role(ctx, *, role_input: str = None):
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def rmute(ctx, member: discord.Member = None, *, reason=None):
+    """Toggles a member's reaction permissions"""
     if rmute_not_set(ctx.guild):
         return await rmute_instruction_embed(ctx)
 
@@ -2711,7 +2742,7 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
 
     # Instruction
     if not member:
-        embed = create_embed("command: rmute", "Toggles reaction permissions", ctx)
+        embed = create_embed("command: rmute", "Toggles a member's reaction permissions", ctx)
         embed.add_field(
         name="**Aliases**",
         value=alss_ctx(ctx),
@@ -2771,6 +2802,7 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
 @bot.command(aliases=["sm"])
 @commands.has_permissions(manage_channels=True)
 async def slowmode(ctx, duration: str = None):
+    """Set slowmode for a channel"""
     prefix = p(ctx)
 
     if duration is None:
@@ -2847,6 +2879,7 @@ async def slowmode(ctx, duration: str = None):
 @bot.command(aliases=["r"])
 @commands.has_permissions(manage_roles=True)
 async def role(ctx, user: str = None, *, role: str = None):
+    """Assign/remove role from a user"""
 
     prefix = p(ctx)
 
@@ -2960,6 +2993,7 @@ async def role(ctx, user: str = None, *, role: str = None):
 
 @bot.command()
 async def roleinfo(ctx, *, role_input: str = None):
+    """View a specific role info or your own top role"""
 
     # If no role specified → use author's highest role
     if role_input is None:
@@ -3031,7 +3065,7 @@ async def roleinfo(ctx, *, role_input: str = None):
 @bot.group(aliases=["ar"], invoke_without_command=True)
 @commands.has_permissions(manage_roles=True)
 async def autorole(ctx):
-    """Show autorole help menu."""
+    """Adds or removes auto-assign role(s)"""
     prefix = p(ctx)
     embed = create_embed(
         "command: autorole",
@@ -3051,6 +3085,7 @@ async def autorole(ctx):
 @autorole.command(name="add")
 @commands.has_permissions(manage_roles=True)
 async def autorole_add(ctx, *, role_input: str = None):
+    """Sets a role to auto-assign to members upon joining"""
     prefix = p(ctx)
     
     if not role_input:
@@ -3093,6 +3128,7 @@ async def autorole_add(ctx, *, role_input: str = None):
 @autorole.command(name="remove")
 @commands.has_permissions(manage_roles=True)
 async def autorole_remove(ctx, *, role_input: str = None):
+    """Removes an existing autorole"""
     prefix = p(ctx)
     
     if not role_input:
@@ -3156,7 +3192,7 @@ async def on_member_join(member):
 @bot.group(aliases=["re"], invoke_without_command=True)
 @commands.has_permissions(manage_roles=True)
 async def roleedit(ctx):
-    """Show roleedit help menu."""
+    """Edits a role"""
     prefix = p(ctx)
     embed = create_embed("command: roleedit", "Edits a role", ctx)
     embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
@@ -3180,6 +3216,7 @@ async def roleedit(ctx):
 @roleedit.command(name="name")
 @commands.has_permissions(manage_roles=True)
 async def roleedit_name(ctx, role_input: str = None, *, new_name: str = None):
+    """Edits a role's name"""
     prefix = p(ctx)
     
     if not role_input or not new_name:
@@ -3216,6 +3253,7 @@ async def roleedit_name(ctx, role_input: str = None, *, new_name: str = None):
 @roleedit.command(name="color")
 @commands.has_permissions(manage_roles=True)
 async def roleedit_color(ctx, role_input: str = None, hex_code: str = None):
+    """Edits a role's color"""
     prefix = p(ctx)
     
     if not role_input or not hex_code:
@@ -3265,6 +3303,7 @@ async def roleedit_color(ctx, role_input: str = None, hex_code: str = None):
 # -----------------------------
 @bot.command()
 async def embed(ctx):
+    """Creates a custom embed"""
     embed = create_embed(
         "command: embed",
         "Creates a custom embed",
@@ -3616,6 +3655,118 @@ async def embed(interaction: discord.Interaction):
     
 # COMMANDS HELP
 
+# =================== CUSTOM HELP COMMAND ===================
+
+class HelpView(discord.ui.View):
+    def __init__(self, ctx, pages):
+        super().__init__(timeout=60)
+        self.ctx = ctx
+        self.pages = pages
+        self.index = 0
+        self.message = None
+
+    def get_embed(self):
+        return self.pages[self.index]
+
+    async def update(self, interaction):
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary)
+    async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        self.index = (self.index - 1) % len(self.pages)
+        await self.update(interaction)
+
+    @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary)
+    async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        self.index = (self.index + 1) % len(self.pages)
+        await self.update(interaction)
+
+    @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
+    async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.ctx.author.id:
+            return await interaction.response.send_message(
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                ephemeral=True
+            )
+        await interaction.message.delete()
+        self.stop()
+
+    async def on_timeout(self):
+        for child in self.children:
+            child.disabled = True
+        try:
+            await self.message.edit(view=None)
+        except:
+            pass
+        self.stop()
+
+
+def get_command_help_embed(ctx, command, parent_name=None):
+    """Generate help embed for a single command."""
+    prefix = p(ctx)
+    
+    # Full command name (including parent if it's a subcommand)
+    if parent_name:
+        full_name = f"{parent_name} {command.name}"
+    else:
+        full_name = command.name
+    
+    # Build usage string
+    if isinstance(command, commands.Group):
+        usage = f"{prefix}{full_name} <subcommand>"
+    else:
+        signature = command.signature or ""
+        signature = signature.replace('[', '<').replace(']', '>')
+        usage = f"{prefix}{full_name} {signature}".strip()
+    
+    embed = create_embed(
+        f"command: {full_name}",
+        command.help or "No description available.",
+        ctx
+    )
+    
+    # Aliases
+    aliases = get_aliases_string(command)
+    embed.add_field(name="**Aliases**", value=aliases, inline=False)
+    
+    # Permissions
+    perms = []
+    for check in command.checks:
+        if hasattr(check, '__closure__') and check.__closure__:
+            for cell in check.__closure__:
+                obj = cell.cell_contents
+                if isinstance(obj, dict) and 'permissions' in str(obj):
+                    perm_names = ", ".join(f"`{p.replace('_', ' ').title()}`" for p in obj.get('permissions', []))
+                    if perm_names:
+                        perms.append(perm_names)
+    
+    perm_str = ", ".join(perms) if perms else "`n/a`"
+    embed.add_field(name="**Permissions Required**", value=perm_str, inline=False)
+    
+    # Subcommands for groups
+    if isinstance(command, commands.Group):
+        subcommands = "\n".join(f"`{cmd.name}`" for cmd in command.commands)
+        embed.add_field(name="**Subcommands**", value=subcommands or "`n/a`", inline=False)
+    
+    # Usage
+    embed.add_field(
+        name="**Utilization**",
+        value=f"```ansi\n\u001b[35msyntax:\u001b[0m {usage}```",
+        inline=False
+    )
+    
+    return embed
+
 async def wait_for_confirmation(bot, author, channel, embed_message, command_message):
     def check(m):
         return (
@@ -3793,21 +3944,60 @@ class View(discord.ui.View):
         self.stop()
 
 
-@bot.command(aliases=["cmds"])
-async def commands(ctx):
-    embed = create_embed(
-        "list of commands",
-        "To show a list of commands, select a category below",
-        ctx
-    )
-    embed.set_author(name=bot.user.name, icon_url=bot.user.avatar.url)
-    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1069850380114067490/1437817233907912817/lv_0_20240227091826-ezgif.com-gif-maker.gif")
-    embed.set_footer(text="TIP:  type 'close' to close this embed.")
-
-    view = View(ctx)
-    msg = await ctx.send(embed=embed, view=view)
-    view.message = msg
-    await wait_for_confirmation(bot, ctx.author, ctx.channel, msg, ctx.message)
+@bot.command(aliases=["h"])
+async def help(ctx, *, command_name: str = None):
+    """Show command instructions"""
+    prefix = p(ctx)
+    
+    # No command specified → show category menu (like ;commands)
+    if command_name is None:
+        embed = create_embed(
+            "list of commands",
+            "To show a list of commands, select a category below",
+            ctx
+        )
+        embed.set_author(name=bot.user.name, icon_url=bot.user.avatar.url)
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1069850380114067490/1437817233907912817/lv_0_20240227091826-ezgif.com-gif-maker.gif")
+        embed.set_footer(text="TIP:  type 'close' to close this embed.")
+        
+        view = View(ctx)
+        msg = await ctx.send(embed=embed, view=view)
+        view.message = msg
+        await wait_for_confirmation(bot, ctx.author, ctx.channel, msg, ctx.message)
+        return
+    
+    # Command specified
+    cmd = bot.get_command(command_name)
+    
+    if cmd is None:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Command `{command_name}` not found. Use `{prefix}help` to see all commands.",
+            ctx,
+            include_author=False
+        ))
+    
+    # Single command (not a group)
+    if not isinstance(cmd, commands.Group):
+        embed = get_command_help_embed(ctx, cmd)
+        return await ctx.send(embed=embed)
+    
+    # Group command → paginate through subcommands
+    pages = []
+    
+    # Main group page
+    pages.append(get_command_help_embed(ctx, cmd))
+    
+    # Subcommand pages
+    for subcmd in cmd.commands:
+        pages.append(get_command_help_embed(ctx, subcmd, parent_name=cmd.name))
+    
+    # Send with pagination if more than 1 page
+    if len(pages) == 1:
+        await ctx.send(embed=pages[0])
+    else:
+        view = HelpView(ctx, pages)
+        view.message = await ctx.send(embed=view.get_embed(), view=view)
 
 
 # -----------------------------
@@ -3817,6 +4007,7 @@ afk_users = {}  # user_id: (status, start_time)
 
 @bot.command()
 async def afk(ctx, *, status: str = "AFK"):
+    """Sets an AFK status"""
     afk_users[ctx.author.id] = (status, discord.utils.utcnow())
     await ctx.reply(embed=create_embed(
         "",
@@ -3894,13 +4085,14 @@ from discord.ext import commands
 @bot.command(aliases=["fn"])
 @commands.has_permissions(manage_nicknames=True)
 async def forcename(ctx, member: discord.Member = None, *, forced_name: str = None):
+    """Forcibly changes and locks a user's name"""
     
     prefix = p(ctx)
     
     if not member:
         embed = create_embed(
             "command: forcename",
-            "Forcibly changes a user's name",
+            "Forcibly changes and locks a user's name",
             ctx
         )
         embed.add_field(
@@ -3962,7 +4154,7 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
     if not forced_name:
         embed = create_embed(
             "command: forcename",
-            "Forcibly changes a user's name",
+            "Forcibly changes and locks a user's name",
             ctx
         )
         embed.add_field(
@@ -4017,6 +4209,7 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         
 @bot.command(aliases=["ci"])
 async def channelinfo(ctx, channel_input: str = None):
+    """See channel info"""
     
     if channel_input is None:
         channel = ctx.channel
@@ -4165,6 +4358,7 @@ class MembersView(discord.ui.View):
 
 @bot.command(aliases=["inrole"])
 async def members(ctx, *, role_input: str = None):
+    """See all members that has a specific role or your own top role"""
 
     # if role not provided → use author's top role
     if role_input is None:
@@ -4232,6 +4426,7 @@ def time_ago(dt):
 
 @bot.command(aliases=["ui"])
 async def userinfo(ctx, *, user: str = None):
+    """See user's info"""
 
     # Default target = author
     if user is None:
@@ -4366,6 +4561,7 @@ async def userinfo_error(ctx, error):
 # -----------------------------
 @bot.command()
 async def ping(ctx):
+    """See bot's latency"""
 
     ping_targets = [
         "Orion, the Iron Warrior",
@@ -4437,6 +4633,7 @@ async def ping(ctx):
     
 @bot.command(aliases=["av"])
 async def avatar(ctx, user: discord.User = None):
+    """See user's avatar or your own"""
     # Default to command author
     target = user or ctx.author
 
@@ -4476,6 +4673,7 @@ async def avatar(ctx, user: discord.User = None):
 
 @bot.command(aliases=["sav", "gav"])
 async def serveravatar(ctx, user: discord.User = None):
+    """See user's server avatar or your own"""
     # Default to command author
     target = user or ctx.author
 
@@ -4523,6 +4721,7 @@ async def serveravatar(ctx, user: discord.User = None):
     
 @bot.command(aliases=["gicon"])
 async def guildicon(ctx):
+    """See the server's icon"""
     guild = ctx.guild
 
     # Get server icon URL (supports GIF)
@@ -4546,6 +4745,7 @@ async def guildicon(ctx):
     
 @bot.command()
 async def banner(ctx, user: discord.User = None):
+    """See user's banner or your own"""
     # Use command author if no user specified
     target = user or ctx.author
 
@@ -4595,6 +4795,7 @@ async def banner(ctx, user: discord.User = None):
 @bot.command(aliases=["lock"])
 @commands.has_permissions(manage_channels=True)
 async def lockdown(ctx):
+    """Locks down a channel"""
     channel = ctx.channel
     overwrite = channel.overwrites_for(ctx.guild.default_role)
 
@@ -4612,6 +4813,7 @@ async def lockdown(ctx):
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx):
+    """Unlocks a channel"""
     channel = ctx.channel
     overwrite = channel.overwrites_for(ctx.guild.default_role)
 
@@ -4627,11 +4829,13 @@ async def unlock(ctx):
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount=5):
+    """Purge messages in a channel"""
     await ctx.channel.purge(limit=amount)
 
 @bot.command()
 @commands.has_permissions(manage_emojis=True)
 async def steal(ctx, emoji: discord.PartialEmoji | None = None, *, name: str | None = None):
+    """Steal emojis from other servers"""
 
     prefix = p(ctx)
 
@@ -4726,6 +4930,7 @@ class InvBtn(discord.ui.View):
 
 @bot.command(aliases=["nb"])
 async def nightblade(ctx):
+    """See bot's info"""
 
     inv = f"https://discord.com/oauth2/authorize?client_id={bot.user.id}&permissions=8&integration_type=0&scope=bot+applications.commands"
 
@@ -4824,6 +5029,7 @@ async def detect_language(text: str) -> str:
 
 @bot.command(aliases=["tr"])
 async def translate(ctx, language: str = None, *, text: str = None):
+    """Translate text using Google Translate"""
     prefix = p(ctx)
 
     if language is None and text is None:
@@ -4946,6 +5152,7 @@ async def oc(ctx):
 
 @bot.command(name="8ball")
 async def ball(ctx, *, question: str = None):
+    """Asks the magic 8-ball a yes-or-no question"""
 
     prefix = p(ctx)
 
@@ -5118,6 +5325,7 @@ class DefinitionView(discord.ui.View):
 
 @bot.command(aliases=["def"])
 async def define(ctx, *, word: str = None):
+    """Get a definition of the specified word"""
 
     prefix = p(ctx)
 
@@ -5127,7 +5335,7 @@ async def define(ctx, *, word: str = None):
     if word is None:
         embed = create_embed(
             "command: define",
-            "Get the definition of the specified word",
+            "Get a definition of the specified word",
             ctx
         )
         embed.add_field(
@@ -5291,6 +5499,7 @@ class UrbanDictionaryView(discord.ui.View):
 
 @bot.command(aliases=["ud", "urban"])
 async def urbandictionary(ctx, *, word: str = None):
+    """Get the definition of slang/word from Urban Dictionary"""
     prefix = p(ctx)
     
     if not word:
@@ -5434,6 +5643,7 @@ class RolesView(discord.ui.View):
 
 @bot.command()
 async def roles(ctx):
+    """See all server roles"""
 
     # Get all roles EXCEPT @everyone
     roles = [role for role in ctx.guild.roles if role != ctx.guild.default_role]
@@ -5534,6 +5744,7 @@ class BotsView(discord.ui.View):
 
 @bot.command()
 async def bots(ctx):
+    """See all server bots"""
     bots = [member for member in ctx.guild.members if member.bot]
 
     # If no bots found

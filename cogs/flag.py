@@ -83,6 +83,7 @@ class Flag(commands.Cog):
     @commands.command(aliases=["country"])
     @commands.cooldown(2, 6, commands.BucketType.user)
     async def flag(self, ctx, difficulty: str | None = None):
+        """Displays a random flag"""
         if difficulty:
             difficulty = difficulty.lower()
         
@@ -209,6 +210,7 @@ class Flag(commands.Cog):
 
     @commands.group(aliases=["countries"], invoke_without_command=True)
     async def flags(self, ctx):
+        """Start a Guess the Flag game"""
 
         channel_id = ctx.channel.id
 
@@ -456,6 +458,7 @@ class Flag(commands.Cog):
 
     @flags.command(name="reset", aliases=["stop"])
     async def flags_reset(self, ctx):
+        """Resets an ongoing or queued Flag game"""
         channel_id = ctx.channel.id
 
         if channel_id not in self.running_games:

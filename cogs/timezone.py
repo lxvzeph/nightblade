@@ -163,7 +163,7 @@ class Timezone(commands.Cog):
 
     @commands.group(aliases=["tz"], invoke_without_command=True)
     async def timezone(self, ctx, member: discord.Member | None = None):
-        """Get time for yourself or another member."""
+        """See your own time or another member's"""
         author = ctx.author
 
         # If no argument → show author's time
@@ -215,6 +215,7 @@ class Timezone(commands.Cog):
 
     @timezone.command(name="set")
     async def timezone_set(self, ctx, *, tz: str | None = None):
+        """Sets your timezone"""
         author = ctx.author
         prefix = ctx.prefix
 
@@ -222,7 +223,7 @@ class Timezone(commands.Cog):
         if tz is None:
             embed = self._embed(
                 "command: timezone set",
-                "Set a timezone based on location",
+                "Sets your timezone",
                 ctx
             )
             embed.add_field(
@@ -272,6 +273,7 @@ class Timezone(commands.Cog):
 
     @timezone.command(name="list")
     async def timezone_list(self, ctx):
+        """See list of all available timezones"""
 
         if not self.city_list:
             return await ctx.send(
@@ -292,6 +294,7 @@ class Timezone(commands.Cog):
 
     @timezone.command(name="all")
     async def timezone_all(self, ctx):
+        """See all members' timezones"""
         member_ids = [m.id for m in ctx.guild.members if not m.bot]
         tz_map = get_all_timezones_in_guild(member_ids)
 

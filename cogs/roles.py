@@ -89,16 +89,16 @@ class Roles(commands.Cog):
 
     # --- STRIP COMMAND --------------------------------------------------------
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
-    async def strip(self, ctx, mode=None, member: discord.Member=None):
-        """Strip roles from a member."""
-        prefix = ctx.prefix  # change to your own prefix() resolver if needed
+    async def strip(self, ctx, member: discord.Member = None):
+        """Strip roles from a member"""
+        prefix = ctx.prefix 
 
-        if mode not in ("all", "staff"):
+        if member is None:
             embed = self._embed(
                 "command: strip",
-                "Strip a user off their role(s)",
+                "Strip roles from a member",
                 ctx
             )
             embed.add_field(
@@ -108,20 +108,44 @@ class Roles(commands.Cog):
             )
             embed.add_field(
                 name="**Subcommands**",
-                value="`all`\n`staff`",
+                value="`staff`",
                 inline=False
             )
             embed.add_field(
                 name="**Utilization**",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}strip <all/staff> <member>\n\u001b[35mexample:\u001b[0m {prefix}strip all john```",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}strip <member>\n\u001b[35mexample:\u001b[0m {prefix}strip @zeph\n\n\u001b[35msyntax: \u001b[0m{prefix}strip staff <member>\n\u001b[35mexample: \u001b[0m{prefix}strip staff zeph```",
                 inline=False
             )
             return await ctx.send(embed=embed)
+        
+        if member == ctx.author:
+            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You cannot strip your own roles.", ctx, include_author=False))
+
+        if member.top_role.position >= ctx.author.top_role.position:
+            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You cannot strip **{member.name}** off their role(s) due to hierarchy.", ctx, include_author=False))
+
+        if member.top_role.position >= ctx.guild.me.top_role.position:
+            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: **{member.name}** has a higher role than me.", ctx, include_author=False))
+
+        self.backup_member_roles_helper(member)
+        new_roles = [ctx.guild.default_role]
+
+        try:
+            await member.edit(roles=new_roles)
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Stripped **{member.name}** of all their roles.", ctx, include_author=False))
+        except discord.Forbidden:
+            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: I don't have permission to modify their roles.", ctx, include_author=False))
+
+    @strip.command(name="staff")
+    @commands.has_permissions(manage_roles=True)
+    async def strip_staff(self, ctx, member: discord.Member = None):
+        """Strip staff roles from a member"""
+        prefix = ctx.prefix
 
         if member is None:
             embed = self._embed(
-                f"command: strip {mode}",
-                "Strip a user off their role(s)",
+                f"command: strip staff",
+                "Strip staff roles from a member",
                 ctx
             )
             embed.add_field(
@@ -131,7 +155,7 @@ class Roles(commands.Cog):
             )
             embed.add_field(
                 name="**Utilization**",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}strip {mode} <member>\n\u001b[35mexample:\u001b[0m {prefix}strip {mode} john```",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}strip staff <member>\n\u001b[35mexample:\u001b[0m {prefix}strip staff zeph```",
                 inline=False
             )
             return await ctx.send(embed=embed)
@@ -139,52 +163,45 @@ class Roles(commands.Cog):
         if member == ctx.author:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You cannot strip yourself.", ctx, include_author=False))
 
-        # Hierarchy safety
         if member.top_role.position >= ctx.author.top_role.position:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You cannot strip **{member.name}** off their role(s) due to hierarchy.", ctx, include_author=False))
 
         if member.top_role.position >= ctx.guild.me.top_role.position:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{member.name}** has a higher role than me.", ctx, include_author=False))
 
-        # Backup before modifying
-        self.backup_member_roles(member)
+        self.backup_member_roles_helper(member)
 
-        if mode == "all":
-            new_roles = [ctx.guild.default_role]
+        def is_staff(role: discord.Role):
+            perms = role.permissions
+            return (
+                perms.administrator or
+                perms.manage_guild or
+                perms.manage_messages or
+                perms.kick_members or
+                perms.ban_members
+            )
 
-        else:  # mode == "staff"
-            def is_staff(role: discord.Role):
-                perms = role.permissions
-                return (
-                    perms.administrator or
-                    perms.manage_guild or
-                    perms.manage_messages or
-                    perms.kick_members or
-                    perms.ban_members
-                )
-
-            new_roles = [
-                role for role in member.roles
-                if role == ctx.guild.default_role or not is_staff(role)
-            ]
+        new_roles = [
+            role for role in member.roles
+            if role == ctx.guild.default_role or not is_staff(role)
+        ]
 
         try:
             await member.edit(roles=new_roles)
-            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Stripped **{member.name}**'s roles (**{mode}**).", ctx, include_author=False))
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Stripped **{member.name}**'s staff roles.", ctx, include_author=False))
         except discord.Forbidden:
             return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: I don't have permission to modify their roles.", ctx, include_author=False))
-
+        
     # --- RESTORE COMMAND ------------------------------------------------------
 
-    @commands.command(aliases=["res"])
+    @commands.group(aliases=["res"], invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
-    async def restore(self, ctx, action=None, member: discord.Member=None):
-        """Restore backed-up roles or clear backups."""
-
+    async def restore(self, ctx, member: discord.Member = None):
+        """Restore backed-up roles"""
         prefix = ctx.prefix
 
         # --- CASE 1: No arguments -> show help
-        if action is None and member is None:
+        if member is None:
             embed = self._embed(
                 "command: restore",
                 "Restores a member's role(s) or clears their backup",
@@ -196,67 +213,46 @@ class Roles(commands.Cog):
                 name="**Utilization**",
                 value=(
                     f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}restore <member>\n"
-                    f"\u001b[35mexample:\u001b[0m {prefix}restore john\n\n"
+                    f"\u001b[35mexample:\u001b[0m {prefix}restore zeph\n\n"
                     f"\u001b[35msyntax:\u001b[0m {prefix}restore clear <member>\n"
-                    f"\u001b[35mexample:\u001b[0m {prefix}restore clear john```"
+                    f"\u001b[35mexample:\u001b[0m {prefix}restore clear zeph```"
                 ),
                 inline=False
             )
             return await ctx.send(embed=embed)
+        
+        success = await self.restore_member_roles(member)
 
-        # --- CASE 2: User typed "restore @member"
-        # action contains @member, member is None
-        if action != "clear" and member is None:
-            # Try to interpret `action` as member
-            try:
-                member = await commands.MemberConverter().convert(ctx, action)
-            except:
-                return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Please specify a valid member.", ctx, include_author=False))
+        if success:
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Restored **{member.name}**'s roles.", ctx, include_author=False))
+        else:
+            await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup saved for **{member.name}** or failed to restore.", ctx, include_author=False))
 
-        # --- CASE 3: User typed "restore clear" with no member
-        if action == "clear" and member is None:
+    @restore.command(name="clear", aliases=["del", "remove"])
+    @commands.has_permissions(manage_roles=True)
+    async def restore_clear(self, ctx, member: discord.Member = None):
+        """Clear a member's role backup"""
+        prefix = ctx.prefix
+
+        if member is None:
             embed = self._embed(
                 "command: restore clear",
                 "Deletes a user's role backup",
                 ctx
             )
-            embed.add_field(name="**Aliases**", value=f"`{self.alss_ctx(ctx)}`", inline=False)
+            embed.add_field(name="**Aliases**", value=self.alss_ctx(ctx), inline=False)
             embed.add_field(
                 name="**Utilization**",
-                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}restore clear <member>\n\u001b[35mexample:\u001b[0m {prefix}restore clear john```",
+                value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}restore clear <member>\n\u001b[35mexample:\u001b[0m {prefix}restore clear @john```",
                 inline=False
             )
             return await ctx.send(embed=embed)
 
-        # --- Now we have a valid member object
-        gid = str(ctx.guild.id)
-        uid = str(member.id)
+        removed = clear_member_role_backup(ctx.guild.id, member.id)
+        if not removed:
+            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup found for **{member.name}**.", ctx, include_author=False))
 
-        # --- CASE 4: restore clear <member>
-        if action == "clear":
-            removed = clear_member_role_backup(ctx.guild.id, member.id)
-            if not removed:
-                return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup found for **{member.name}**.", ctx, include_author=False))
-
-            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cleared role backup for **{member.name}**.", ctx, include_author=False))
-
-        # --- CASE 5: Normal restore <member>
-        success = await self.restore_member_roles(member)
-
-        if success:
-            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Restored **{member.name}**'s roles.", ctx, include_author=False))
-        else:
-            return await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: No backup saved for **{member.name}** or failed to restore.", ctx, include_author=False))
-
-
-
-
-        # ---------------- DEFAULT RESTORE ACTION ----------------
-    
-
-            
-                
-
+        await ctx.send(embed=self._embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Cleared role backup for **{member.name}**.", ctx, include_author=False))
 
 # --- SETUP --------------------------------------------------------------------
 

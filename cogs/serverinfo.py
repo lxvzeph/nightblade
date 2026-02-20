@@ -47,7 +47,7 @@ class ServerInfo(commands.Cog):
 
     @commands.command(aliases=["si"])
     async def serverinfo(self, ctx: commands.Context):
-        """Display detailed information about the current server."""
+        """See server's info"""
 
         guild = ctx.guild
         if guild is None:
