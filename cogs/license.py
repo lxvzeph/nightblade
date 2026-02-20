@@ -209,7 +209,7 @@ class License(commands.Cog):
             return await ctx.send(embed=embed)
 
         set_activated(ctx.guild.id, True)
-        embed = self._embed("LICENSE ACTIVATED", f"**{self.bot.user.name}** is now activated and fully-functional in this server.\n\nTo get started, see a list of commands by using `{prefix}commands`", include_author=True)
+        embed = self._embed("LICENSE ACTIVATED", f"**{self.bot.user.name}** is now activated and fully-functional in this server.\n\nTo get started, see a list of commands by using `{prefix}help`", include_author=True)
         embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.set_footer(text="Nox Aeternum")
         await ctx.send(embed=embed)

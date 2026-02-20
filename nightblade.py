@@ -3742,13 +3742,19 @@ def get_command_help_embed(ctx, command, parent_name=None):
     # Permissions
     perms = []
     for check in command.checks:
-        if hasattr(check, '__closure__') and check.__closure__:
-            for cell in check.__closure__:
-                obj = cell.cell_contents
-                if isinstance(obj, dict) and 'permissions' in str(obj):
-                    perm_names = ", ".join(f"`{p.replace('_', ' ').title()}`" for p in obj.get('permissions', []))
-                    if perm_names:
-                        perms.append(perm_names)
+        # Check if it's a has_permissions check
+        if hasattr(check, '__qualname__') and 'has_permissions' in check.__qualname__:
+            # Try to extract from closure
+            if hasattr(check, '__closure__') and check.__closure__:
+                for cell in check.__closure__:
+                    try:
+                        obj = cell.cell_contents
+                        if isinstance(obj, dict):
+                            for key, value in obj.items():
+                                if value is True:
+                                    perms.append(f"`{key.replace('_', ' ').title()}`")
+                    except:
+                        pass
     
     perm_str = ", ".join(perms) if perms else "`n/a`"
     embed.add_field(name="**Permissions Required**", value=perm_str, inline=False)
