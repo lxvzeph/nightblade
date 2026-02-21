@@ -1451,28 +1451,48 @@ async def unban(ctx, *, member: str = None):
         embed = create_embed("command: unban", "Unbans a member", ctx)
         embed.add_field(name="**Aliases**", value=alss_ctx(ctx), inline=False)
         embed.add_field(name="**Permissions Required**", value="`Ban Members`", inline=False)
-        embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}unban userID\n\u001b[35mexample:\u001b[0m {prefix}unban 1438523192426627112```", inline=False)
+        embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}unban user\n\u001b[35mexample:\u001b[0m {prefix}unban bytheblade```", inline=False)
         await ctx.send(embed=embed)
         return
 
     try:
-        # Allow mention or ID input
-        member = member.strip("<@!>")
-        user_id = int(member)
+        user = await resolve_user(ctx, member)
+        if not user:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: User not found.",
+                ctx,
+                include_author=False
+            ))
+
+        try:
+            await ctx.guild.fetch_ban(user)
+        except discord.NotFound:
+            return await ctx.send(embed=create_embed(
+                "",
+                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{user.name}** is not banned.",
+                ctx,
+                include_author=False
+            ))
 
         # Iterate through the async generator
-        async for ban_entry in ctx.guild.bans(limit=None):
-            if ban_entry.user.id == user_id:
-                await ctx.guild.unban(ban_entry.user)
-                await ctx.send("https://tenor.com/view/doctor-manhattan-watchmen-marvel-gif-21030500")
-                await ctx.send(embed=create_embed(
-                    "", f"{ctx.author.mention}: **{ban_entry.user.name}** has been unbanned from **{ctx.guild.name}**.", ctx, color=0x71906e, include_author=False
-                ))
-                return
+        await ctx.guild.unban(user)
+        await ctx.send(content="https://tenor.com/view/doctor-manhattan-watchmen-marvel-gif-21030500",
+                       embed=create_embed(
+            "",
+            f"{ctx.author.mention}: **{user.name}** has been unbanned from **{ctx.guild.name}**.",
+            ctx,
+            color=0x71906e,
+            include_author=False
+        ))
 
-        await ctx.send("User not found in ban list.")
     except Exception as e:
-        await ctx.send(f"**ERROR:** {e}. (Must use **UserID**)")
+        await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Failed to unban: {e}",
+            ctx,
+            include_author=False
+        ))
 
 @bot.command()
 @commands.has_permissions(kick_members=True)
@@ -2935,28 +2955,15 @@ async def role(ctx, user: str = None, *, role: str = None):
         await ctx.send(embed=embed)
         return
 
-    # ===========================
-    #   Find Member
-    # ===========================
-    member = None
-
-    # If user mentioned
-    if ctx.message.mentions:
-        member = ctx.message.mentions[0]
-    else:
-        search = user.lower()
-        member = discord.utils.find(
-            lambda m: search in m.name.lower()
-            or search in m.display_name.lower()
-            or search in str(m).lower(),
-            ctx.guild.members
-        )
+    member = await resolve_user(ctx, user)
+    if member and not isinstance(member, discord.Member):
+        member = ctx.guild.get_member(member.id)
 
     if member is None:
         await ctx.send(
             embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Could not find user `{user}`.",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Could not find user `{user}`.",
                 ctx,
                 include_author=False
             )
@@ -2966,16 +2973,7 @@ async def role(ctx, user: str = None, *, role: str = None):
     # ===========================
     #   Find Role
     # ===========================
-    role_obj = None
-
-    if ctx.message.role_mentions:
-        role_obj = ctx.message.role_mentions[0]
-    else:
-        search_role = role.lower()
-        role_obj = discord.utils.find(
-            lambda r: search_role in r.name.lower(),
-            ctx.guild.roles
-        )
+    role_obj = resolve_role(ctx.guild, role)
 
     if role_obj is None:
         await ctx.send(
