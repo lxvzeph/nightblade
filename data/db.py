@@ -196,3 +196,23 @@ def init_db():
             PRIMARY KEY (guild_id, user_id)
         )
         """)
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS afk_users (
+            user_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            timestamp INTEGER NOT NULL
+        )
+        """)
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS afk_mentions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild_id TEXT NOT NULL,
+            afk_user_id TEXT NOT NULL,
+            mentioner_id TEXT NOT NULL,
+            channel_id TEXT NOT NULL,
+            timestamp INTEGER NOT NULL
+        )
+        """)
+        conn.commit()

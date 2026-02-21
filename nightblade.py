@@ -66,6 +66,15 @@ from data.commands import (
     clear_command_restrictions
 )
 from data.forcename import get_forced_nickname, set_forced_nickname, remove_forced_nickname, get_all_forced_in_guild
+from data.afk import (
+    set_afk,
+    get_afk,
+    remove_afk,
+    add_mention,
+    get_mentions,
+    cleanup_old_afk
+
+)
 from datetime import datetime, timezone, timedelta
 from discord.ext.commands import BucketType, MemberConverter, BadArgument
 from discord.ui import View, Button
@@ -1003,9 +1012,12 @@ class HistoryView(discord.ui.View):
         self.ctx = ctx
         self.member = member
         self.timed_out = False
-        self.case_list = case_list  # list of (case_id, case)
+        self.case_list = case_list
         self.page = page
         self.message = None
+
+        if len(case_list) <= 10:
+            self.clear_items()
 
     def make_embed(self):
         start = (self.page - 1) * PAGE_SIZE
@@ -1267,6 +1279,9 @@ async def history_all(ctx):
             self.case_list = case_list
             self.page = 1
             self.message = None
+
+            if len(case_list) <= 10:
+                self.clear_items()
 
         def make_embed(self):
             start = (self.page - 1) * PAGE_SIZE
@@ -4063,17 +4078,137 @@ async def help(ctx, *, command_name: str = None):
 # -----------------------------
 # Utility: AFK
 # -----------------------------
-afk_users = {}  # user_id: (status, start_time)
 
-@bot.command()
+@bot.group(invoke_without_command=True)
 async def afk(ctx, *, status: str = "AFK"):
-    """Sets an AFK status"""
-    afk_users[ctx.author.id] = (status, discord.utils.utcnow())
+    """Sets an AFK status
+    example: afk sleep"""
+    
+    set_afk(ctx.author.id, status)
+
     await ctx.reply(embed=create_embed(
         "",
-        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: you're now AFK with a status: {status}",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: you're now AFK with a status: **{status}**",
         ctx, include_author=False
     ), mention_author=False)
+
+@afk.command(name="mentions")
+async def afk_mentions(ctx):
+    """View who mentioned you while you're away"""
+    
+    mentions = get_mentions(ctx.author.id, ctx.guild.id)
+
+    if not mentions:
+        return await ctx.send(embed=create_embed(
+            "",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: No mentions found.",
+            ctx, include_author=False
+        ))
+    
+    class AFKMentionsView(discord.ui.View):
+        def __init__(self, ctx, mentions):
+            super().__init__(timeout=60)
+            self.ctx = ctx
+            self.mentions = mentions
+            self.index = 0
+            self.per_page = 10
+            self.message = None
+            
+            # Remove buttons if 10 or fewer mentions
+            if len(mentions) <= 10:
+                self.clear_items()
+        
+        def get_embed(self):
+            start = self.index * self.per_page
+            end = start + self.per_page
+            current_mentions = self.mentions[start:end]
+            
+            lines = []
+            for i, (guild_id, mentioner_id, channel_id, timestamp) in enumerate(current_mentions, start=start + 1):
+                user = self.ctx.guild.get_member(int(mentioner_id))
+                user_name = user.mention if user else f"Unknown User"
+
+                channel = bot.get_channel(int(channel_id))
+                channel_mention = channel.mention if channel else "#unknown"
+                
+                time_display = discord.utils.format_dt(
+                    datetime.fromtimestamp(timestamp, tz=timezone.utc), 
+                    style="R"
+                )
+                lines.append(f"{i}. {user_name} mentioned you in {channel_mention} — {time_display}")
+            
+            embed = create_embed(
+                "AFK Mentions",
+                "\n".join(lines),
+                self.ctx
+            )
+            embed.set_author(name=self.ctx.author.display_name, icon_url=self.ctx.author.avatar.url if self.ctx.author.avatar else None)
+            
+            total_pages = max(1, (len(self.mentions) - 1) // self.per_page + 1)
+            embed.set_footer(text=f"{self.index + 1}/{total_pages} • {len(self.mentions)} mention(s)")
+            
+            return embed
+        
+        async def update(self, interaction):
+            await interaction.response.edit_message(embed=self.get_embed(), view=self)
+        
+        @discord.ui.button(label="◀", style=discord.ButtonStyle.secondary)
+        async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            self.index = (self.index - 1) % max(1, (len(self.mentions) - 1) // self.per_page + 1)
+            await self.update(interaction)
+        
+        @discord.ui.button(label="▶", style=discord.ButtonStyle.secondary)
+        async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            self.index = (self.index + 1) % max(1, (len(self.mentions) - 1) // self.per_page + 1)
+            await self.update(interaction)
+        
+        @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
+        async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
+            if interaction.user.id != self.ctx.author.id:
+                return await interaction.response.send_message(
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    ephemeral=True
+                )
+            await interaction.message.delete()
+            self.stop()
+        
+        async def on_timeout(self):
+            for child in self.children:
+                child.disabled = True
+            try:
+                await self.message.edit(view=None)
+            except:
+                pass
+            self.stop()
+    
+    view = AFKMentionsView(ctx, mentions)
+    view.message = await ctx.send(embed=view.get_embed(), view=view)
+
+# Helper function for formatting time
+def format_duration(seconds: int) -> str:
+    """Format seconds into a readable duration string."""
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    
+    if days:
+        return f"**{days}d {hours}h {minutes}m**"
+    elif hours:
+        return f"**{hours}h {minutes}m {seconds}s**"
+    elif minutes:
+        return f"**{minutes}m {seconds}s**"
+    else:
+        return f"**{seconds}s**"
 
 def strip_bot_mention(message, bot):
     content = message.content
@@ -4109,28 +4244,44 @@ async def on_message(message):
             else:
                 await message.reply("yes", mention_author=False)
 
-    # Remove AFK status if the AFK user sends a message
-    if message.author.id in afk_users:
-        status, start_time = afk_users.pop(message.author.id)
-        duration = discord.utils.utcnow() - start_time
-        minutes, seconds = divmod(int(duration.total_seconds()), 60)
-        hours, minutes = divmod(minutes, 60)
-        time_str = f"**{hours} hours**, **{minutes} minutes** and **{seconds} seconds**" if hours else f"**{minutes} minutes** and **{seconds} seconds**" if minutes else f"**{seconds} seconds**"
-        await message.reply(embed=create_embed(
-            "",
-            f"<a:sword_spin:1211611749426667560>  Welcome back {message.author.mention}, you were AFK for {time_str}.",
-            message, include_author=False
-        ), mention_author=False)
+    afk_data = get_afk(message.author.id)
+    if afk_data:
+        status, afk_timestamp = afk_data
+        remove_afk(message.author.id)
 
-    # Notify if a mentioned user is AFK
-    for user in message.mentions:
-        if user.id in afk_users:
-            status, _ = afk_users[user.id]
-            await message.reply(embed=create_embed(
+        duration = int(time.time()) - afk_timestamp
+        time_str = format_duration(duration)
+        
+        await message.reply(
+            embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560>  {message.author.mention}: **{user.name}** is currently AFK. **Status:** {status}",
-                message, include_author=False
-            ), mention_author=False)
+                f"<a:sword_spin:1211611749426667560> Welcome back {message.author.mention}, you were AFK for **{time_str}**.",
+                message,
+                include_author=False
+            ),
+            mention_author=False
+        )
+
+    for user in message.mentions:
+        afk_data = get_afk(user.id)
+        if afk_data:
+            status, afk_timestamp = afk_data
+
+            add_mention(message.guild.id, user.id, message.author.id, message.channel.id)
+
+            afk_time = datetime.fromtimestamp(afk_timestamp, tz=timezone.utc)
+            time_ago_str = discord.utils.format_dt(afk_time, style="R")
+
+            await message.reply(
+                embed=create_embed(
+                    "",
+                    f"<a:sword_spin:1211611749426667560> {user.mention} is AFK: **{status}** — {time_ago_str}",
+                    message,
+                    include_author=False
+                ),
+                mention_author=False
+            )
+            break
 
     if "y/n" in message.content.lower():
         await message.add_reaction("✅")
@@ -4228,7 +4379,7 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         value="`Manage Nicknames`",
         inline=False
         )
-        embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}forcename <member> <new_name>\n\u001b[35mexample: \u001b[0m{prefix}forcename zeph dumdum```", inline=False)
+        embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax: \u001b[0m{prefix}forcename <member> <forced_name>\n\u001b[35mexample: \u001b[0m{prefix}forcename zeph dumdum```", inline=False)
         await ctx.send(embed=embed)
         return
 
@@ -4349,6 +4500,9 @@ class MembersView(discord.ui.View):
         self.per_page = 10
         self.index = 0
         self.message = None
+
+        if len(members) <= 10:
+            self.clear_items()
 
     def get_embed(self):
         start = self.index * self.per_page
@@ -5331,7 +5485,6 @@ class DefinitionView(discord.ui.View):
         self.ctx = ctx
         self.message = None
 
-    # Build the embed for the current definition
     def get_embed(self):
         definition = self.definitions[self.index]
 
@@ -5344,7 +5497,6 @@ class DefinitionView(discord.ui.View):
 
         return embed
 
-    # Update the message when a button is clicked
     async def update(self, interaction):
         await interaction.response.edit_message(
             embed=self.get_embed(),
@@ -5402,9 +5554,6 @@ async def define(ctx, *, word: str = None):
 
     prefix = p(ctx)
 
-    # ---------------------------------
-    # CASE 1 — no word specified
-    # ---------------------------------
     if word is None:
         embed = create_embed(
             "command: define",
@@ -5423,10 +5572,6 @@ async def define(ctx, *, word: str = None):
         )
         return await ctx.send(embed=embed)
 
-    # ---------------------------------
-    # CASE 2 — word provided
-    # ---------------------------------
-
     url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
 
     async with ctx.typing():
@@ -5442,7 +5587,6 @@ async def define(ctx, *, word: str = None):
 
                 data = await r.json()
 
-    # Extract definition
     try:
         definition = data[0]["meanings"][0]["definitions"][0]["definition"]
     except Exception:
@@ -5481,8 +5625,6 @@ async def define(ctx, *, word: str = None):
             )
         )
 
-
-    # Send result
     view = DefinitionView(definitions, word, pronunciation, ctx)
     view.message = await ctx.send(embed=view.get_embed(), view=view)
 
@@ -5645,6 +5787,9 @@ class RolesView(discord.ui.View):
         self.per_page = 10
         self.message = None
 
+        if len(roles) <= 10:
+            self.clear_items()
+
     # Build embed for current page
     def get_embed(self):
         start = self.index * self.per_page
@@ -5746,6 +5891,9 @@ class BotsView(discord.ui.View):
         self.index = 0
         self.per_page = 10
         self.message = None
+
+        if len(bots) <= 10:
+            self.clear_items()
 
     def get_embed(self):
         start = self.index * self.per_page

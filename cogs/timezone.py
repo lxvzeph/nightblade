@@ -331,6 +331,9 @@ class Timezone(commands.Cog):
                 self.page = 1
                 self.message = None
 
+                if len(entries) <= 10:
+                    self.clear_items()
+
             def make_embed(self):
                 start = (self.page - 1) * PER_PAGE
                 subset = self.entries[start:start + PER_PAGE]
