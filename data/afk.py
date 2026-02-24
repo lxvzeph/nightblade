@@ -34,7 +34,7 @@ def remove_afk(user_id: int):
             (str(user_id),)
         )
 
-def add_mention(guild_id: int, afk_user_id: int, mentioner_id: int, channel_id: int):
+def add_mention(guild_id: int, afk_user_id: int, mentioner_id: int, channel_id: int, message_id: int):
     with get_connection() as conn:
         # Clean old mentions before adding new one
         cutoff = int(time.time()) - TWODAYS
@@ -44,8 +44,8 @@ def add_mention(guild_id: int, afk_user_id: int, mentioner_id: int, channel_id: 
         )
         
         conn.execute(
-            "INSERT INTO afk_mentions (guild_id, afk_user_id, mentioner_id, channel_id, timestamp) VALUES (?, ?, ?, ?, ?)",
-            (str(guild_id), str(afk_user_id), str(mentioner_id), str(channel_id), int(time.time()))
+            "INSERT INTO afk_mentions (guild_id, afk_user_id, mentioner_id, channel_id, message_id, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            (str(guild_id), str(afk_user_id), str(mentioner_id), str(channel_id), str(message_id), int(time.time()))
         )
 
 def get_mentions(afk_user_id: int, guild_id: int = None):
@@ -54,12 +54,12 @@ def get_mentions(afk_user_id: int, guild_id: int = None):
     with get_connection() as conn:
         if guild_id:
             cur = conn.execute(
-                "SELECT guild_id, mentioner_id, channel_id, timestamp FROM afk_mentions WHERE afk_user_id = ? AND guild_id = ? AND timestamp >= ? ORDER BY timestamp DESC",
+                "SELECT guild_id, mentioner_id, channel_id, message_id, timestamp FROM afk_mentions WHERE afk_user_id = ? AND guild_id = ? AND timestamp >= ? ORDER BY timestamp DESC",
                 (str(afk_user_id), str(guild_id), cutoff)
             )
         else:
             cur = conn.execute(
-                "SELECT guild_id, mentioner_id, channel_id, timestamp FROM afk_mentions WHERE afk_user_id = ? AND timestamp >= ? ORDER BY timestamp DESC",
+                "SELECT guild_id, mentioner_id, channel_id, message_id, timestamp FROM afk_mentions WHERE afk_user_id = ? AND timestamp >= ? ORDER BY timestamp DESC",
                 (str(afk_user_id), cutoff)
             )
         return cur.fetchall()

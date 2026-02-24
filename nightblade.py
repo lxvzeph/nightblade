@@ -4124,18 +4124,23 @@ async def afk_mentions(ctx):
             current_mentions = self.mentions[start:end]
             
             lines = []
-            for i, (guild_id, mentioner_id, channel_id, timestamp) in enumerate(current_mentions, start=start + 1):
+            for i, (guild_id, mentioner_id, channel_id, message_id, timestamp) in enumerate(current_mentions, start=start + 1):
                 user = self.ctx.guild.get_member(int(mentioner_id))
                 user_name = user.mention if user else f"Unknown User"
 
                 channel = bot.get_channel(int(channel_id))
-                channel_mention = channel.mention if channel else "#unknown"
+                message_link = f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
+
+                if channel:
+                    channel_display = f"[#{channel.name}]({message_link})"
+                else:
+                    channel_display = f"[#unknown]({message_link})"
                 
                 time_display = discord.utils.format_dt(
                     datetime.fromtimestamp(timestamp, tz=timezone.utc), 
                     style="R"
                 )
-                lines.append(f"{i}. {user_name} mentioned you in {channel_mention} — {time_display}")
+                lines.append(f"{i}. {user_name} mentioned you in {channel_display} — {time_display}")
             
             embed = create_embed(
                 "AFK Mentions",
@@ -4145,7 +4150,7 @@ async def afk_mentions(ctx):
             embed.set_author(name=self.ctx.author.display_name, icon_url=self.ctx.author.avatar.url if self.ctx.author.avatar else None)
             
             total_pages = max(1, (len(self.mentions) - 1) // self.per_page + 1)
-            embed.set_footer(text=f"{self.index + 1}/{total_pages} • {len(self.mentions)} mention(s)")
+            embed.set_footer(text=f"{self.index + 1}/{total_pages}  •  {len(self.mentions)} mention(s)")
             
             return embed
         
@@ -4196,19 +4201,19 @@ async def afk_mentions(ctx):
 
 # Helper function for formatting time
 def format_duration(seconds: int) -> str:
-    """Format seconds into a readable duration string."""
+
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
     days, hours = divmod(hours, 24)
     
     if days:
-        return f"**{days}d {hours}h {minutes}m**"
+        return f"**{days} {'day' if days == 1 else 'days'}**"
     elif hours:
-        return f"**{hours}h {minutes}m {seconds}s**"
+        return f"**{hours} {'hour' if hours == 1 else 'hours'} and {minutes} {'minute' if minutes == 1 else 'minutes'}**"
     elif minutes:
-        return f"**{minutes}m {seconds}s**"
+        return f"**{minutes} {'minute' if minutes == 1 else 'minutes'} and {seconds} {'second' if seconds == 1 else 'seconds'}**"
     else:
-        return f"**{seconds}s**"
+        return f"**{seconds} {'second' if seconds == 1 else 'seconds'}**"
 
 def strip_bot_mention(message, bot):
     content = message.content
@@ -4267,7 +4272,7 @@ async def on_message(message):
         if afk_data:
             status, afk_timestamp = afk_data
 
-            add_mention(message.guild.id, user.id, message.author.id, message.channel.id)
+            add_mention(message.guild.id, user.id, message.author.id, message.channel.id, message.id)
 
             afk_time = datetime.fromtimestamp(afk_timestamp, tz=timezone.utc)
             time_ago_str = discord.utils.format_dt(afk_time, style="R")

@@ -212,7 +212,15 @@ def init_db():
             afk_user_id TEXT NOT NULL,
             mentioner_id TEXT NOT NULL,
             channel_id TEXT NOT NULL,
+            message_id TEXT NOT NULL,
             timestamp INTEGER NOT NULL
         )
         """)
         conn.commit()
+
+with get_connection() as conn:
+    try:
+        conn.execute("ALTER TABLE afk_mentions ADD COLUMN message_id TEXT NOT NULL DEFAULT '0'")
+        print("Added message_id column to afk_mentions table")
+    except:
+        print("message_id column already exists or error occurred")
