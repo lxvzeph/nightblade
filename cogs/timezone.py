@@ -348,7 +348,7 @@ class Timezone(commands.Cog):
                 total = len(self.entries)
                 pages = (total + PER_PAGE - 1) // PER_PAGE or 1
                 embed.set_author(name=self.ctx.guild.name, icon_url=self.ctx.guild.icon.url if self.ctx.guild.icon else None)
-                embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} members")
+                embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} {'member' if total == 1 else 'members'}")
                 return embed
 
             async def update_message(self, interaction):

@@ -284,7 +284,7 @@ async def resolve_user(ctx, value: str):
 @bot.check
 async def command_restriction_check(ctx):
     if not ctx.guild:
-        return True  # ignore DMs
+        return True 
 
     gid = ctx.guild.id
     cmd = ctx.command.name
@@ -1023,7 +1023,7 @@ class HistoryView(discord.ui.View):
             embed.description = "\n".join(lines)
         total = len(self.case_list)
         pages = (total + PAGE_SIZE - 1) // PAGE_SIZE or 1
-        embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} cases")
+        embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} {'case' if total == 1 else 'cases'}")
         return embed
 
     async def update_message(self, interaction: discord.Interaction):
@@ -1033,7 +1033,7 @@ class HistoryView(discord.ui.View):
     async def prev(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(
-                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                 ephemeral=True
             )
         total = len(self.case_list)
@@ -1048,7 +1048,7 @@ class HistoryView(discord.ui.View):
     async def nxt(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(
-                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                 ephemeral=True
             )
         total = len(self.case_list)
@@ -1063,7 +1063,7 @@ class HistoryView(discord.ui.View):
     async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(
-                embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                 ephemeral=True
             )
         await interaction.message.delete()
@@ -1280,7 +1280,7 @@ async def history_all(ctx):
             embed.set_author(name=self.ctx.guild.name, icon_url=self.ctx.guild.icon.url if self.ctx.guild.icon else None)
             total = len(self.case_list)
             pages = (total + PAGE_SIZE - 1) // PAGE_SIZE or 1
-            embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} cases")
+            embed.set_footer(text=f"{self.page}/{pages}  ∙  {total} {'case' if total == 1 else 'cases'}")
             return embed
 
         async def update_message(self, interaction):
@@ -1290,7 +1290,7 @@ async def history_all(ctx):
         async def prev(self, interaction: discord.Interaction, button: discord.ui.Button):
             if interaction.user.id != self.ctx.author.id:
                 return await interaction.response.send_message(
-                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                     ephemeral=True
                 )
             if self.page > 1:
@@ -1303,7 +1303,7 @@ async def history_all(ctx):
         async def nxt(self, interaction: discord.Interaction, button: discord.ui.Button):
             if interaction.user.id != self.ctx.author.id:
                 return await interaction.response.send_message(
-                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                     ephemeral=True
                 )
             total = len(self.case_list)
@@ -1318,7 +1318,7 @@ async def history_all(ctx):
         async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
             if interaction.user.id != self.ctx.author.id:
                 return await interaction.response.send_message(
-                    embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
+                    embed=create_embed("", f"<a:sword_spin:1211611749426667560> {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
                     ephemeral=True
                 )
             await interaction.message.delete()
@@ -1371,7 +1371,6 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
     except BadArgument:
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Couldn't resolve the member. Use mention or ID.", ctx, include_author=False))
     except Exception as e:
-        # If this triggers, you'll see the real error instead of it being swallowed.
         return await ctx.send(embed=create_embed("", f"Error resolving member: `{e}`", ctx, include_author=False))
 
     if member == ctx.author:
@@ -1384,7 +1383,6 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
             ctx, include_author=False
         ))
 
-    # === Bot hierarchy check ===
     if member.top_role.position >= ctx.guild.me.top_role.position:
         return await ctx.send(embed=create_embed(
             "",
@@ -1392,7 +1390,6 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
             ctx, include_author=False
         ))
 
-    # Explicit admin check (Discord protects admins)
     if getattr(member, "guild_permissions", None) and member.guild_permissions.administrator:
         return await ctx.send(embed=create_embed(
             "",
@@ -1400,7 +1397,6 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
             ctx, include_author=False
         ))
 
-    # Send DM first before banning (otherwise they can’t receive it)
     try:
         dm_embed = discord.Embed(
             title="/ban",
@@ -1414,16 +1410,14 @@ async def ban(ctx, member: discord.Member = None, *, reason=None):
         dm_embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1069850380114067490/1437817233907912817/lv_0_20240227091826-ezgif.com-gif-maker.gif")
         await member.send(embed=dm_embed)
     except (discord.Forbidden, discord.HTTPException):
-        pass  # user has DMs closed or blocked the bot
+        pass
 
-    # Ban the member
     try:
         await member.ban(reason=reason, delete_message_days=0)
         create_case(ctx.guild.id, member.id, "ban", reason, ctx.author.id)
     except discord.Forbidden:
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Cannot ban **{member.name}**. They may have `Administrator` or a higher role than you.", ctx, include_author=False))
 
-    # Send confirmation message in the channel
     await ctx.send("https://tenor.com/view/dr-manhattan-gif-18899941")
     await ctx.send(embed=create_embed(
             "",
@@ -1469,7 +1463,6 @@ async def unban(ctx, *, member: str = None):
                 include_author=False
             ))
 
-        # Iterate through the async generator
         await ctx.guild.unban(user)
         await ctx.send(content="https://tenor.com/view/doctor-manhattan-watchmen-marvel-gif-21030500",
                        embed=create_embed(
@@ -1519,7 +1512,6 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     except BadArgument:
         return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Couldn't resolve the member. Use mention or ID.", ctx, include_author=False))
     except Exception as e:
-        # If this triggers, you'll see the real error instead of it being swallowed.
         return await ctx.send(embed=create_embed("", f"Error resolving member: `{e}`", ctx, include_author=False))
 
     if member == ctx.author:
@@ -1532,7 +1524,6 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
             ctx, include_author=False
         ))
 
-    # === Bot hierarchy check ===
     if member.top_role.position >= ctx.guild.me.top_role.position:
         return await ctx.send(embed=create_embed(
             "",
@@ -1540,7 +1531,6 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
             ctx, include_author=False
         ))
 
-    # Explicit admin check (Discord protects admins)
     if getattr(member, "guild_permissions", None) and member.guild_permissions.administrator:
         return await ctx.send(embed=create_embed(
             "",
@@ -1559,7 +1549,6 @@ async def kick(ctx, member: discord.Member = None, *, reason=None):
     )
     dm_embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1069850380114067490/1437817233907912817/lv_0_20240227091826-ezgif.com-gif-maker.gif")
 
-    # Send DM (ignore failure to DM)
     try:
         await member.send(embed=dm_embed)
     except Exception:
@@ -1620,7 +1609,6 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
             ctx, include_author=False
         ))
 
-    # === Bot hierarchy check ===
     if member.top_role.position >= ctx.guild.me.top_role.position:
         return await ctx.send(embed=create_embed(
             "",
@@ -1628,7 +1616,6 @@ async def timeout(ctx, member: discord.Member = None, duration: str = None, *, r
             ctx, include_author=False
         ))
 
-    # Explicit admin check (Discord protects admins)
     if getattr(member, "guild_permissions", None) and member.guild_permissions.administrator:
         return await ctx.send(embed=create_embed(
             "",
@@ -1702,7 +1689,6 @@ async def untimeout(ctx, member: discord.Member = None):
         
     if not member.timed_out_until or member.timed_out_until <= datetime.now(tz=timezone.utc):
         return await ctx.send(embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: **{member.name}** is not timed out.", ctx, include_author=False))
-    # Remove timeout by passing None as the positional 'until' argument
     await member.timeout(None)
     
     await ctx.send(embed=create_embed(
@@ -1754,7 +1740,6 @@ async def warn(ctx, member: discord.Member = None, *, reason: str = None):
             ctx, include_author=False
         ))
 
-    # === Bot hierarchy check ===
     if member.top_role.position >= ctx.guild.me.top_role.position:
         return await ctx.send(embed=create_embed(
             "",
@@ -1831,7 +1816,7 @@ async def warnings(ctx, member:discord.Member = None):
         mod = ctx.guild.get_member(w["mod"])
         mod_name = mod.mention if mod else "Unknown"
         timestamp = discord.utils.format_dt(discord.utils.datetime.datetime.utcfromtimestamp(w["timestamp"]), style="R")
-        lines.append(f"**{i}.** `{w['reason']}`  —  {mod_name} ({timestamp})")
+        lines.append(f"`{i}.` `{w['reason']}`  —  {mod_name} ({timestamp})")
     
     embed.description = "\n".join(lines)
 
@@ -1897,11 +1882,7 @@ async def warnings_clear(ctx, member: discord.Member = None):
     ))
 
 
-# JAIL SYSTEM (PER-SERVER VERSION)
-
-# ---------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------
+# JAIL SYSTEM
 
 def get_guild_jail(guild_id: int):
     """Returns {role_id, channel_id} for that guild or None"""
@@ -1944,11 +1925,6 @@ async def jail_instruction_embed(ctx):
     await ctx.send(embed=embed)
 
 
-
-# ---------------------------------------------------------
-# jailset — per server setup
-# ---------------------------------------------------------
-
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True, manage_channels=True)
 async def jailset(ctx, role_arg=None, channel_arg=None):
@@ -1956,7 +1932,6 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     guild = ctx.guild
     prefix = p(ctx)
 
-    # Already set?
     if not jail_system_not_set(guild):
         config = get_guild_jail(guild.id)
         role = guild.get_role(config["role_id"])
@@ -1979,7 +1954,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     )
     status_msg = await ctx.send(embed=loading_embed)
 
-    # 1) ROLE SETUP
+    # ROLE SETUP
     if role_arg is None:
         role = await guild.create_role(name="jailed", reason="auto-generated jail role")
     else:
@@ -1988,7 +1963,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
         if role is None:
             role = await guild.create_role(name=role_arg, reason="jailset created role")
 
-    # 2) CHANNEL SETUP
+    # CHANNEL SETUP
     channel = None
     if channel_arg is not None:
         channel = resolve_channel(guild, channel_arg)
@@ -2029,12 +2004,8 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
             }
         )
 
-
-
-    # SAVE PER-SERVER CONFIG
     set_guild_jail(guild.id, role.id, channel.id)
 
-    # Lock all other channels
     for ch in guild.text_channels:
         if ch.id != channel.id:
             try:
@@ -2205,9 +2176,6 @@ async def jailset_channel(ctx, *, newchannel: str = None):
         ctx, include_author=False
     ))
 
-# ---------------------------------------------------------
-# jail — apply punishment
-# ---------------------------------------------------------
 
 @bot.command()
 @commands.has_permissions(moderate_members=True)
@@ -2268,11 +2236,6 @@ async def jail(ctx, member: discord.Member = None, *, reason=None):
     except:
         pass
 
-
-
-# ---------------------------------------------------------
-# unjail — release
-# ---------------------------------------------------------
 
 @bot.command(aliases=["release", "unj"])
 @commands.has_permissions(moderate_members=True)
@@ -2351,7 +2314,7 @@ async def on_guild_channel_delete(channel):
         delete_jail_config(channel.guild.id)
 
 # ===========================
-#      PER-SERVER IMUTE
+#      IMUTE
 # ===========================
 
 def imute_not_set(guild):
@@ -2361,7 +2324,6 @@ def imute_not_set(guild):
 
     role = guild.get_role(role_id)
     if not role:
-        # cleanup invalid role
         delete_imute_role(guild.id)
         return True
 
@@ -2381,10 +2343,6 @@ async def imute_instruction_embed(ctx):
     embed.set_footer(text="TIP:  You can provide an existing role or let the bot create one.")
     await ctx.send(embed=embed)
 
-
-# ===========================
-#         imuteset
-# ===========================
 
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
@@ -2414,30 +2372,25 @@ async def imuteset(ctx, *, role_arg=None):
     )
     status_msg = await ctx.send(embed=loading_embed)
 
-    # No argument → auto-create role
     if role_arg is None:
         role = await guild.create_role(
             name="imuted",
             reason="auto-created imute role"
         )
     else:
-        # Mentioned role
         role = None
         if ctx.message.role_mentions:
             role = ctx.message.role_mentions[0]
 
-        # Exact name
         if role is None:
             role = resolve_role(guild, role_arg)
 
-        # Create if not found
         if role is None:
             role = await guild.create_role(
                 name=role_arg,
                 reason="created with imuteset command"
             )
 
-    # Apply NO ATTACHMENTS permissions
     for ch in guild.channels:
         try:
             perms = ch.overwrites_for(role)
@@ -2447,7 +2400,6 @@ async def imuteset(ctx, *, role_arg=None):
         except:
             pass
 
-    # Save role per server
     set_imute_role_id(guild.id, role.id)
 
     final_embed = discord.Embed(
@@ -2527,9 +2479,6 @@ async def imuteset_role(ctx, *, newrole: str = None):
         ctx, include_author=False
     ))
 
-# ===========================
-#          imute
-# ===========================
 
 @bot.command()
 @commands.has_permissions(moderate_members=True)
@@ -2594,7 +2543,7 @@ async def imute(ctx, member: discord.Member = None, *, reason=None):
         ))
 
 # ===========================
-#      PER-SERVER RMUTE
+#      RMUTE
 # ===========================
 
 def rmute_not_set(guild):
@@ -2604,7 +2553,6 @@ def rmute_not_set(guild):
 
     role = guild.get_role(role_id)
     if not role:
-        # clean invalid entry
         delete_rmute_role(guild.id)
         return True
 
@@ -2625,10 +2573,6 @@ async def rmute_instruction_embed(ctx):
     embed.set_footer(text="TIP: You can provide an existing role, or let the bot create one.")
     await ctx.send(embed=embed)
 
-
-# ===========================
-#         rmuteset
-# ===========================
 
 @bot.group(invoke_without_command=True)
 @commands.has_permissions(moderate_members=True, manage_roles=True)
@@ -2658,7 +2602,6 @@ async def rmuteset(ctx, *, role_arg=None):
     )
     status_msg = await ctx.send(embed=loading_embed)
 
-    # Auto-create role
     if role_arg is None:
         role = await guild.create_role(
             name="rmuted",
@@ -2667,22 +2610,18 @@ async def rmuteset(ctx, *, role_arg=None):
     else:
         role = None
 
-        # Mentioned role
         if ctx.message.role_mentions:
             role = ctx.message.role_mentions[0]
 
-        # Exact name
         if role is None:
             role = resolve_role(guild, role_arg)
 
-        # Create new if not found
         if role is None:
             role = await guild.create_role(
                 name=role_arg,
                 reason="created via rmuteset command"
             )
 
-    # Apply NO REACTIONS to all channels
     for ch in guild.channels:
         try:
             perms = ch.overwrites_for(role)
@@ -2691,7 +2630,6 @@ async def rmuteset(ctx, *, role_arg=None):
         except:
             pass
 
-    # Save per-server role
     set_rmute_role_id(guild.id, role.id)
 
     final_embed = discord.Embed(
@@ -2770,10 +2708,6 @@ async def rmuteset_role(ctx, *, newrole: str = None):
     ))
 
 
-# ===========================
-#           rmute
-# ===========================
-
 @bot.command()
 @commands.has_permissions(moderate_members=True)
 async def rmute(ctx, member: discord.Member = None, *, reason=None):
@@ -2784,7 +2718,6 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
 
     prefix = get_prefix(bot, ctx.message)
 
-    # Instruction
     if not member:
         embed = create_embed("command: rmute", "Toggles a member's reaction permissions", ctx)
         embed.add_field(
@@ -2805,7 +2738,6 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
         await ctx.send(embed=embed)
         return
 
-    # Prevent self rmute
     if member == ctx.author:
         return await ctx.send(embed=create_embed(
             "",
@@ -2820,7 +2752,6 @@ async def rmute(ctx, member: discord.Member = None, *, reason=None):
     if not rmute_role:
         return await rmute_instruction_embed(ctx)
 
-    # Already muted
     if rmute_role in member.roles:
         await member.remove_roles(rmute_role)
         await ctx.send(embed=create_embed(
@@ -2929,9 +2860,6 @@ async def role(ctx, user: str = None, *, role: str = None):
 
     prefix = p(ctx)
 
-    # ===========================
-    #   Missing Arguments
-    # ===========================
     if user is None or role is None:
         embed = create_embed(
             "command: role",
@@ -2964,9 +2892,6 @@ async def role(ctx, user: str = None, *, role: str = None):
         )
         return
 
-    # ===========================
-    #   Find Role
-    # ===========================
     role_obj = resolve_role(ctx.guild, role)
 
     if role_obj is None:
@@ -2980,9 +2905,6 @@ async def role(ctx, user: str = None, *, role: str = None):
         )
         return
 
-    # ===========================
-    #   Assign / Remove Role
-    # ===========================
     try:
         if role_obj in member.roles:
             await member.remove_roles(role_obj)
@@ -3020,7 +2942,6 @@ async def roleinfo(ctx, *, role_input: str = None):
     """View a specific role info or your own top role
     example: roleinfo @members"""
 
-    # If no role specified → use author's highest role
     if role_input is None:
         role = ctx.author.top_role
     else:
@@ -3035,7 +2956,6 @@ async def roleinfo(ctx, *, role_input: str = None):
                 )
             )
 
-    # Collect member list
     members = [m.name for m in role.members]
 
     if len(members) > 7:
@@ -3047,7 +2967,6 @@ async def roleinfo(ctx, *, role_input: str = None):
 
     hex_code = f"#{role.color.value:06X}"
 
-    # Build embed
     embed = discord.Embed(
         title=role.name,
         color=role.color if role.color.value != 0 else 0x2f3136
@@ -3084,7 +3003,7 @@ async def roleinfo(ctx, *, role_input: str = None):
     await ctx.send(embed=embed)
 
 # -----------------------------
-# Role management: autorole
+# autorole
 # -----------------------------
 
 @bot.group(aliases=["ar"], invoke_without_command=True)
@@ -3214,7 +3133,7 @@ async def on_member_join(member):
 
 
 # -----------------------------
-# Role management: roleedit
+# roleedit
 # -----------------------------
 @bot.group(aliases=["re"], invoke_without_command=True)
 @commands.has_permissions(manage_roles=True)
@@ -3328,7 +3247,7 @@ async def roleedit_color(ctx, role_input: str = None, hex_code: str = None):
 
     
 # -----------------------------
-# Prefix version: just an instruction embed
+# embed
 # -----------------------------
 @bot.command()
 async def embed(ctx):
@@ -3350,10 +3269,6 @@ async def embed(ctx):
     embed.add_field(name="**Utilization**", value="```ansi\n\u001b[35msyntax:\u001b[0m /embed```", inline=False)
     await ctx.send(embed=embed)
 
-# ---------- Interactive Embed Builder (standalone, slash command) ----------
-
-# builder state stored per user (memory only)
-# structure: {user_id: {"state": {...}, "channel_id": int}}
 builder_states = {}
 
 EMBED_PREVIEW_FOOTER = "Edit your embed below."
@@ -3361,13 +3276,11 @@ EMBED_PREVIEW_DESCRIPTION = "This is a preview."
 
 def make_preview_embed(data: dict):
 
-    # --- safe color parsing (only part that changes) ---
     raw_color = data.get("color", "2f3136") or "2f3136"
     try:
         color_value = int(raw_color.lstrip("#"), 16)
     except:
         color_value = int("2f3136", 16)
-    # -----------------------------------------------------
 
     embed = discord.Embed(
         title=data.get("title") or None,
@@ -3375,18 +3288,15 @@ def make_preview_embed(data: dict):
         color=color_value
     )
 
-    # Author
     if data.get("author"):
         embed.set_author(
             name=data["author"],
             icon_url=data.get("author_icon") or None
         )
 
-    # Thumbnail
     if data.get("thumbnail"):
         embed.set_thumbnail(url=data["thumbnail"])
 
-    # ➜ FIELD PREVIEW LOOP GOES HERE
     for field in data.get("fields", []):
         embed.add_field(
             name=field["name"],
@@ -3394,21 +3304,16 @@ def make_preview_embed(data: dict):
             inline=field.get("inline", False)
         )
 
-    # Footer
     footer = data.get("footer")
     if footer:
         embed.set_footer(text=data["footer"])
 
     return embed
 
-# ---------- Modals ----------
 class TitleModal(discord.ui.Modal):
     def __init__(self):
         super().__init__(title="Set Title")
 
-        # IMPORTANT:
-        # TextInputs must be created inside __init__
-        # or Discord will treat them as static and modal breaks after 1 submit.
         self.title_input = discord.ui.TextInput(
             label="Title",
             placeholder="Enter embed title",
@@ -3463,10 +3368,8 @@ class ColorModal(discord.ui.Modal, title="Set Embed Color"):
         value = self.color.value.strip()
 
         if value:
-            # store raw value, parsing happens in preview builder
             data["color"] = value
         else:
-            # blank = delete custom color
             data["color"] = "2f3136"
 
         preview = make_preview_embed(data)
@@ -3523,9 +3426,9 @@ class FooterModal(discord.ui.Modal, title="Set Footer"):
         text = self.footer.value.strip()
 
         if text:
-            data["footer"] = text           # keep footer
+            data["footer"] = text           
         else:
-            data.pop("footer", None)        # remove footer entirely
+            data.pop("footer", None)        
 
         preview = make_preview_embed(data)
 
@@ -3558,35 +3461,28 @@ class AddFieldModal(discord.ui.Modal, title="Add Field"):
     async def on_submit(self, interaction: discord.Interaction):
         uid = interaction.user.id
 
-        # Create field entry
         entry = {
             "name": self.name.value.strip(),
             "value": self.value.value.strip(),
             "inline": (self.inline.value.lower() == "yes")
         }
 
-        # Get or create the builder state
         record = builder_states.setdefault(uid, {"state": {}, "channel_id": interaction.channel_id})
         data = record["state"]
 
-        # Append field slot
         data.setdefault("fields", []).append(entry)
 
-        # Rebuild preview embed
         preview = make_preview_embed(data)
 
-        # Update the builder UI
         await interaction.response.edit_message(
             embed=preview,
             view=EmbedBuilderView(uid)
         )
 
-# ---------- View w/ Dropdown ----------
 class EmbedBuilderView(discord.ui.View):
     def __init__(self, user_id: int):
         super().__init__(timeout=None)
         self.user_id = user_id
-        # add the select to the view
         self.add_item(EmbedComponentSelect(user_id))
 
 class EmbedComponentSelect(discord.ui.Select):
@@ -3606,17 +3502,14 @@ class EmbedComponentSelect(discord.ui.Select):
         super().__init__(placeholder="Edit component...", options=options, min_values=1, max_values=1)
 
     async def callback(self, interaction: discord.Interaction):
-        # ensure only the command author can interact
         if interaction.user.id != self.user_id:
             return await interaction.response.send_message("You are not the author of this builder.", ephemeral=True)
 
         choice = self.values[0]
         uid = interaction.user.id
-        # ensure state exists
         record = builder_states.setdefault(uid, {"state": {}, "channel_id": interaction.channel_id})
         data = record["state"]
 
-        # Route the choices
         if choice == "Title":
             await interaction.response.send_modal(TitleModal())
             return
@@ -3639,19 +3532,16 @@ class EmbedComponentSelect(discord.ui.Select):
             await interaction.response.send_modal(FooterModal())
             return
         if choice == "Cancel":
-            # clear and inform
             builder_states.pop(uid, None)
             await interaction.response.edit_message(content="<a:sword_spin:1211611749426667560>  Embed builder cancelled.", embed=None, view=None)
             return
         if choice == "Finish & Send":
-            # Build final embed and send it publicly to the channel where the command was used.
             target_channel_id = record.get("channel_id") or interaction.channel_id
             channel = interaction.client.get_channel(target_channel_id) or interaction.channel
             final_embed = make_preview_embed(data)
             try:
                 await channel.send(embed=final_embed)
             except Exception as e:
-                # if send fails, notify user
                 await interaction.response.send_message(f"Failed to send embed: {e}", ephemeral=True)
                 return
 
@@ -3659,14 +3549,11 @@ class EmbedComponentSelect(discord.ui.Select):
             await interaction.response.edit_message(content="<a:sword_spin:1211611749426667560>  Embed sent!", embed=None, view=None)
             return
 
-# ---------- Slash command ----------
 @bot.tree.command(name="embed", description="Open the interactive embed builder (ephemeral preview)")
 async def embed(interaction: discord.Interaction):
     uid = interaction.user.id
-    # initialize state if not exists
     builder_states[uid] = {
         "state": {
-            # initial empty state; description prefilled by make_preview_embed
             "title": "",
             "description": "",
             "author_name": "",
@@ -3675,16 +3562,13 @@ async def embed(interaction: discord.Interaction):
             "fields": [],
             "footer": ""
         },
-        "channel_id": interaction.channel_id  # where the final embed will be posted
+        "channel_id": interaction.channel_id
     }
     preview = make_preview_embed(builder_states[uid]["state"])
 
-    # send ephemeral initial builder message with the preview
     await interaction.response.send_message(embed=preview, view=EmbedBuilderView(uid), ephemeral=True)
     
 # COMMANDS HELP
-
-# =================== CUSTOM HELP COMMAND ===================
 
 class HelpView(discord.ui.View):
     def __init__(self, ctx, pages):
@@ -3744,13 +3628,11 @@ def get_command_help_embed(ctx, command, parent_name=None):
     """Generate help embed for a single command."""
     prefix = p(ctx)
     
-    # Full command name (including parent if it's a subcommand)
     if parent_name:
         full_name = f"{parent_name} {command.name}"
     else:
         full_name = command.name
     
-    # Build usage string
     if isinstance(command, commands.Group):
         usage = f"{full_name} <subcommand>"
     else:
@@ -3763,9 +3645,8 @@ def get_command_help_embed(ctx, command, parent_name=None):
     
     if command.help:
         lines = command.help.split('\n')
-        description = lines[0]  # First line is description
+        description = lines[0]  
         
-        # Look for example in remaining lines
         for i, line in enumerate(lines):
             if line.strip().lower().startswith('example:'):
                 example = line.split(':', 1)[1].strip()
@@ -3777,16 +3658,12 @@ def get_command_help_embed(ctx, command, parent_name=None):
         ctx
     )
     
-    # Aliases
     aliases = get_aliases_string(command)
     embed.add_field(name="**Aliases**", value=aliases, inline=False)
     
-    # Permissions
     perms = []
     for check in command.checks:
-        # Check if it's a has_permissions check
         if hasattr(check, '__qualname__') and 'has_permissions' in check.__qualname__:
-            # Try to extract from closure
             if hasattr(check, '__closure__') and check.__closure__:
                 for cell in check.__closure__:
                     try:
@@ -3801,12 +3678,10 @@ def get_command_help_embed(ctx, command, parent_name=None):
     perm_str = "\n".join(perms) if perms else "`n/a`"
     embed.add_field(name="**Permissions Required**", value=perm_str, inline=False)
     
-    # Subcommands for groups
     if isinstance(command, commands.Group):
         subcommands = "\n".join(f"`{cmd.name}`" for cmd in command.commands)
         embed.add_field(name="**Subcommands**", value=subcommands or "`n/a`", inline=False)
     
-    # Usage
     usage_text = f"```ansi\n\u001b[35msyntax: \u001b[0m{usage}"
     if example:
         usage_text += f"\n\u001b[35mexample: \u001b[0m{example}"
@@ -4003,7 +3878,6 @@ async def help(ctx, *, command_name: str = None):
     example: help ban"""
     prefix = p(ctx)
     
-    # No command specified → show category menu (like ;commands)
     if command_name is None:
         embed = create_embed(
             "list of commands",
@@ -4020,7 +3894,6 @@ async def help(ctx, *, command_name: str = None):
         await wait_for_confirmation(bot, ctx.author, ctx.channel, msg, ctx.message)
         return
     
-    # Command specified
     cmd = bot.get_command(command_name)
     
     if cmd is None:
@@ -4031,22 +3904,17 @@ async def help(ctx, *, command_name: str = None):
             include_author=False
         ))
     
-    # Single command (not a group)
     if not isinstance(cmd, commands.Group):
         embed = get_command_help_embed(ctx, cmd)
         return await ctx.send(embed=embed)
     
-    # Group command → paginate through subcommands
     pages = []
     
-    # Main group page
     pages.append(get_command_help_embed(ctx, cmd))
     
-    # Subcommand pages
     for subcmd in cmd.commands:
         pages.append(get_command_help_embed(ctx, subcmd, parent_name=cmd.name))
     
-    # Send with pagination if more than 1 page
     if len(pages) == 1:
         await ctx.send(embed=pages[0])
     else:
@@ -4055,7 +3923,7 @@ async def help(ctx, *, command_name: str = None):
 
 
 # -----------------------------
-# Utility: AFK
+# AFK
 # -----------------------------
 
 @bot.group(invoke_without_command=True)
@@ -4093,7 +3961,6 @@ async def afk_mentions(ctx):
             self.per_page = 10
             self.message = None
             
-            # Remove buttons if 10 or fewer mentions
             if len(mentions) <= 10:
                 self.clear_items()
         
@@ -4128,8 +3995,9 @@ async def afk_mentions(ctx):
             )
             embed.set_author(name=self.ctx.author.display_name, icon_url=self.ctx.author.avatar.url if self.ctx.author.avatar else None)
             
-            total_pages = max(1, (len(self.mentions) - 1) // self.per_page + 1)
-            embed.set_footer(text=f"{self.index + 1}/{total_pages}  •  {len(self.mentions)} mention(s)")
+            total = len(self.mentions)
+            total_pages = max(1, (total - 1) // self.per_page + 1)
+            embed.set_footer(text=f"{self.index + 1}/{total_pages}  ∙  {total} {'mention' if total == 1 else 'mentions'}")
             
             return embed
         
@@ -4178,7 +4046,6 @@ async def afk_mentions(ctx):
     view = AFKMentionsView(ctx, mentions)
     view.message = await ctx.send(embed=view.get_embed(), view=view)
 
-# Helper function for formatting time
 def format_duration(seconds: int) -> str:
 
     minutes, seconds = divmod(seconds, 60)
@@ -4329,7 +4196,6 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
 
     entry = get_forced_nickname(ctx.guild.id, member.id)
     if entry:
-        # Undo forcename
         original = entry["original"]
         try:
             if original is None or original == member.name:
@@ -4698,7 +4564,7 @@ async def userinfo(ctx, *, user: str = None):
         )
         member_index = sorted_members.index(target_member) + 1
 
-        embed.set_footer(text=f"Member #{member_index}  •  Requested by {ctx.author.display_name}")
+        embed.set_footer(text=f"Member #{member_index}  ∙  Requested by {ctx.author.display_name}")
 
     else:
         mutuals = 0
