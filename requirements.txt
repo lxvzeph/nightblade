@@ -4,5 +4,6 @@ flask
 asyncio
 psutil
 pytz
+tzdata
 aiosqlite
 deep-translator

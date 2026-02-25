@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 from zoneinfo import ZoneInfo, available_timezones
-from data.timezones import get_timezone, set_timezone, get_all_timezones_in_guild # Built-in Python timezone database
+from data.timezones import get_timezone, set_timezone, get_all_timezones_in_guild
 
 class TimezoneListView(discord.ui.View):
     def __init__(self, ctx, cities: list[str]):
@@ -318,7 +318,7 @@ class Timezone(commands.Cog):
                 ctx, include_author=False
             ))
 
-        entries.sort(key=lambda e: e[2])  # sort by time string
+        entries.sort(key=lambda e: e[2])
 
         PER_PAGE = 10
 

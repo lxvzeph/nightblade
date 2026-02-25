@@ -337,29 +337,22 @@ async def command_restriction_check(ctx):
 def has_higher_role(author: discord.Member, target: discord.Member | discord.Role):
     """Returns True if author has permission to restrict target, False otherwise."""
 
-    # If author is owner, always allowed
     if isinstance(author, discord.Member) and author.guild.owner_id == author.id:
         return True
 
-    # If target is a ROLE
     if isinstance(target, discord.Role):
-        # Role has ADMIN?
         if target.permissions.administrator:
             return False
 
-        # Target role is above author’s highest role?
         if target.position >= author.top_role.position:
             return False
 
         return True
 
-    # If target is a USER
     if isinstance(target, discord.Member):
-        # User has ADMIN?
         if target.guild_permissions.administrator:
             return False
 
-        # Target member has equal or higher role
         if target.top_role.position >= author.top_role.position:
             return False
 
@@ -403,7 +396,7 @@ async def enablecommand(ctx, command_name: str = None, channel_input: str = None
     if not cmd_obj:
         return await ctx.send(embed=create_embed(
                 "",
-                f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
+                f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Unknown command `{command}`. Use `{prefix}commands` for help.",
                 ctx, include_author=False
             ))
     
@@ -891,7 +884,6 @@ async def prefix(ctx, new_prefix: str = None):
     guild_id = ctx.guild.id
     current = get_prefix_for_guild(guild_id)
 
-    # Show current prefix
     if not new_prefix:
         embed = discord.Embed(
             description=(
@@ -904,7 +896,6 @@ async def prefix(ctx, new_prefix: str = None):
         await ctx.send(embed=embed)
         return
 
-    # Check permissions
     if not ctx.author.guild_permissions.administrator:
         embed = discord.Embed(
             description=f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You need **Administrator** permissions to change the prefix.",
@@ -925,11 +916,7 @@ async def prefix(ctx, new_prefix: str = None):
 # CASE SYSTEM
 # =============
 
-# -------------------------
-# Formatting helpers
-# -------------------------
 def _fmt_case_brief(case_id: int, case: dict):
-    # Example line: "1. Warned for 'spam' (Case #4)"
     typ = case.get("type", "unknown")
     reason = case.get("reason")
 
@@ -991,7 +978,6 @@ def _fmt_case_detailed(case_id:int, case:dict, guild: discord.Guild, bot: comman
         value=reason,
         inline=True
     )
-    # attempt to set author to the user (if present in guild)
     member = guild.get_member(user_id)
     if member:
         embed.set_author(name=f"{member} ({user_id})", icon_url=member.avatar.url if member.avatar else None)
@@ -1002,7 +988,6 @@ def _fmt_case_detailed(case_id:int, case:dict, guild: discord.Guild, bot: comman
 # -------------------------
 # history command group
 # -------------------------
-# Requires bot variable and create_embed function in your script.
 
 PAGE_SIZE = 10
 
@@ -1025,13 +1010,13 @@ class HistoryView(discord.ui.View):
         embed = create_embed(
             title=f"HISTORY — {self.member.display_name}",
             description="",
-            ctx_or_msg=self.ctx,  # your create_embed expects ctx usually
+            ctx_or_msg=self.ctx, 
             include_author=False
         )
         embed.set_author(name=self.member.name, icon_url=self.member.avatar.url)
         lines = []
         for idx, (case_id, case) in enumerate(subset, start=1):
-            lines.append(f"**{idx}.** {_fmt_case_brief(case_id, case)}")
+            lines.append(f"`{idx}.` {_fmt_case_brief(case_id, case)}")
         if not lines:
             embed.description = f"{self.ctx.author.mention}: **{self.member.display_name}** is clean."
         else:
@@ -1076,7 +1061,6 @@ class HistoryView(discord.ui.View):
 
     @discord.ui.button(label="✖", style=discord.ButtonStyle.danger)
     async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Only allow the command author to close
         if interaction.user.id != self.ctx.author.id:
             return await interaction.response.send_message(
                 embed=create_embed("", f"<a:sword_spin:1211611749426667560>  {interaction.user.mention}: You are not the author of this embed.", self.ctx, include_author=False),
@@ -1106,14 +1090,13 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
     if member is None:
         member = ctx.author
 
-    case_list = get_cases_for_member(ctx.guild.id, member.id)  # list[(case_id, case)]
+    case_list = get_cases_for_member(ctx.guild.id, member.id)
     if not case_list:
         if member == ctx.author:
             return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: You are clean.", ctx, include_author=False))
         else:
             return await ctx.send(embed=create_embed("", f"{ctx.author.mention}: **{member.name}** is clean.", ctx, include_author=False))
 
-    # page sanity
     total = len(case_list)
     pages = (total + PAGE_SIZE - 1) // PAGE_SIZE or 1
     if page < 1:
@@ -1123,9 +1106,11 @@ async def history(ctx, member: discord.Member | None = None, page: int = 1):
 
     view = HistoryView(ctx, member, case_list, page=page)
     view.message = await ctx.send(embed=view.make_embed(), view=view)
+
 # -------------------------
 # history view subcommand
 # -------------------------
+
 @history.command(name="view")
 @commands.has_permissions(moderate_members=True)
 async def history_view(ctx, case_number: int = None):
@@ -1170,9 +1155,6 @@ async def history_view(ctx, case_number: int = None):
         print(f"[history view] Error: {e}")
         await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Failed to display case.", ctx, include_author=False))
 
-# -------------------------
-# history remove subcommand
-# -------------------------
 @history.command(name="remove", aliases=["delete", "del"])
 @commands.has_permissions(moderate_members=True)
 async def history_remove(ctx, member: discord.Member | None = None, case_number: int = None):
@@ -1217,9 +1199,6 @@ async def history_remove(ctx, member: discord.Member | None = None, case_number:
     else:
         await ctx.send(embed=create_embed("", f"{ctx.author.mention}: Failed to remove Case #{case_number}.", ctx, include_author=False))
 
-# -------------------------
-# history clear subcommand
-# -------------------------
 @history.command(name="clear", aliases=["removeall", "delall"])
 @commands.has_permissions(administrator=True)
 async def history_clear(ctx, member: discord.Member | None = None):
@@ -4140,7 +4119,7 @@ async def afk_mentions(ctx):
                     datetime.fromtimestamp(timestamp, tz=timezone.utc), 
                     style="R"
                 )
-                lines.append(f"{i}. {user_name} mentioned you in {channel_display} — {time_display}")
+                lines.append(f"`{i}.` {user_name} mentioned you in {channel_display} — {time_display}")
             
             embed = create_embed(
                 "AFK Mentions",
@@ -4326,7 +4305,6 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         await ctx.send(embed=embed)
         return
 
-    # Check if bot has higher role than target
     if member.top_role >= ctx.author.top_role:
         return await ctx.send(embed=create_embed(
             "",
@@ -4367,7 +4345,6 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
             ctx, color=0x71906e, include_author=False
         ))
 
-    # Now we require a forced_name to apply a new nickname
     if not forced_name:
         embed = create_embed(
             "command: forcename",
@@ -4388,7 +4365,6 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         await ctx.send(embed=embed)
         return
 
-    # Apply new forced nickname and store original
     try:
         original = member.nick if member.nick else member.name
         set_forced_nickname(ctx.guild.id, member.id, original, forced_name)
@@ -4401,10 +4377,8 @@ async def forcename(ctx, member: discord.Member = None, *, forced_name: str = No
         ctx, color=0x71906e, include_author=False
     ))
 
-# Event: re-apply forced nicknames when a member changes their nickname
 @bot.event
 async def on_member_update(before: discord.Member, after: discord.Member):
-    # Only run for nickname changes (before.nick vs after.nick)
     if before.nick == after.nick:
         return
 
@@ -4413,15 +4387,12 @@ async def on_member_update(before: discord.Member, after: discord.Member):
         return
 
     forced_name = entry["forced"]
-    # If the current nickname is already the forced name, nothing to do
     if after.nick == forced_name:
         return
 
     try:
-        # attempt to reapply forced nickname
         await after.edit(nick=forced_name)
     except Exception:
-        # ignore failures (lack of permissions, hierarchy issues, etc.)
         pass
         
 @bot.command(aliases=["ci"])
@@ -4441,24 +4412,20 @@ async def channelinfo(ctx, channel_input: str = None):
                     ctx,
                     include_author=False
                 )
-            )  # default to the channel the command was used in
+            )
 
     embed = discord.Embed(
         title=channel.name,
         color=0x2f3136
     )
 
-    # Author: user's display name & avatar
     embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar.url)
 
-    # Thumbnail: guild icon
     if ctx.guild.icon:
         embed.set_thumbnail(url=ctx.guild.icon.url)
 
-    # Field: ID
     embed.add_field(name="ID", value=f"`{channel.id}`", inline=True)
 
-    # Field: Created At
     embed.add_field(
         name="Created",
         value=f"<t:{int(channel.created_at.timestamp())}:F>",
@@ -4478,7 +4445,6 @@ async def channelinfo(ctx, channel_input: str = None):
         inline=True
     )
 
-    # Field: Type
     ctype = "Text Channel" if isinstance(channel, discord.TextChannel) else \
             "Voice Channel" if isinstance(channel, discord.VoiceChannel) else \
             "Category" if isinstance(channel, discord.CategoryChannel) else \
@@ -4514,10 +4480,9 @@ class MembersView(discord.ui.View):
         end = start + self.per_page
         current_members = self.members[start:end]
 
-        # Members formatted list
         if current_members:
             lines = "\n".join(
-                [f"{i+1}. **{member.name}**" for i, member in enumerate(current_members, start=start)]
+                [f"`{i+1}.` **{member.name}**" for i, member in enumerate(current_members, start=start)]
             )
         else:
             lines = "*No members found.*"
@@ -4528,7 +4493,6 @@ class MembersView(discord.ui.View):
             color=self.role.color if self.role.color.value != 0 else 0x2f3136
         )
 
-        # author
         embed.set_author(
             name=self.ctx.author.name,
             icon_url=self.ctx.author.avatar.url
@@ -4537,7 +4501,6 @@ class MembersView(discord.ui.View):
         if self.role.icon:
             embed.set_thumbnail(url=self.role.icon.url)
 
-        # pagination footer
         total_pages = max(1, (len(self.members) - 1) // self.per_page + 1)
         embed.set_footer(text=f"{self.index + 1}/{total_pages}")
 
@@ -4651,13 +4614,11 @@ async def userinfo(ctx, *, user: str = None):
     """See user's info
     example: userinfo zeph"""
 
-    # Default target = author
     if user is None:
         target = ctx.author
         is_member = True
 
     else:
-        # Try mention or ID
         try:
             target = await bot.fetch_user(int(user.strip("<@!>")))
             is_member = ctx.guild.get_member(target.id) is not None
@@ -4666,7 +4627,6 @@ async def userinfo(ctx, *, user: str = None):
                 target = ctx.guild.get_member(target.id)
 
         except:
-            # Try to find by partial name inside guild
             member_found = discord.utils.find(
                 lambda m: user.lower() in m.name.lower() or user.lower() in m.display_name.lower(),
                 ctx.guild.members
@@ -4676,7 +4636,6 @@ async def userinfo(ctx, *, user: str = None):
                 target = member_found
                 is_member = True
             else:
-                # Fetch global user
                 try:
                     target = await bot.fetch_user(user)
                     is_member = False
@@ -4687,7 +4646,6 @@ async def userinfo(ctx, *, user: str = None):
                     await ctx.message.delete()
                     return
 
-    # Dates
     created = target.created_at
     created_unix = int(created.timestamp())
     created_ago = time_ago(created)
@@ -4704,13 +4662,9 @@ async def userinfo(ctx, *, user: str = None):
         inline=False
     )
 
-    # ============================
-    #      MEMBER FIELDS
-    # ============================
     if is_member:
         target_member: discord.Member = target
 
-        # Joined
         if target_member.joined_at:
             joined = target_member.joined_at
             joined_unix = int(joined.timestamp())
@@ -4722,7 +4676,6 @@ async def userinfo(ctx, *, user: str = None):
                 inline=False
             )
 
-        # Roles
         roles = [r for r in target_member.roles if r.name != "@everyone"][::-1]
 
         if len(roles) == 0:
@@ -4739,7 +4692,6 @@ async def userinfo(ctx, *, user: str = None):
             inline=False
         )
 
-        # Member index
         sorted_members = sorted(
             ctx.guild.members,
             key=lambda m: m.joined_at or datetime.now(timezone.utc)
@@ -4748,11 +4700,7 @@ async def userinfo(ctx, *, user: str = None):
 
         embed.set_footer(text=f"Member #{member_index}  •  Requested by {ctx.author.display_name}")
 
-    # ============================
-    #      NON-MEMBER MODE
-    # ============================
     else:
-        # Count mutual guilds (between target user and ctx.author)
         mutuals = 0
         for g in bot.guilds:
             try:
@@ -4779,89 +4727,27 @@ async def userinfo_error(ctx, error):
         await asyncio.sleep(3)
         await msg.delete()
 
-# -----------------------------
-# Test command
-# -----------------------------
 @bot.command()
 async def ping(ctx):
     """See bot's latency"""
 
-    ping_targets = [
-        "Orion, the Iron Warrior",
-        "Selene, Lady of the Abyss",
-        "Kaelith, the Hollow Sentinel",
-        "The Solar Paladin",
-        "Zerath, the Crimson Fang",
-        "Heolstor, the Nightlord",
-        "Limveld",
-        "Caelid",
-        "Stormreach Citadel",
-        "Typhon",
-        "Limgrave",
-        "idk what to put here",
-        "who?",
-        "the city of atlantis",
-        "Jason Cintron",
-        "uhhhhhh",
-        "no one",
-        "ChatGPT",
-        "give me ideas what to put here",
-        "hello",
-        "a hooligan",
-        "a nincompoop",
-        "zeph's trash ass internet",
-        "a random npc",
-        "a discord mod",
-        "why so many boss names",
-        "what are all these pings 😭",
-        "👀",
-        "🫩",
-        "hmmm",
-        "a tuxedo cat named timmy",
-        "a bat",
-        "a lost child",
-        "Lunaris, the Nightblade",
-        "nobody to ping here.",
-        "Zephyrax Bloodveil",
-        "the Emperor",
-        "the Queen of the Full Moon",
-        "your fatass (jk)",
-        "yours truly",
-        "uhh wait",
-        "your Highness",
-        "/nightblade coming soon i hope",
-        "Kadaku",
-        "Jason Voorhees",
-        "nightblade (formerly known as lunaris)",
-    ]
-    
-    ultra_rare = f"secret command {get_prefix(bot, ctx.message)}batcave"
-    
-    choices = ping_targets + [ultra_rare]
-    weights = [1] * len(ping_targets) + [0.001]
-    
-    target = random.choices(choices, weights=weights, k=1)[0]
-
     placeholder = await ctx.send("ping...")
-    ws_latency = round(bot.latency * 1000)  # ms
+    ws_latency = round(bot.latency * 1000)
 
-    # Build embed with only description
     embed = discord.Embed(
-        description=f"<a:sword_spin:1211611749426667560>  It took `{ws_latency}ms` to ping **{target}**",
+        description=f"<a:sword_spin:1211611749426667560> Ping: `{ws_latency}ms`",
         color=discord.Color.from_str("#2f3136")
     )
 
-    # Edit placeholder
     await placeholder.edit(content=None, embed=embed)
     
 @bot.command(aliases=["av"])
 async def avatar(ctx, user: discord.User = None):
     """See user's avatar or your own
     example: avatar zeph"""
-    # Default to command author
+
     target = user or ctx.author
 
-    # Fetch full user to ensure avatar/banner is available
     try:
         fetched = await bot.fetch_user(target.id)
     except:
@@ -4872,13 +4758,11 @@ async def avatar(ctx, user: discord.User = None):
 
     avatar_url = fetched.avatar.url if fetched.avatar else fetched.default_avatar.url
 
-    # Embed color (member = top role color, non-member = neutral)
     if isinstance(target, discord.Member):
         color = target.color if target.color.value != 0 else 0x2f3136
     else:
         color = 0x2f3136
 
-    # Create embed
     embed = discord.Embed(
         title=f"{fetched.display_name}'s avatar",
         url=avatar_url,
@@ -4886,7 +4770,6 @@ async def avatar(ctx, user: discord.User = None):
     )
     embed.set_image(url=avatar_url)
 
-    # Include command author if viewing someone else
     if target != ctx.author:
         embed.set_author(
             name=str(ctx.author),
@@ -4899,7 +4782,7 @@ async def avatar(ctx, user: discord.User = None):
 async def serveravatar(ctx, user: discord.User = None):
     """See user's server avatar or your own
     example: serveravatar zeph"""
-    # Default to command author
+
     target = user or ctx.author
 
     member = ctx.guild.get_member(target.id)
@@ -4949,7 +4832,6 @@ async def guildicon(ctx):
     """See the server's icon"""
     guild = ctx.guild
 
-    # Get server icon URL (supports GIF)
     icon_url = guild.icon.url if guild.icon else None
 
     if not icon_url:
@@ -4972,10 +4854,9 @@ async def guildicon(ctx):
 async def banner(ctx, user: discord.User = None):
     """See user's banner or your own
     example: banner zeph"""
-    # Use command author if no user specified
+
     target = user or ctx.author
 
-    # Always fetch the full user to ensure banner is available
     try:
         fetched = await bot.fetch_user(target.id)
     except:
@@ -4994,14 +4875,11 @@ async def banner(ctx, user: discord.User = None):
 
     banner_url = banner.url
 
-    # Embed color matches top role color IF they're a member
     if isinstance(target, discord.Member):
         color = target.color if target.color.value != 0 else 0x2f3136
     else:
-        # Non-member → neutral color
         color = 0x2f3136
 
-    # Create embed
     embed = discord.Embed(
         title=f"{fetched.display_name}'s banner",
         url=banner_url,
@@ -5009,7 +4887,6 @@ async def banner(ctx, user: discord.User = None):
     )
     embed.set_image(url=banner_url)
 
-    # Add author info if viewing someone else
     if target != ctx.author:
         embed.set_author(
             name=str(ctx.author),
@@ -5025,11 +4902,9 @@ async def lockdown(ctx):
     channel = ctx.channel
     overwrite = channel.overwrites_for(ctx.guild.default_role)
 
-    # Check if already locked
     if overwrite.send_messages is False:
         return await ctx.send(embed=create_embed("", "🔒  Channel is already locked.", ctx, include_author=False))
 
-    # Lock it
     overwrite.send_messages = False
     await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
     msg = await ctx.send("🔒")
@@ -5358,10 +5233,8 @@ async def translate(ctx, language: str = None, *, text: str = None):
 @commands.cooldown(1, 5, BucketType.channel)
 @bot.command()
 async def nox(ctx, amount: int = 1):
-    # Limit
     amount = max(1, min(amount, 7))
 
-    # Build the repeated text
     result = "\n".join(["# NOX AETERNUM"] * amount)
 
     await ctx.send(result)
@@ -5802,7 +5675,7 @@ class RolesView(discord.ui.View):
         current_roles = self.roles[start:end]
 
         # Format role list
-        role_lines = "\n".join([f"{i+1}. {role.mention}" for i, role in enumerate(current_roles, start=start)])
+        role_lines = "\n".join([f"`{i+1}.` {role.mention}" for i, role in enumerate(current_roles, start=start)])
 
         embed = discord.Embed(
             title=f"Roles in {self.ctx.guild.name}",
@@ -5812,7 +5685,6 @@ class RolesView(discord.ui.View):
         embed.set_author(name=self.ctx.author.name, icon_url=self.ctx.author.avatar.url)
         embed.set_thumbnail(url=self.ctx.guild.icon.url if self.ctx.guild.icon else None)
 
-        # Footer (pagination)
         total_pages = max(1, (len(self.roles) - 1) // self.per_page + 1)
         embed.set_footer(text=f"{self.index + 1}/{total_pages}")
 
@@ -5869,10 +5741,8 @@ class RolesView(discord.ui.View):
 async def roles(ctx):
     """See all server roles"""
 
-    # Get all roles EXCEPT @everyone
     roles = [role for role in ctx.guild.roles if role != ctx.guild.default_role]
 
-    # If for some reason nothing is found
     if not roles:
         return await ctx.send(embed=create_embed(
             "",
@@ -5881,7 +5751,6 @@ async def roles(ctx):
             include_author=False
         ))
 
-    # Sort roles by position (descending)
     roles = sorted(roles, key=lambda r: r.position, reverse=True)
 
     view = RolesView(ctx, roles)
@@ -5905,8 +5774,7 @@ class BotsView(discord.ui.View):
         end = start + self.per_page
         current_bots = self.bots[start:end]
 
-        # Format bot list
-        bot_lines = "\n".join([f"{i+1}. **{bot.name}**" for i, bot in enumerate(current_bots, start=start)])
+        bot_lines = "\n".join([f"`{i+1}.` **{bot.name}**" for i, bot in enumerate(current_bots, start=start)])
 
         embed = discord.Embed(
             title=f"Bots in {self.ctx.guild.name}",
@@ -5974,7 +5842,6 @@ async def bots(ctx):
     """See all server bots"""
     bots = [member for member in ctx.guild.members if member.bot]
 
-    # If no bots found
     if not bots:
         return await ctx.send(
             embed=discord.Embed(
