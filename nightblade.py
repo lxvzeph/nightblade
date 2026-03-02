@@ -1948,7 +1948,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
 
     loading_embed = create_embed(
         "",
-        "<a:sword_spin:1211611749426667560>  Setting up `jail` system, this might take a while.",
+        "<a:sword_spin:1211611749426667560> Setting up `jail` system, this might take a while.",
         ctx,
         include_author=False
     )
@@ -2020,7 +2020,7 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
             pass
 
     final_embed = discord.Embed(
-        description=f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system has been set.",
+        description=f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `jail` system has been set.",
         color=0x2f3136
     )
     final_embed.add_field(name="Role", value=role.mention, inline=False)
@@ -2066,6 +2066,14 @@ async def jailset_role(ctx, *, newrole: str = None):
             "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
+
+    loading_embed = create_embed(
+        "",
+        "<a:sword_spin:1211611749426667560> Updating `jail` role, this might take a while.",
+        ctx,
+        include_author=False
+    )
+    status_msg = await ctx.send(embed=loading_embed)
     
     config = get_guild_jail(guild.id)
     channel = guild.get_channel(config["channel_id"])
@@ -2108,10 +2116,11 @@ async def jailset_role(ctx, *, newrole: str = None):
             pass
 
     set_guild_jail(guild.id, new_role.id, config["channel_id"])
-    await ctx.send(embed=create_embed(
+    final_embed = create_embed(
         "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Jail role updated to {new_role.mention}.",
         ctx, include_author=False
-    ))
+    )
+    await status_msg.edit(embed=final_embed)
 
 @jailset.command(name="channel")
 @commands.has_permissions(manage_messages=True)
@@ -2145,10 +2154,18 @@ async def jailset_channel(ctx, *, newchannel: str = None):
         )
         return await ctx.send(embed=embed)
     
+    loading_embed = create_embed(
+        "",
+        "<a:sword_spin:1211611749426667560> Updating `jail` channel, this might take a while.",
+        ctx,
+        include_author=False
+    )
+    status_msg = await ctx.send(embed=loading_embed)
+    
     new_channel = resolve_channel(guild, newchannel)
     if new_channel is None:
         return await ctx.send(embed=create_embed(
-            "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Channel `{newchannel}` not found.",
+            "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Channel `{newchannel}` not found.",
             ctx, include_author=False
         ))
     
@@ -2171,10 +2188,11 @@ async def jailset_channel(ctx, *, newchannel: str = None):
             pass
 
     set_guild_jail(guild.id, config["role_id"], new_channel.id)
-    await ctx.send(embed=create_embed(
+    final_embed = create_embed(
         "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Jail channel updated to {new_channel.mention}.",
         ctx, include_author=False
-    ))
+    )
+    await status_msg.edit(embed=final_embed)
 
 
 @bot.command()
@@ -2335,7 +2353,7 @@ async def imute_instruction_embed(ctx):
     embed = discord.Embed(
         title="",
         description=(
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system is **not set**.\n\n"
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `imute` system is **not set**.\n\n"
             f"To set it up, use:\n```{prefix}imuteset <role>```"
         ),
         color=0x2f3136
@@ -2356,7 +2374,7 @@ async def imuteset(ctx, *, role_arg=None):
         role = guild.get_role(config)
         embed = create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system is already set.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `imute` system is already set.",
             ctx,
             include_author=False
         )
@@ -2366,7 +2384,7 @@ async def imuteset(ctx, *, role_arg=None):
 
     loading_embed = create_embed(
         "",
-        "<a:sword_spin:1211611749426667560>  Setting up `imute` system, this might take a while.",
+        "<a:sword_spin:1211611749426667560> Setting up `imute` system, this might take a while.",
         ctx,
         include_author=False
     )
@@ -2405,7 +2423,7 @@ async def imuteset(ctx, *, role_arg=None):
     final_embed = discord.Embed(
         title="",
         description=(
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: "
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: "
             f"`imute` role has been set."
         ),
         color=0x2f3136
@@ -2424,7 +2442,7 @@ async def imuteset_role(ctx, *, newrole: str = None):
     if imute_not_set(guild):
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` system not set up yet. Run `{prefix}imuteset` first.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `imute` system not set up yet. Run `{prefix}imuteset` first.",
             ctx, include_author=False
         ))
 
@@ -2450,9 +2468,17 @@ async def imuteset_role(ctx, *, newrole: str = None):
     if new_role is None:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{newrole}` not found.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
+
+    loading_embed = create_embed(
+        "",
+        "<a:sword_spin:1211611749426667560> Updating `imute` role, this might take a while.",
+        ctx,
+        include_author=False
+    )
+    status_msg = await ctx.send(embed=loading_embed)
     
     config = get_imute_role_id(guild.id)
     old_role = guild.get_role(config) if config else None
@@ -2473,11 +2499,12 @@ async def imuteset_role(ctx, *, newrole: str = None):
             pass
     
     set_imute_role_id(guild.id, new_role.id)
-    await ctx.send(embed=create_embed(
+    final_embed = create_embed(
         "",
-        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `imute` role updated to {new_role.mention}.",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `imute` role updated to {new_role.mention}.",
         ctx, include_author=False
-    ))
+    )
+    await status_msg.edit(embed=final_embed)
 
 
 @bot.command()
@@ -2513,7 +2540,7 @@ async def imute(ctx, member: discord.Member = None, *, reason=None):
     if member == ctx.author:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: You cannot `imute` yourself.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: You cannot `imute` yourself.",
             ctx,
             include_author=False
         ))
@@ -2564,7 +2591,7 @@ async def rmute_instruction_embed(ctx):
 
     embed = discord.Embed(
         description=(
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: "
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: "
             "`rmute` system is **not set**.\n\n"
             f"To set it up, use:\n```{prefix}rmuteset <role>```"
         ),
@@ -2586,7 +2613,7 @@ async def rmuteset(ctx, *, role_arg=None):
         role = guild.get_role(config)
         embed = create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` system is already set.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `rmute` system is already set.",
             ctx,
             include_author=False
         )
@@ -2596,7 +2623,7 @@ async def rmuteset(ctx, *, role_arg=None):
 
     loading_embed = create_embed(
         "",
-        "<a:sword_spin:1211611749426667560>  Setting up `rmute` system, this might take a while.",
+        "<a:sword_spin:1211611749426667560> Setting up `rmute` system, this might take a while.",
         ctx,
         include_author=False
     )
@@ -2634,7 +2661,7 @@ async def rmuteset(ctx, *, role_arg=None):
 
     final_embed = discord.Embed(
         description=(
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: "
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: "
             "`rmute` role has been set."
         ),
         color=0x2f3136
@@ -2653,7 +2680,7 @@ async def rmuteset_role(ctx, *, newrole: str = None):
     if rmute_not_set(guild):
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` system not set up yet. Run `{prefix}rmuteset` first.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `rmute` system not set up yet. Run `{prefix}rmuteset` first.",
             ctx, include_author=False
         ))
 
@@ -2679,9 +2706,17 @@ async def rmuteset_role(ctx, *, newrole: str = None):
     if new_role is None:
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Role `{newrole}` not found.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Role `{newrole}` not found.",
             ctx, include_author=False
         ))
+    
+    loading_embed = create_embed(
+        "",
+        "<a:sword_spin:1211611749426667560> Updating `rmute` role, this might take a while.",
+        ctx,
+        include_author=False
+    )
+    status_msg = await ctx.send(embed=loading_embed)
     
     config = get_rmute_role_id(guild.id)
     old_role = guild.get_role(config) if config else None
@@ -2701,11 +2736,12 @@ async def rmuteset_role(ctx, *, newrole: str = None):
             pass
     
     set_rmute_role_id(guild.id, new_role.id)
-    await ctx.send(embed=create_embed(
+    final_embed = create_embed(
         "",
-        f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `rmute` role updated to {new_role.mention}.",
+        f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `rmute` role updated to {new_role.mention}.",
         ctx, include_author=False
-    ))
+    )
+    await status_msg.edit(embed=final_embed)
 
 
 @bot.command()
