@@ -1,25 +1,10 @@
-"""
-data/snipes.py
---------------
-DB helper for the Snipe cog.
-
-Unlike other helpers, snipes keep their working data in-memory (self.snipes,
-self.reaction_snipes, self.edit_snipes) and use these functions only for
-persistence — loading on startup and writing on each event/cleanup.
-"""
-
 from datetime import datetime
 from data.db import get_connection
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# LOAD — called once in Snipe.__init__
-# ─────────────────────────────────────────────────────────────────────────────
 
 def load_all_snipes() -> tuple[dict, dict, dict]:
     """
     Load all three snipe dicts from the DB.
-    Returns (messages, reactions, edits) — same shape as self.snipes etc.
+    Returns (messages, reactions, edits) same shape as self.snipes etc.
     Keys are int channel IDs, values are lists of dicts.
     """
     messages  = {}
@@ -27,7 +12,6 @@ def load_all_snipes() -> tuple[dict, dict, dict]:
     edits     = {}
 
     with get_connection() as conn:
-        # Messages
         for row in conn.execute("SELECT channel_id, author_id, author_name, author_avatar_url, content, attachments, time FROM snipes_messages").fetchall():
             cid = int(row[0])
             messages.setdefault(cid, []).append({
@@ -39,7 +23,6 @@ def load_all_snipes() -> tuple[dict, dict, dict]:
                 "time":             datetime.fromisoformat(row[6]),
             })
 
-        # Reactions
         for row in conn.execute("SELECT channel_id, user_id, user_name, user_avatar_url, emoji, message_id, message_url, time FROM snipes_reactions").fetchall():
             cid = int(row[0])
             reactions.setdefault(cid, []).append({
@@ -52,7 +35,6 @@ def load_all_snipes() -> tuple[dict, dict, dict]:
                 "time":             datetime.fromisoformat(row[7]),
             })
 
-        # Edits
         for row in conn.execute("SELECT channel_id, author_id, author_name, author_avatar_url, before_content, after_content, message_url, time FROM snipes_edits").fetchall():
             cid = int(row[0])
             edits.setdefault(cid, []).append({
@@ -67,10 +49,6 @@ def load_all_snipes() -> tuple[dict, dict, dict]:
 
     return messages, reactions, edits
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SAVE — called on each listener event
-# ─────────────────────────────────────────────────────────────────────────────
 
 def save_message_snipe(channel_id: int, snipe: dict):
     """Insert a single message snipe row."""
@@ -129,40 +107,28 @@ def save_edit_snipe(channel_id: int, snipe: dict):
         ))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DELETE — called by clearsnipe commands
-# ─────────────────────────────────────────────────────────────────────────────
-
-def delete_message_snipe(channel_id: int, author_id: int, time: datetime):
-    """Delete a specific message snipe by channel + author + time (unique enough)."""
+def delete_message_snipe(channel_id: int):
     with get_connection() as conn:
-        conn.execute("""
-            DELETE FROM snipes_messages
-            WHERE channel_id = ? AND author_id = ? AND time = ?
-        """, (str(channel_id), str(author_id), time.isoformat()))
+        conn.execute(
+            "DELETE FROM snipes_messages WHERE channel_id = ?",
+            (str(channel_id),)
+        )
 
 
-def delete_reaction_snipe(channel_id: int, user_id: int, time: datetime):
-    """Delete a specific reaction snipe by channel + user + time."""
+def delete_reaction_snipe(channel_id: int):
     with get_connection() as conn:
-        conn.execute("""
-            DELETE FROM snipes_reactions
-            WHERE channel_id = ? AND user_id = ? AND time = ?
-        """, (str(channel_id), str(user_id), time.isoformat()))
+        conn.execute(
+            "DELETE FROM snipes_reactions WHERE channel_id = ?",
+            (str(channel_id),)
+        )
 
 
-def delete_edit_snipe(channel_id: int, author_id: int, time: datetime):
-    """Delete a specific edit snipe by channel + author + time."""
+def delete_edit_snipe(channel_id: int):
     with get_connection() as conn:
-        conn.execute("""
-            DELETE FROM snipes_edits
-            WHERE channel_id = ? AND author_id = ? AND time = ?
-        """, (str(channel_id), str(author_id), time.isoformat()))
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CLEANUP — called by the periodic task
-# ─────────────────────────────────────────────────────────────────────────────
+        conn.execute(
+            "DELETE FROM snipes_edits WHERE channel_id = ?",
+        (str(channel_id),)
+    )
 
 def delete_expired_snipes(cutoff: datetime):
     """Delete all snipe rows older than the cutoff datetime."""

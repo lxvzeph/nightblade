@@ -19,30 +19,21 @@ class Snipe(commands.Cog):
         self.snipes, self.reaction_snipes, self.edit_snipes = load_all_snipes()
         self.cleanup_snipes.start()
 
-    # -------------------------
-    # PERIODIC CLEANUP
-    # -------------------------
     @tasks.loop(minutes=10)
     async def cleanup_snipes(self):
         cutoff = datetime.utcnow() - timedelta(hours=2)
 
-        # Clean messages
         for cid in list(self.snipes.keys()):
             self.snipes[cid] = [m for m in self.snipes[cid] if m["time"] > cutoff]
 
-        # Clean reactions
         for cid in list(self.reaction_snipes.keys()):
             self.reaction_snipes[cid] = [r for r in self.reaction_snipes[cid] if r["time"] > cutoff]
 
-        # Clean edits
         for cid in list(self.edit_snipes.keys()):
             self.edit_snipes[cid] = [e for e in self.edit_snipes[cid] if e["time"] > cutoff]
 
         delete_expired_snipes(cutoff)
 
-    # -------------------------
-    # LISTENERS
-    # -------------------------
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.id in self.ignore_deletes:
@@ -93,7 +84,7 @@ class Snipe(commands.Cog):
             return
 
         if before.content == after.content:
-            return  # ignore embed-only edits
+            return
 
         cid = before.channel.id
 
@@ -110,10 +101,6 @@ class Snipe(commands.Cog):
         self.edit_snipes.setdefault(cid, []).append(snipe)
         save_edit_snipe(cid, snipe)
 
-
-    # -------------------------
-    # MESSAGE SNIPE COMMANDS
-    # -------------------------
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["s"])
     async def snipe(self, ctx, number: int = 1):
@@ -150,7 +137,7 @@ class Snipe(commands.Cog):
 
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["cs"])
-    async def clearsnipe(self, ctx, number: int = 1):
+    async def clearsnipe(self, ctx):
         """Clear snipes for deleted messages
         example: clearsnipe 3"""
         cid = ctx.channel.id
@@ -160,16 +147,9 @@ class Snipe(commands.Cog):
                 color=discord.Color.from_str("#2f3136")
             ))
 
-        msgs = sorted(self.snipes[cid], key=lambda x: x["time"], reverse=True)
-        if number < 1 or number > len(msgs):
-            return await ctx.send(embed=discord.Embed(
-                description="No deleted messages in the last 2 hours.",
-                color=discord.Color.from_str("#2f3136")
-            ))
-
-        removed = msgs.pop(number - 1)
-        self.snipes[cid] = sorted(msgs, key=lambda x: x["time"])
-        delete_message_snipe(cid, removed["author_id"], removed["time"])
+        count = len(self.snipes[cid])
+        self.snipes[cid] = []
+        delete_message_snipe(cid)
 
         msg = await ctx.send("👍")
         await msg.delete(delay=2)
@@ -177,9 +157,6 @@ class Snipe(commands.Cog):
         self.ignore_deletes.add(ctx.message.id)
         await ctx.message.delete(delay=2)
 
-    # -------------------------
-    # REACTION SNIPE COMMANDS
-    # -------------------------
     @commands.has_permissions(manage_messages=True)
     @commands.command(aliases=["rs"])
     async def reactionsnipe(self, ctx, number: int = 1):
@@ -225,16 +202,9 @@ class Snipe(commands.Cog):
                 color=discord.Color.from_str("#2f3136")
             ))
 
-        reactions = sorted(self.reaction_snipes[cid], key=lambda x: x["time"], reverse=True)
-        if number < 1 or number > len(reactions):
-            return await ctx.send(embed=discord.Embed(
-                description="No removed reactions in the last 2 hours.",
-                color=discord.Color.from_str("#2f3136")
-            ))
-
-        removed = reactions.pop(number - 1)
-        self.reaction_snipes[cid] = sorted(reactions, key=lambda x: x["time"])
-        delete_reaction_snipe(cid, removed["user_id"], removed["time"])
+        count = len(self.reaction_snipes[cid])
+        self.reaction_snipes[cid] = []
+        delete_reaction_snipe(cid)
 
         msg = await ctx.send("👍")
         await msg.delete(delay=2)
@@ -291,17 +261,9 @@ class Snipe(commands.Cog):
                     color=discord.Color.from_str("#2f3136")
                 ))
         
-        edits = sorted(self.edit_snipes[cid], key=lambda x: x["time"], reverse=True)
-        if number < 1 or number > len(edits):
-            return await ctx.send(
-                embed=discord.Embed(
-                    description="No edited message(s) in the last 2 hours.",
-                    color=discord.Color.from_str("#2f3136")
-                ))
-        
-        removed = edits.pop(number - 1)
-        self.edit_snipes[cid] = sorted(edits, key=lambda x: x["time"])
-        delete_edit_snipe(cid, removed["author_id"], removed["time"])
+        count = len(self.edit_snipes[cid])
+        self.edit_snipes[cid] = []
+        delete_edit_snipe(cid)
 
         msg = await ctx.send("👍")
         await msg.delete(delay=2)
@@ -309,7 +271,6 @@ class Snipe(commands.Cog):
         self.ignore_deletes.add(ctx.message.id)
         await ctx.message.delete(delay=2)
 
-    # Helper
     def format_elapsed(self, delta):
         seconds = int(delta.total_seconds())
         if seconds < 60:

@@ -217,3 +217,39 @@ def init_db():
         )
         """)
         conn.commit()
+
+def cleanup_guild_data(guild_id: int):
+    """Remove all data associated with a guild."""
+    guild_id_str = str(guild_id)
+    
+    with get_connection() as conn:
+        tables_to_clean = [
+            "autoresponders",
+            "prefixes",
+            "imute_config",
+            "rmute_config",
+            "cases",
+            "case_counters",
+            "warnings",
+            "role_backup_members",
+            "role_backup",
+            "licenses",
+            "autoroles",
+            "jail_config",
+            "disabled_commands",
+            "command_restrictions",
+            "forced_nicknames",
+            "afk_mentions",
+            "snipes_messages",
+            "snipes_reactions",
+            "snipes_edits"
+        ]
+        
+        for table in tables_to_clean:
+            try:
+                conn.execute(f"DELETE FROM {table} WHERE guild_id = ?", (guild_id_str,))
+            except Exception as e:
+                print(f"[DB] Error cleaning {table} for guild {guild_id}: {e}")
+        
+        conn.commit()
+        print(f"[DB] Cleaned all data for guild {guild_id}")

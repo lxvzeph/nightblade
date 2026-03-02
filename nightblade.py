@@ -12,7 +12,7 @@ from deep_translator.exceptions import LanguageNotSupportedException
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import get
-from data.db import init_db
+from data.db import init_db, cleanup_guild_data
 from data.prefixes import (
     get_prefix_for_guild,
     set_prefix_for_guild,
@@ -87,8 +87,8 @@ intents.message_content = True
 		
 def get_prefix(bot, message):
     if message.guild:
-        return get_prefix_for_guild(message.guild.id)  # default prefix ";"
-    return ";"  # default in DM
+        return get_prefix_for_guild(message.guild.id)
+    return ";"
 
 def p(ctx):
 	return get_prefix(bot, ctx.message)
@@ -96,16 +96,52 @@ def p(ctx):
 bot = commands.Bot(command_prefix=get_prefix, intents=intents)
 bot.remove_command('help')
         
+NB_SERVER_ID = 1069850380114067487
+NB_LOG_CHANNEL_ID = 1478167854829408336
+
 @bot.event
 async def on_guild_remove(guild):
-    delete_prefix_for_guild(guild.id)
-    clear_command_restrictions(guild.id)
+    cleanup_guild_data(guild.id)
+    nb_server = bot.get_guild(NB_SERVER_ID)
+    if nb_server:
+        log_channel = bot.get_channel(NB_LOG_CHANNEL_ID)
+        if log_channel:
+            embed = discord.Embed(
+                title="",
+                description="## Left Server\n"
+                f"**{guild.name}** (`{guild.id}`)",
+                color=0x2f3136,
+                timestamp=discord.utils.utcnow()
+            )
+            embed.add_field(
+                name="Owner",
+                value=f"{guild.owner.mention if guild.owner else 'Unknown'} (`{guild.owner_id}`)",
+                inline=False
+            )
+            
+            embed.add_field(
+                name="Members",
+                value=f"`{guild.member_count}`",
+                inline=True
+            )
+            
+            embed.add_field(
+                name="Created",
+                value=discord.utils.format_dt(guild.created_at, style="R"),
+                inline=True
+            )
+            
+            if guild.icon:
+                embed.set_thumbnail(url=guild.icon.url)
+            
+            embed.set_footer(text="All server data has been wiped")
+            
+            try:
+                await log_channel.send(embed=embed)
+            except Exception as e:
+                print(f"[Guild Remove] Failed to send log: {e}")
 
-	
-
-# Updated create_embed that works for both ctx and message, optional author
-
-EMBED_COLOR = 0x2f3136 # default color
+EMBED_COLOR = 0x2f3136
 
 def create_embed(title, description, ctx_or_msg, include_author=True, color=None):
     try:
@@ -113,7 +149,6 @@ def create_embed(title, description, ctx_or_msg, include_author=True, color=None
     except AttributeError:
         bot_avatar = ctx_or_msg.guild.me.avatar.url if ctx_or_msg.guild else None
 
-    # Decide final color
     final_color = discord.Color(color) if isinstance(color, int) else color
     if final_color is None:
         final_color = discord.Color(EMBED_COLOR)
