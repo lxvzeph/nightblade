@@ -2009,13 +2009,13 @@ async def jailset(ctx, role_arg=None, channel_arg=None):
     for ch in guild.text_channels:
         if ch.id != channel.id:
             try:
-                await ch.set_permissions(role, send_messages=False)
+                await ch.set_permissions(role, view_channel=False)
             except:
                 pass
 
     for vc in guild.voice_channels:
         try:
-            await vc.set_permissions(role, connect=False, speak=False)
+            await vc.set_permissions(role, view_channel=False)
         except:
             pass
 
@@ -2038,7 +2038,7 @@ async def jailset_role(ctx, *, newrole: str = None):
     if jail_system_not_set(guild):
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
             ctx, include_author=False
         ))
     
@@ -2097,19 +2097,19 @@ async def jailset_role(ctx, *, newrole: str = None):
     for ch in guild.text_channels:
         if ch.id != (channel.id if channel else None):
             try:
-                await ch.set_permissions(new_role, send_messages=False)
+                await ch.set_permissions(new_role, view_channel=False)
             except discord.Forbidden:
                 pass
     
     for vc in guild.voice_channels:
         try:
-            await vc.set_permissions(new_role, connect=False, speak=False)
+            await vc.set_permissions(new_role, view_channel=False)
         except discord.Forbidden:
             pass
 
     set_guild_jail(guild.id, new_role.id, config["channel_id"])
     await ctx.send(embed=create_embed(
-        "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Jail role updated to {new_role.mention}.",
+        "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Jail role updated to {new_role.mention}.",
         ctx, include_author=False
     ))
 
@@ -2124,7 +2124,7 @@ async def jailset_channel(ctx, *, newchannel: str = None):
     if jail_system_not_set(guild):
         return await ctx.send(embed=create_embed(
             "",
-            f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
+            f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: `jail` system is not set up yet. Run `{prefix}jailset` first.",
             ctx, include_author=False
         ))
     
@@ -2172,7 +2172,7 @@ async def jailset_channel(ctx, *, newchannel: str = None):
 
     set_guild_jail(guild.id, config["role_id"], new_channel.id)
     await ctx.send(embed=create_embed(
-        "", f"<a:sword_spin:1211611749426667560>  {ctx.author.mention}: Jail channel updated to {new_channel.mention}.",
+        "", f"<a:sword_spin:1211611749426667560> {ctx.author.mention}: Jail channel updated to {new_channel.mention}.",
         ctx, include_author=False
     ))
 
