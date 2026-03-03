@@ -239,10 +239,7 @@ def cleanup_guild_data(guild_id: int):
             "disabled_commands",
             "command_restrictions",
             "forced_nicknames",
-            "afk_mentions",
-            "snipes_messages",
-            "snipes_reactions",
-            "snipes_edits"
+            "afk_mentions"
         ]
         
         for table in tables_to_clean:
