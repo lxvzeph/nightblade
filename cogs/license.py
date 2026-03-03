@@ -130,7 +130,6 @@ class License(commands.Cog):
             embed.add_field(name="**Utilization**", value=f"```ansi\n\u001b[35msyntax:\u001b[0m {prefix}genkey <serverID>\n\u001b[35mexample:\u001b[0m {prefix}genkey 18643710398134652```", inline=False)
             return await ctx.send(embed=embed)
 
-        # role check for authorized staff
         author_role_ids = [r.id for r in ctx.author.roles]
         if not any(rid in author_role_ids for rid in AUTHORIZED_ROLE_IDS):
             embed = self._embed(description="You are not authorized to generate keys.", include_author=False)
@@ -230,14 +229,20 @@ class License(commands.Cog):
         guild_obj = self.bot.get_guild(int(target_gid))
         entry = get_license(int(target_gid))
         if not entry:
-            embed = self._embed(title="", description=f"<a:sword_spin:1211611749426667560>  No license assigned for guild `{guild_obj.name}`.", ctx=ctx, include_author=False)
+            embed = self._embed(title="", description=f"<a:sword_spin:1211611749426667560> No license assigned for guild `{guild_obj.name}`.", ctx=ctx, include_author=False)
             return await ctx.send(embed=embed)
             
         status = "Activated" if entry.get("activated") else "Not activated"
         key = entry.get("key", "—")
         embed = self._embed(color=discord.Color.from_str("#2f3136"))
-        embed.set_author(name=f"{guild_obj.name}\n({guild_obj.id})")
-        embed.set_thumbnail(url=guild_obj.icon.url)
+        if guild_obj:
+            embed.set_author(name=f"{guild_obj.name}\n({guild_obj.id})")
+            if guild_obj.icon:
+                embed.set_thumbnail(url=guild_obj.icon.url)
+        else:
+            embed.set_author(name=f"Unknown Server\n({target_gid})")
+            embed.add_field(name="⚠️ Note", value="Bot is not in this server", inline=False)
+
         embed.add_field(name="**Key**", value=f"```{key}```", inline=False)
         embed.add_field(name="**Status**", value=f"{status}", inline=False)
         await ctx.send(embed=embed)
@@ -261,37 +266,43 @@ class License(commands.Cog):
             return await ctx.send(embed=embed)
 
         guild_obj = self.bot.get_guild(int(guild_id))
-        gid = str(guild_id)
         if not get_license(guild_id):
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  That guild does not have a license entry.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> That guild does not have a license entry.", include_author=False)
             return await ctx.send(embed=embed)
 
         delete_license(guild_id)
+
+        guild_name = guild_obj.name if guild_obj else f"Unknown Server ({guild_id})"
+        guild_icon = guild_obj.icon.url if (guild_obj and guild_obj.icon) else None
         embed = self._embed(title="LICENSE REVOKED", description=f"License for server **{guild_obj.name}** has been revoked and removed.", include_author=True)
-        embed.set_thumbnail(url=guild_obj.icon.url)
+        if guild_icon:
+            embed.set_thumbnail(url=guild_icon)
+
         embed.add_field(name="**Moderator**", value=f"{ctx.author.mention}")
         await ctx.send(embed=embed)
 
-        embed2 = self._embed("LICENSE REVOKED", description=f"The license for this server has been revoked and **{self.bot.user.name}** is no longer functional.\n\nIf you believe this is a mistake, contact support in the official server.", include_author=True)
-        embed2.set_footer(text="Bot license lost, A new one is needed.")
-        embed2.set_thumbnail(url=guild_obj.icon.url)
+        if guild_obj:
+            embed2 = self._embed("LICENSE REVOKED", description=f"The license for this server has been revoked and **{self.bot.user.name}** is no longer functional.\n\nIf you believe this is a mistake, contact support in the official server.", include_author=True)
+            embed2.set_footer(text="Bot license lost, A new one is needed.")
+            if guild_obj.icon:
+                embed2.set_thumbnail(url=guild_obj.icon.url)
         
-        channel = guild_obj.system_channel
+            channel = guild_obj.system_channel
 
-        if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
-            channel = discord.utils.get(guild_obj.text_channels, name="general")
+            if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
+                channel = discord.utils.get(guild_obj.text_channels, name="general")
 
-        if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
-            for ch in guild_obj.text_channels:
-                if ch.permissions_for(guild_obj.me).send_messages:
-                    channel = ch
-                    break
+            if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
+                for ch in guild_obj.text_channels:
+                    if ch.permissions_for(guild_obj.me).send_messages:
+                        channel = ch
+                        break
 
-        if channel:
-            try:
-                await channel.send(embed=embed2)
-            except:
-                pass
+            if channel:
+                try:
+                    await channel.send(embed=embed2)
+                except:
+                    pass
 
 
 
@@ -300,11 +311,11 @@ class License(commands.Cog):
         """Deactivate a server's license for nightblade
         example: deactivate 193827189325461822"""
         if ctx.guild is None or ctx.guild.id != OFFICIAL_SERVER_ID:
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  This command only works in the official server.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> This command only works in the official server.", include_author=False)
             return await ctx.send(embed=embed)
 
         if not ctx.author.guild_permissions.manage_guild:
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  You need `Manage Server` permission to deactivate this guild's license.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> You need `Manage Server` permission to deactivate this guild's license.", include_author=False)
             return await ctx.send(embed=embed)
 
         if target_gid is None:
@@ -315,41 +326,46 @@ class License(commands.Cog):
         guild_obj = self.bot.get_guild(int(target_gid))
         entry = get_license(target_gid)
         if not entry:
-            embed = self._embed(description=f"<a:sword_spin:1211611749426667560>  No license entry found for server ID `{target_gid}`.", include_author=False)
+            embed = self._embed(description=f"<a:sword_spin:1211611749426667560> No license entry found for server ID `{target_gid}`.", include_author=False)
             return await ctx.send(embed=embed)
         if not entry.get("activated"):
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  This guild is not currently activated.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> This guild is not currently activated.", include_author=False)
             return await ctx.send(embed=embed)
 
         set_activated(target_gid, False)
 
+        guild_name = guild_obj.name if guild_obj else f"Unknown Server ({target_gid})"
+        guild_icon = guild_obj.icon.url if (guild_obj and guild_obj.icon) else None
+
         embed = self._embed("LICENSE DEACTIVATED", description=f"The license for server **{guild_obj.name}** has been deactivated.", include_author=True)
+        if guild_icon:
+            embed.set_thumbnail(url=guild_icon)
         embed.add_field(name="**Moderator**", value=f"{ctx.author.mention}")
-        embed.set_thumbnail(url=guild_obj.icon.url)
         await ctx.send(embed=embed)
 
-        embed2 = self._embed("LICENSE DEACTIVATED", description=f"The license for this server has been deactivated and **{self.bot.user.name}** is no longer functional.\n\nIf you believe this is a mistake, contact support in the official server.", include_author=True)
-        embed2.set_footer(text="Access to commands has been locked.")
-        embed2.set_thumbnail(url=guild_obj.icon.url)
+        if guild_obj:
+            embed2 = self._embed("LICENSE DEACTIVATED", description=f"The license for this server has been deactivated and **{self.bot.user.name}** is no longer functional.\n\nIf you believe this is a mistake, contact support in the official server.", include_author=True)
+            embed2.set_footer(text="Access to commands has been locked.")
+            if guild_obj.icon:
+                embed2.set_thumbnail(url=guild_obj.icon.url)
         
-        channel = guild_obj.system_channel
+            channel = guild_obj.system_channel
 
-        if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
-            channel = discord.utils.get(guild_obj.text_channels, name="general")
+            if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
+                channel = discord.utils.get(guild_obj.text_channels, name="general")
 
-        if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
-            for ch in guild_obj.text_channels:
-                if ch.permissions_for(guild_obj.me).send_messages:
-                    channel = ch
-                    break
+            if channel is None or not channel.permissions_for(guild_obj.me).send_messages:
+                for ch in guild_obj.text_channels:
+                    if ch.permissions_for(guild_obj.me).send_messages:
+                        channel = ch
+                        break
 
-        if channel:
-            try:
-                await channel.send(embed=embed2)
-            except:
-                pass
+            if channel:
+                try:
+                    await channel.send(embed=embed2)
+                except:
+                    pass
 
-# Cog setup
 async def setup(bot: commands.Bot):
     await bot.add_cog(License(bot))
     print("License cog loaded.")
