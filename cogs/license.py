@@ -1,4 +1,3 @@
-# cogs/license.py
 import random
 import string
 import asyncio
@@ -12,10 +11,8 @@ from data.licenses import (
     delete_license
 )
 
-# >>> EDIT THESE BEFORE USE <<<
 OFFICIAL_SERVER_ID = 1069850380114067487
 AUTHORIZED_ROLE_IDS = [1125010550200471632, 1426420301578895493]
-# ------------------------------
 
 def generate_license_key(existing_keys=set()):
     chars = string.ascii_uppercase + string.digits
@@ -35,7 +32,6 @@ class License(commands.Cog):
         self.bot = bot
         bot.add_check(self._global_license_check)
 
-    # ---------- helpers ----------
     def _all_keys(self):
         return get_all_keys()
 
@@ -56,23 +52,18 @@ class License(commands.Cog):
                 pass
         return embed
 
-    # ---------- global check ----------
     async def _global_license_check(self, ctx: commands.Context):
-        # allow non-command contexts
         if ctx.command is None:
             return True
 
-        # allow DMs
         if ctx.guild is None:
             return True
 
         cmd_name = ctx.command.name.lower()
 
-        # Always allow official server (staff can work there)
         if ctx.guild.id == OFFICIAL_SERVER_ID:
             return True
 
-        # Always allow activate command anywhere
         if cmd_name == "activate":
             return True
 
@@ -82,24 +73,18 @@ class License(commands.Cog):
         if cmd_name == "revoke":
             return True
 
-        # If guild is activated, allow
         if self._guild_is_activated(ctx.guild.id):
             return True
 
-        # Not activated: block (reply with consistent embed)
         embed = self._embed(
             description=f"<a:sword_spin:1211611749426667560>  This bot is not activated in this server, use `activate` to proceed.",
             include_author=False
         )
-        # reply and then raise to block execution
         try:
             await ctx.send(embed=embed)
         except Exception:
-            # swallow if reply fails
             pass
         raise commands.CheckFailure("Guild not activated")
-
-    # ---------------- COMMANDS ----------------
 
     @commands.command()
     async def genkey(self, ctx: commands.Context, guild_id: int | None = None):
@@ -107,8 +92,6 @@ class License(commands.Cog):
         example: genkey 18643710398134652"""
         prefix = ctx.prefix
 
-        # restrict to official server; global check already lets official server through,
-        # but here we still guard to ensure this command used in official server context.
         if ctx.guild.id != OFFICIAL_SERVER_ID:
             embed = self._embed(
                 description="<a:sword_spin:1211611749426667560>  This command only works in the official server.",
@@ -119,7 +102,6 @@ class License(commands.Cog):
             await msg.delete()
             return
         
-        # syntax helper when missing arg
         if guild_id is None:
             embed = self._embed(
                 title="command: genkey",
@@ -166,8 +148,6 @@ class License(commands.Cog):
                 embed.add_field(name="**Status**", value=f"{status}", inline=False)
                 return await ctx.send(embed=embed)
         
-
-        # create unique key and save
         key = generate_license_key(existing_keys=self._all_keys())
         create_license(guild_id, key)
 
@@ -194,19 +174,19 @@ class License(commands.Cog):
 
         entry = get_license(ctx.guild.id)
         if not entry:
-            embed = self._embed("", "<a:sword_spin:1211611749426667560>  This server does not have a license assigned.\n\nIf you believe this is a problem, contact support in the official server.", include_author=False)
+            embed = self._embed("", "<a:sword_spin:1211611749426667560> This server does not have a license assigned.\n\nIf you believe this is a problem, contact support in the official server.", include_author=False)
             msg = await ctx.send(embed=embed)
             await asyncio.sleep(3)
             await msg.delete()
             return
 
         if entry.get("activated"):
-            embed = self._embed("", "<a:sword_spin:1211611749426667560>  This server is already activated.", include_author=False)
+            embed = self._embed("", "<a:sword_spin:1211611749426667560> This server's license is already activated.", include_author=False)
             return await ctx.send(embed=embed)
             
 
         if entry.get("key") != key:
-            embed = self._embed("", "<a:sword_spin:1211611749426667560>  That key is invalid for this server.", include_author=False)
+            embed = self._embed("", "<a:sword_spin:1211611749426667560> That key is invalid for this server.", include_author=False)
             return await ctx.send(embed=embed)
 
         set_activated(ctx.guild.id, True)
@@ -229,7 +209,7 @@ class License(commands.Cog):
         guild_obj = self.bot.get_guild(int(target_gid))
         entry = get_license(int(target_gid))
         if not entry:
-            embed = self._embed(title="", description=f"<a:sword_spin:1211611749426667560> No license assigned for guild `{guild_obj.name}`.", ctx=ctx, include_author=False)
+            embed = self._embed(title="", description=f"<a:sword_spin:1211611749426667560> No license entry found for server ID `{target_gid}`", ctx=ctx, include_author=False)
             return await ctx.send(embed=embed)
             
         status = "Activated" if entry.get("activated") else "Not activated"
@@ -252,12 +232,12 @@ class License(commands.Cog):
         """Revoke and remove a license (official server staff only)
         example: revoke 193827189325461822"""
         if ctx.guild is None or ctx.guild.id != OFFICIAL_SERVER_ID:
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  This command only works in the official server.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> This command only works in the official server.", include_author=False)
             return await ctx.send(embed=embed)
 
         author_role_ids = [r.id for r in ctx.author.roles]
         if not any(rid in author_role_ids for rid in AUTHORIZED_ROLE_IDS):
-            embed = self._embed(description="<a:sword_spin:1211611749426667560>  You do not have permission to revoke licenses.", include_author=False)
+            embed = self._embed(description="<a:sword_spin:1211611749426667560> You do not have permission to revoke licenses.", include_author=False)
             return await ctx.send(embed=embed)
 
         if guild_id is None:
@@ -267,7 +247,7 @@ class License(commands.Cog):
 
         guild_obj = self.bot.get_guild(int(guild_id))
         if not get_license(guild_id):
-            embed = self._embed(description="<a:sword_spin:1211611749426667560> That guild does not have a license entry.", include_author=False)
+            embed = self._embed(description=f"<a:sword_spin:1211611749426667560> No license entry found for server ID: `{guild_id}`", include_author=False)
             return await ctx.send(embed=embed)
 
         delete_license(guild_id)
@@ -304,8 +284,6 @@ class License(commands.Cog):
                 except:
                     pass
 
-
-
     @commands.command(aliases=["dea"])
     async def deactivate(self, ctx: commands.Context, target_gid: int | None = None):
         """Deactivate a server's license for nightblade
@@ -326,7 +304,7 @@ class License(commands.Cog):
         guild_obj = self.bot.get_guild(int(target_gid))
         entry = get_license(target_gid)
         if not entry:
-            embed = self._embed(description=f"<a:sword_spin:1211611749426667560> No license entry found for server ID `{target_gid}`.", include_author=False)
+            embed = self._embed(description=f"<a:sword_spin:1211611749426667560> No license entry found for server ID `{target_gid}`", include_author=False)
             return await ctx.send(embed=embed)
         if not entry.get("activated"):
             embed = self._embed(description="<a:sword_spin:1211611749426667560> This guild is not currently activated.", include_author=False)
